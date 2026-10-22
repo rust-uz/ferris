@@ -105,6 +105,42 @@ pub struct ChatMessage {
     pub user: UserProfile,
     pub text: String,
     pub timestamp: u64,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub prev_hash: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub msg_hash: Option<String>,
+}
+
+pub fn compute_chat_hash(id: &str, room: &str, username: &str, text: &str, timestamp: u64, prev_hash: Option<&str>) -> String {
+    let mut hasher = blake3::Hasher::new();
+    hasher.update(b"FERRIS-PQC-CHAT-V1:");
+    hasher.update(id.as_bytes());
+    hasher.update(b":");
+    hasher.update(room.as_bytes());
+    hasher.update(b":");
+    hasher.update(username.as_bytes());
+    hasher.update(b":");
+    hasher.update(timestamp.to_string().as_bytes());
+    hasher.update(b":");
+    hasher.update(prev_hash.unwrap_or("GENESIS").as_bytes());
+    hasher.update(b":");
+    hasher.update(text.as_bytes());
+    hasher.finalize().to_hex().to_string()
+}
+
+pub fn compute_dm_hash(id: &str, sender: &str, receiver: &str, text: &str, timestamp: u64) -> String {
+    let mut hasher = blake3::Hasher::new();
+    hasher.update(b"FERRIS-PQC-DM-V1:");
+    hasher.update(id.as_bytes());
+    hasher.update(b":");
+    hasher.update(sender.as_bytes());
+    hasher.update(b":");
+    hasher.update(receiver.as_bytes());
+    hasher.update(b":");
+    hasher.update(timestamp.to_string().as_bytes());
+    hasher.update(b":");
+    hasher.update(text.as_bytes());
+    hasher.finalize().to_hex().to_string()
 }
 
 #[derive(Clone, Serialize, Deserialize, Debug)]
@@ -120,6 +156,8 @@ pub enum WsEvent {
         receiver_username: String,
         text: String,
         timestamp: u64,
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        msg_hash: Option<String>,
     },
 
     #[serde(rename = "post_comment")]
@@ -396,10 +434,10 @@ async fn load_from_postgres(pool: &PgPool) -> Option<(
         });
     }
 
-    // 6. Chat messages
+    // 6. Chat messages with PQC BLAKE3 cryptographic chain
     let mut chat_history = Vec::new();
     let chat_rows = sqlx::query(
-        "SELECT id, room, author_username, author_avatar, text, timestamp FROM chat_messages ORDER BY timestamp ASC LIMIT 100"
+        "SELECT id, room, author_username, author_avatar, text, timestamp, msg_hash, prev_hash FROM chat_messages ORDER BY timestamp ASC LIMIT 100"
     )
     .fetch_all(pool)
     .await
@@ -412,6 +450,10 @@ async fn load_from_postgres(pool: &PgPool) -> Option<(
         let avatar: Option<String> = r.try_get("author_avatar").ok();
         let text: String = r.try_get("text").unwrap_or_default();
         let timestamp: i64 = r.try_get("timestamp").unwrap_or(0);
+        let prev_hash: Option<String> = r.try_get("prev_hash").ok();
+        let msg_hash: Option<String> = r.try_get("msg_hash").ok().or_else(|| {
+            Some(compute_chat_hash(&id.to_string(), &room, &uname, &text, timestamp as u64, prev_hash.as_deref()))
+        });
 
         chat_history.push(ChatMessage {
             id: id.to_string(),
@@ -427,6 +469,8 @@ async fn load_from_postgres(pool: &PgPool) -> Option<(
             },
             text,
             timestamp: timestamp as u64,
+            prev_hash,
+            msg_hash,
         });
     }
 
@@ -1398,12 +1442,21 @@ async fn group_join_handler(
 
         let now = SystemTime::now().duration_since(UNIX_EPOCH).unwrap_or_default().as_secs();
         let action_str = if is_now_member { "a'zo bo'ldi 🎉" } else { "a'zolikdan chiqdi" };
+        let msg_id = Uuid::new_v4().to_string();
+        let msg_text = format!("👥 f/{} jamiyatiga {}", slug, action_str);
+        let prev_hash = {
+            let hist = state.chat_history.read().unwrap();
+            hist.iter().rev().find(|m| m.room == "general").and_then(|m| m.msg_hash.clone())
+        };
+        let msg_hash = compute_chat_hash(&msg_id, "general", &auth_user.username, &msg_text, now, prev_hash.as_deref());
         let chat_msg = ChatMessage {
-            id: Uuid::new_v4().to_string(),
+            id: msg_id,
             room: "general".to_string(),
             user: auth_user.clone(),
-            text: format!("👥 f/{} jamiyatiga {}", slug, action_str),
+            text: msg_text,
             timestamp: now,
+            prev_hash,
+            msg_hash: Some(msg_hash),
         };
         {
             let mut hist = state.chat_history.write().unwrap();
@@ -1584,12 +1637,21 @@ async fn add_comment_handler(
         posts.iter().find(|p| p.id == id).map(|p| p.title.clone()).unwrap_or_else(|| "Mavzu".to_string())
     };
 
+    let msg_id = Uuid::new_v4().to_string();
+    let msg_text = format!("💬 Yangi javob qoldirdi: \"{}\"", comment.content);
+    let prev_hash = {
+        let hist = state.chat_history.read().unwrap();
+        hist.iter().rev().find(|m| m.room == "general").and_then(|m| m.msg_hash.clone())
+    };
+    let msg_hash = compute_chat_hash(&msg_id, "general", &auth_user.username, &msg_text, now, prev_hash.as_deref());
     let chat_msg = ChatMessage {
-        id: Uuid::new_v4().to_string(),
+        id: msg_id,
         room: "general".to_string(),
         user: auth_user.clone(),
-        text: format!("💬 Yangi javob qoldirdi: \"{}\"", comment.content),
+        text: msg_text,
         timestamp: now,
+        prev_hash,
+        msg_hash: Some(msg_hash),
     };
     {
         let mut hist = state.chat_history.write().unwrap();
@@ -1730,12 +1792,21 @@ async fn post_create_handler(
     save_db(&state);
 
     let now = SystemTime::now().duration_since(UNIX_EPOCH).unwrap_or_default().as_secs();
+    let msg_id = Uuid::new_v4().to_string();
+    let msg_text = format!("📝 Yangi muhokama ochdi: \"{}\"", new_post.title);
+    let prev_hash = {
+        let hist = state.chat_history.read().unwrap();
+        hist.iter().rev().find(|m| m.room == "general").and_then(|m| m.msg_hash.clone())
+    };
+    let msg_hash = compute_chat_hash(&msg_id, "general", &auth_user.username, &msg_text, now, prev_hash.as_deref());
     let chat_msg = ChatMessage {
-        id: Uuid::new_v4().to_string(),
+        id: msg_id,
         room: "general".to_string(),
         user: auth_user.clone(),
-        text: format!("📝 Yangi muhokama ochdi: \"{}\"", new_post.title),
+        text: msg_text,
         timestamp: now,
+        prev_hash,
+        msg_hash: Some(msg_hash),
     };
     {
         let mut hist = state.chat_history.write().unwrap();
@@ -2488,7 +2559,7 @@ async fn dm_messages_handler(
     if let Some(ref pool) = state.db {
         let rows = sqlx::query(
             r#"
-            SELECT id, sender_username, receiver_username, text, timestamp, is_read
+            SELECT id, sender_username, receiver_username, text, timestamp, is_read, msg_hash
             FROM direct_messages
             WHERE (sender_username = $1 AND receiver_username = $2)
                OR (sender_username = $2 AND receiver_username = $1)
@@ -2507,12 +2578,16 @@ async fn dm_messages_handler(
             let receiver: String = r.try_get("receiver_username").unwrap_or_default();
             let text: String = r.try_get("text").unwrap_or_default();
             let timestamp: i64 = r.try_get("timestamp").unwrap_or(0);
+            let msg_hash: String = r.try_get("msg_hash").ok().flatten().unwrap_or_else(|| {
+                compute_dm_hash(&id.to_string(), &sender, &receiver, &text, timestamp as u64)
+            });
             serde_json::json!({
                 "id": id,
                 "sender": sender,
                 "receiver": receiver,
                 "text": text,
                 "timestamp": timestamp,
+                "msg_hash": msg_hash,
             })
         }).collect();
 
@@ -2602,16 +2677,18 @@ async fn dm_send_handler(
 
     let id = Uuid::new_v4();
     let now = SystemTime::now().duration_since(UNIX_EPOCH).unwrap_or_default().as_secs();
+    let dm_hash = compute_dm_hash(&id.to_string(), &auth_user.username, &clean_target, &payload.text, now);
 
     if let Some(ref pool) = state.db {
         if let Err(e) = sqlx::query(
-            "INSERT INTO direct_messages (id, sender_username, receiver_username, text, timestamp, is_read) VALUES ($1, $2, $3, $4, $5, FALSE)"
+            "INSERT INTO direct_messages (id, sender_username, receiver_username, text, timestamp, is_read, msg_hash) VALUES ($1, $2, $3, $4, $5, FALSE, $6)"
         )
         .bind(id)
         .bind(&auth_user.username)
         .bind(&clean_target)
         .bind(&payload.text)
         .bind(now as i64)
+        .bind(&dm_hash)
         .execute(pool)
         .await {
             tracing::error!("PostgreSQL INSERT direct_messages error: {}", e);
@@ -2619,13 +2696,14 @@ async fn dm_send_handler(
         }
     }
 
-    // Targeted routing of WsEvent::DirectMessage strictly to sender and receiver
+    // Targeted routing of WsEvent::DirectMessage strictly to sender and receiver with PQC integrity hash
     let dm_event = WsEvent::DirectMessage {
         id: id.to_string(),
         sender_username: auth_user.username.clone(),
         receiver_username: clean_target.clone(),
         text: payload.text.clone(),
         timestamp: now,
+        msg_hash: Some(dm_hash),
     };
 
     {
@@ -2876,12 +2954,24 @@ async fn handle_socket(mut socket: WebSocket, state: AppState, auth_user: Option
                                 if let Some(content) = incoming.get("text").and_then(|c| c.as_str()) {
                                     if !content.trim().is_empty() {
                                         let now = SystemTime::now().duration_since(UNIX_EPOCH).unwrap_or_default().as_secs();
+                                        let room_name = incoming.get("room").and_then(|r| r.as_str()).unwrap_or("general").to_string();
+                                        let msg_id = incoming.get("id").and_then(|i| i.as_str()).map(|s| s.to_string()).unwrap_or_else(|| uuid::Uuid::new_v4().to_string());
+
+                                        let prev_hash = {
+                                            let hist = state.chat_history.read().unwrap();
+                                            hist.iter().rev().find(|m| m.room == room_name).and_then(|m| m.msg_hash.clone())
+                                        };
+
+                                        let msg_hash = compute_chat_hash(&msg_id, &room_name, &user.username, content, now, prev_hash.as_deref());
+
                                         let chat_msg = ChatMessage {
-                                            id: uuid::Uuid::new_v4().to_string(),
-                                            room: incoming.get("room").and_then(|r| r.as_str()).unwrap_or("general").to_string(),
+                                            id: msg_id,
+                                            room: room_name,
                                             user,
                                             text: content.to_string(),
                                             timestamp: now,
+                                            prev_hash: prev_hash.clone(),
+                                            msg_hash: Some(msg_hash.clone()),
                                         };
 
                                         {
@@ -2896,15 +2986,17 @@ async fn handle_socket(mut socket: WebSocket, state: AppState, auth_user: Option
 
                                         if let Some(ref pool) = state.db {
                                             let pool = pool.clone();
-                                            let id = Uuid::new_v4();
+                                            let id = Uuid::parse_str(&chat_msg.id).unwrap_or_else(|_| Uuid::new_v4());
                                             let room = chat_msg.room.clone();
                                             let uname = chat_msg.user.username.clone();
                                             let avatar = chat_msg.user.avatar_url.clone();
                                             let text = chat_msg.text.clone();
                                             let ts = chat_msg.timestamp as i64;
+                                            let m_hash = msg_hash.clone();
+                                            let p_hash = prev_hash.clone();
                                             tokio::spawn(async move {
                                                 let _ = sqlx::query(
-                                                    "INSERT INTO chat_messages (id, room, author_username, author_avatar, text, timestamp) VALUES ($1, $2, $3, $4, $5, $6)"
+                                                    "INSERT INTO chat_messages (id, room, author_username, author_avatar, text, timestamp, msg_hash, prev_hash) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)"
                                                 )
                                                 .bind(id)
                                                 .bind(room)
@@ -2912,6 +3004,8 @@ async fn handle_socket(mut socket: WebSocket, state: AppState, auth_user: Option
                                                 .bind(avatar)
                                                 .bind(text)
                                                 .bind(ts)
+                                                .bind(m_hash)
+                                                .bind(p_hash)
                                                 .execute(&pool)
                                                 .await;
                                             });

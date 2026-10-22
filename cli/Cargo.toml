@@ -26,3 +26,4 @@ colored = "2.1"
 tokio-tungstenite = { version = "0.30.0", features = ["rustls-tls-native-roots"] }
 futures-util = "0.3.34"
 chrono = "0.4.45"
+blake3 = "1.5"

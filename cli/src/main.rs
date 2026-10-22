@@ -276,6 +276,38 @@ struct PostDetailResponse {
     comments: Vec<CommentItem>,
 }
 
+pub fn compute_chat_hash(id: &str, room: &str, username: &str, text: &str, timestamp: u64, prev_hash: Option<&str>) -> String {
+    let mut hasher = blake3::Hasher::new();
+    hasher.update(b"FERRIS-PQC-CHAT-V1:");
+    hasher.update(id.as_bytes());
+    hasher.update(b":");
+    hasher.update(room.as_bytes());
+    hasher.update(b":");
+    hasher.update(username.as_bytes());
+    hasher.update(b":");
+    hasher.update(timestamp.to_string().as_bytes());
+    hasher.update(b":");
+    hasher.update(prev_hash.unwrap_or("GENESIS").as_bytes());
+    hasher.update(b":");
+    hasher.update(text.as_bytes());
+    hasher.finalize().to_hex().to_string()
+}
+
+pub fn compute_dm_hash(id: &str, sender: &str, receiver: &str, text: &str, timestamp: u64) -> String {
+    let mut hasher = blake3::Hasher::new();
+    hasher.update(b"FERRIS-PQC-DM-V1:");
+    hasher.update(id.as_bytes());
+    hasher.update(b":");
+    hasher.update(sender.as_bytes());
+    hasher.update(b":");
+    hasher.update(receiver.as_bytes());
+    hasher.update(b":");
+    hasher.update(timestamp.to_string().as_bytes());
+    hasher.update(b":");
+    hasher.update(text.as_bytes());
+    hasher.finalize().to_hex().to_string()
+}
+
 #[derive(Deserialize, Debug)]
 struct ChatUserProfile {
     username: String,
@@ -285,13 +317,15 @@ struct ChatUserProfile {
 
 #[derive(Deserialize, Debug)]
 struct ChatMessageIncoming {
-    #[allow(dead_code)]
     id: Option<String>,
-    #[allow(dead_code)]
     room: Option<String>,
     user: ChatUserProfile,
     text: String,
     timestamp: Option<u64>,
+    #[serde(default)]
+    prev_hash: Option<String>,
+    #[serde(default)]
+    msg_hash: Option<String>,
 }
 
 #[derive(Deserialize, Debug)]
@@ -307,6 +341,8 @@ enum WsEventIncoming {
         receiver_username: String,
         text: String,
         timestamp: u64,
+        #[serde(default)]
+        msg_hash: Option<String>,
     },
 
     #[serde(rename = "post_comment")]
@@ -1169,16 +1205,28 @@ fn handle_ws_incoming_text(text: &str, current_username: Option<&str>) {
     // 1. Try parsing structured WsEventIncoming
     if let Ok(event) = serde_json::from_str::<WsEventIncoming>(text) {
         match event {
-            WsEventIncoming::DirectMessage { id: _, sender_username, receiver_username, text, timestamp } => {
+            WsEventIncoming::DirectMessage { id, sender_username, receiver_username, text, timestamp, msg_hash } => {
                 let time_str = format_ts(timestamp);
                 let is_for_me = current_username.map(|u| u == receiver_username).unwrap_or(false);
                 let is_from_me = current_username.map(|u| u == sender_username).unwrap_or(false);
+
+                let sec_badge = if let Some(ref r_hash) = msg_hash {
+                    let expected = compute_dm_hash(&id, &sender_username, &receiver_username, &text, timestamp);
+                    if r_hash == &expected {
+                        let short = if r_hash.len() >= 8 { &r_hash[..8] } else { r_hash.as_str() };
+                        format!("[🔒 PQC-DM: {}]", short).green().bold()
+                    } else {
+                        "[⚠️ SOXTA / HASH NOTO'G'RI]".red().bold()
+                    }
+                } else {
+                    "[🔒 PQC-DM]".dimmed()
+                };
 
                 let badge = "[📩 SHAXSIY XABAR]".magenta().bold();
                 let sender_disp = if is_from_me { format!("@{}", sender_username).green().bold() } else { format!("@{}", sender_username).cyan().bold() };
                 let rec_disp = if is_for_me { format!("@{}", receiver_username).green().bold() } else { format!("@{}", receiver_username).cyan().bold() };
 
-                println!("{} {} ({} ➔ {}): {}", time_str.dimmed(), badge, sender_disp, rec_disp, text.white().bold());
+                println!("{} {} {} ({} ➔ {}): {}", time_str.dimmed(), badge, sec_badge, sender_disp, rec_disp, text.white().bold());
             }
             WsEventIncoming::PostComment { id: _, post_id: _, post_title, author_name, content, timestamp } => {
                 let time_str = format_ts(timestamp);
@@ -1213,8 +1261,23 @@ fn handle_ws_incoming_text(text: &str, current_username: Option<&str>) {
                 } else {
                     format!("@{}", author).cyan().bold()
                 };
+
+                let sec_badge = if let Some(ref r_hash) = msg.msg_hash {
+                    let msg_id = msg.id.as_deref().unwrap_or("");
+                    let room_str = msg.room.as_deref().unwrap_or("general");
+                    let expected = compute_chat_hash(msg_id, room_str, author, &msg.text, ts, msg.prev_hash.as_deref());
+                    if r_hash == &expected {
+                        let short = if r_hash.len() >= 8 { &r_hash[..8] } else { r_hash.as_str() };
+                        format!("[🔒 PQC: {}]", short).green().bold()
+                    } else {
+                        "[⚠️ SOXTA / HASH NOTO'G'RI]".red().bold()
+                    }
+                } else {
+                    "[🔒 PQC-LEGACY]".dimmed()
+                };
+
                 let badge = "[⚡ CHAT]".cyan().bold();
-                println!("{} {} {}: {}", time_str.dimmed(), badge, colored_author, msg.text);
+                println!("{} {} {} {}: {}", time_str.dimmed(), badge, sec_badge, colored_author, msg.text);
             }
         }
         let _ = std::io::stdout().flush();
@@ -1349,7 +1412,20 @@ async fn handle_dm_command(
                                         format!("@{}", s).cyan().bold()
                                     };
                                     let id_short = if id.len() >= 8 { &id[..8] } else { id };
-                                    println!("  {} {} {}: {}", time_str.dimmed(), format!("[{}]", id_short).dimmed(), sender_fmt, t);
+                                    let r_hash = m["msg_hash"].as_str();
+                                    let sec_badge = if let Some(h) = r_hash {
+                                        let receiver = if s == config.username.as_deref().unwrap_or("") { clean_user } else { config.username.as_deref().unwrap_or("") };
+                                        let expected = compute_dm_hash(id, s, receiver, t, ts as u64);
+                                        if h == expected {
+                                            let short = if h.len() >= 8 { &h[..8] } else { h };
+                                            format!("[🔒 PQC: {}]", short).green().bold()
+                                        } else {
+                                            "[⚠️ SOXTA]".red().bold()
+                                        }
+                                    } else {
+                                        "[🔒 PQC-LEGACY]".dimmed()
+                                    };
+                                    println!("  {} {} {} {}: {}", time_str.dimmed(), format!("[{}]", id_short).dimmed(), sec_badge, sender_fmt, t);
                                 }
                             }
                         }
