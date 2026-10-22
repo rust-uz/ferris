@@ -204,6 +204,7 @@ pub struct AppState {
     pub group_members: Arc<RwLock<HashMap<String, HashSet<String>>>>,
     pub posts: Arc<RwLock<Vec<Post>>>,
     pub comments: Arc<RwLock<Vec<Comment>>>,
+    pub post_views: Arc<RwLock<HashMap<Uuid, HashSet<String>>>>,
     pub bot_token: String,
     pub github_client_id: String,
     pub github_client_secret: String,
@@ -220,6 +221,8 @@ pub struct PersistentData {
     pub comments: Vec<Comment>,
     #[serde(default)]
     pub chat_history: Vec<ChatMessage>,
+    #[serde(default)]
+    pub post_views: HashMap<Uuid, HashSet<String>>,
 }
 
 const DB_PATH: &str = "ferris_db.json";
@@ -255,6 +258,7 @@ fn save_db(state: &AppState) {
         posts: state.posts.read().unwrap().clone(),
         comments: state.comments.read().unwrap().clone(),
         chat_history: state.chat_history.read().unwrap().clone(),
+        post_views: state.post_views.read().unwrap().clone(),
     };
 
     tokio::task::spawn_blocking(move || {
@@ -274,6 +278,7 @@ async fn load_from_postgres(pool: &PgPool) -> Option<(
     Vec<Comment>,
     HashMap<String, UserProfile>,
     Vec<ChatMessage>,
+    HashMap<Uuid, HashSet<String>>,
 )> {
     // 1. Users & Sessions
     let mut sessions = HashMap::new();
@@ -474,15 +479,29 @@ async fn load_from_postgres(pool: &PgPool) -> Option<(
         });
     }
 
+    // 7. Post Views (deduplicated views per user or IP)
+    let mut post_views: HashMap<Uuid, HashSet<String>> = HashMap::new();
+    if let Ok(view_rows) = sqlx::query("SELECT post_id, viewer_key FROM post_views")
+        .fetch_all(pool)
+        .await
+    {
+        for r in view_rows {
+            let pid: Uuid = r.try_get("post_id").unwrap_or_default();
+            let vk: String = r.try_get("viewer_key").unwrap_or_default();
+            post_views.entry(pid).or_default().insert(vk);
+        }
+    }
+
     info!(
-        "🐘 [PostgreSQL 16] Ma'lumotlar bazasidan muvaffaqiyatli yuklandi: {} ta sessiya, {} ta jamiyat, {} ta post, {} ta chat xabari",
+        "🐘 [PostgreSQL 16] Ma'lumotlar bazasidan muvaffaqiyatli yuklandi: {} ta sessiya, {} ta jamiyat, {} ta post, {} ta ko'rishlar rekordi, {} ta chat xabari",
         sessions.len(),
         groups.len(),
         posts.len(),
+        post_views.len(),
         chat_history.len()
     );
 
-    Some((groups, group_members, posts, comments, sessions, chat_history))
+    Some((groups, group_members, posts, comments, sessions, chat_history, post_views))
 }
 
 #[tokio::main]
@@ -648,13 +667,13 @@ async fn main() {
         None
     };
 
-    let (mut saved_groups, saved_members, saved_posts, saved_comments, saved_sessions, saved_chat) =
-        if let Some((groups, members, posts, comments, sessions, chat)) = pg_data {
-            (groups, members, posts, comments, sessions, chat)
+    let (mut saved_groups, saved_members, saved_posts, saved_comments, saved_sessions, saved_chat, saved_views) =
+        if let Some((groups, members, posts, comments, sessions, chat, views)) = pg_data {
+            (groups, members, posts, comments, sessions, chat, views)
         } else if let Some(db) = load_db() {
-            (db.groups, db.group_members, db.posts, db.comments, db.sessions, db.chat_history)
+            (db.groups, db.group_members, db.posts, db.comments, db.sessions, db.chat_history, db.post_views)
         } else {
-            (initial_groups, initial_members, initial_posts, initial_comments, HashMap::new(), Vec::new())
+            (initial_groups, initial_members, initial_posts, initial_comments, HashMap::new(), Vec::new(), HashMap::new())
         };
 
     // Har bir jamiyatning a'zolar sonini haqiqiy a'zolar ro'yxatiga sinxronlash
@@ -686,6 +705,7 @@ async fn main() {
         group_members: Arc::new(RwLock::new(saved_members)),
         posts: Arc::new(RwLock::new(saved_posts)),
         comments: Arc::new(RwLock::new(saved_comments)),
+        post_views: Arc::new(RwLock::new(saved_views)),
         bot_token,
         github_client_id,
         github_client_secret,
@@ -830,7 +850,7 @@ async fn root_host_router(
         .unwrap_or("");
 
     if host.starts_with("topics.") {
-        topics_page_handler(State(state)).await.into_response()
+        topics_page_handler(State(state), headers).await.into_response()
     } else if host.starts_with("groups.") {
         groups_page_handler(State(state)).await.into_response()
     } else {
@@ -844,7 +864,20 @@ async fn root_host_router(
     }
 }
 
-async fn topics_page_handler(State(state): State<AppState>) -> impl IntoResponse {
+async fn topics_page_handler(State(state): State<AppState>, headers: HeaderMap) -> impl IntoResponse {
+    let viewer_key = get_viewer_key(&headers, &state);
+
+    // Record views for all visible posts on the topics feed (deduplicated per user/IP)
+    {
+        let post_ids: Vec<Uuid> = {
+            let posts = state.posts.read().unwrap();
+            posts.iter().map(|p| p.id).collect()
+        };
+        for pid in post_ids {
+            record_post_view(pid, &viewer_key, &state);
+        }
+    }
+
     let topics = state.topics.read().unwrap().clone();
     let posts = state.posts.read().unwrap().clone();
     let comments = state.comments.read().unwrap().clone();
@@ -983,9 +1016,62 @@ pub fn get_authenticated_user(headers: &HeaderMap, state: &AppState) -> Option<U
     None
 }
 
+pub fn get_viewer_key(headers: &HeaderMap, state: &AppState) -> String {
+    if let Some(user) = get_authenticated_user(headers, state) {
+        format!("u:{}", user.username)
+    } else {
+        format!("ip:{}", get_client_ip(headers))
+    }
+}
+
+pub fn record_post_view(post_id: Uuid, viewer_key: &str, state: &AppState) -> bool {
+    let mut views_map = state.post_views.write().unwrap();
+    let set = views_map.entry(post_id).or_insert_with(HashSet::new);
+    if set.insert(viewer_key.to_string()) {
+        let views_calc = set.len() as i32;
+        let mut posts = state.posts.write().unwrap();
+        if let Some(post) = posts.iter_mut().find(|p| p.id == post_id) {
+            if post.views_count < views_calc {
+                post.views_count = views_calc;
+            } else {
+                post.views_count += 1;
+            }
+        }
+        drop(posts);
+        drop(views_map);
+
+        save_db(state);
+
+        if let Some(ref pool) = state.db {
+            let pool = pool.clone();
+            let vk = viewer_key.to_string();
+            tokio::spawn(async move {
+                let _ = sqlx::query(
+                    "INSERT INTO post_views (post_id, viewer_key) VALUES ($1, $2) ON CONFLICT DO NOTHING"
+                )
+                .bind(post_id)
+                .bind(&vk)
+                .execute(&pool)
+                .await;
+
+                let _ = sqlx::query(
+                    "UPDATE posts SET views_count = GREATEST(views_count, (SELECT COUNT(*) FROM post_views WHERE post_id = $1)) WHERE id = $1"
+                )
+                .bind(post_id)
+                .execute(&pool)
+                .await;
+            });
+        }
+        true
+    } else {
+        false
+    }
+}
+
 async fn group_detail_page_handler(
     State(state): State<AppState>,
     Path(slug): Path<String>,
+    headers: HeaderMap,
 ) -> impl IntoResponse {
     let clean_slug = slug.trim_start_matches("f/").to_string();
     let groups = state.groups.read().unwrap();
@@ -993,6 +1079,8 @@ async fn group_detail_page_handler(
         Some(g) => g,
         None => return (StatusCode::NOT_FOUND, "Jamiyat topilmadi").into_response(),
     };
+
+    let viewer_key = get_viewer_key(&headers, &state);
 
     let members = {
         let members_map = state.group_members.read().unwrap();
@@ -1002,6 +1090,11 @@ async fn group_detail_page_handler(
 
     let all_posts = state.posts.read().unwrap().clone();
     let all_comments = state.comments.read().unwrap().clone();
+
+    // Record views for posts belonging to this group
+    for p in all_posts.iter().filter(|p| p.jamiyat_id == Some(group.id)) {
+        record_post_view(p.id, &viewer_key, &state);
+    }
 
     let posts: Vec<PostWithComments> = all_posts
         .into_iter()
@@ -1527,22 +1620,21 @@ struct PostDetailResponse {
 async fn post_detail_handler(
     State(state): State<AppState>,
     Path(id): Path<Uuid>,
+    headers: HeaderMap,
 ) -> Result<Json<PostDetailResponse>, (StatusCode, Json<serde_json::Value>)> {
-    let mut post_opt = None;
-    {
-        let mut posts = state.posts.write().unwrap();
-        if let Some(post) = posts.iter_mut().find(|p| p.id == id) {
-            post.views_count += 1;
-            post_opt = Some(post.clone());
-        }
-    }
+    let viewer_key = get_viewer_key(&headers, &state);
+    record_post_view(id, &viewer_key, &state);
+
+    let post_opt = {
+        let posts = state.posts.read().unwrap();
+        posts.iter().find(|p| p.id == id).cloned()
+    };
 
     if let Some(post) = post_opt {
         let comments = {
             let all_comments = state.comments.read().unwrap();
             all_comments.iter().filter(|c| c.post_id == id).cloned().collect()
         };
-        save_db(&state);
         Ok(Json(PostDetailResponse { post, comments }))
     } else {
         Err((

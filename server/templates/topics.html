@@ -79,6 +79,10 @@
                         </span>
                         <span>&bull;</span>
                         <span class="text-zinc-500">{{ item.post.created_at.format("%Y-%m-%d %H:%M") }}</span>
+                        <span>&bull;</span>
+                        <span class="text-emerald-400 font-semibold flex items-center gap-1">
+                            <span>👁</span> {{ item.post.views_count }} ta ko'rildi
+                        </span>
                     </div>
                     <div class="post-owner-actions hidden flex items-center gap-2" data-author="{{ item.post.author_name.as_deref().unwrap_or("") }}">
                         <button onclick="editPostPrompt('{{ item.post.id }}', this)" class="text-xs text-zinc-400 hover:text-brand-orange transition-colors flex items-center gap-1 font-mono">
