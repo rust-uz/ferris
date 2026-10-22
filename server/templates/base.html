@@ -1,0 +1,1029 @@
+<!DOCTYPE html>
+<html lang="uz" class="dark scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+    <title>{% block title %}Ferris.uz — O'zbekiston Rust Tizim Dasturlash Ekotizimi{% endblock %}</title>
+    <meta name="description" content="{% block description %}O'zbekiston Rustaceanlar hamjamiyati, rasmiy ferris-cli vositasi, mavzular va jamiyatlar portali.{% endblock %}">
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="icon" href="/logo.jpg">
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+                        mono: ['"JetBrains Mono"', 'monospace'],
+                    },
+                    colors: {
+                        brand: {
+                            orange: '#f74c00',
+                            accent: '#ff6a00',
+                            dark: '#09090b',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        ::selection { background: #f74c00; color: #ffffff; }
+        .cyber-grid {
+            background-image: 
+                linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+            background-size: 64px 64px;
+            mask-image: radial-gradient(ellipse at 50% 15%, black 40%, transparent 80%);
+        }
+    </style>
+</head>
+<body class="bg-black text-zinc-100 font-sans antialiased min-h-screen flex flex-col relative selection:bg-brand-orange selection:text-white">
+    <!-- Ambient Backdrop -->
+    <div class="fixed inset-0 pointer-events-none -z-10 bg-[radial-gradient(circle_at_50%_0%,rgba(247,76,0,0.08)_0%,transparent_60%)]">
+        <div class="absolute inset-0 cyber-grid"></div>
+    </div>
+
+    <!-- Top Navigation Bar -->
+    <header class="sticky top-0 z-50 bg-black/85 backdrop-blur-xl border-b border-white/10 transition-all">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-4">
+            <a href="https://ferris.uz" class="flex items-center gap-3 group shrink-0">
+                <img src="/logo.jpg" alt="Ferris" class="w-8 h-8 rounded-lg object-cover border border-white/15 shadow-sm group-hover:scale-105 transition-transform"/>
+                <span class="text-base font-bold tracking-tight text-white flex items-center">
+                    FERRIS<span class="text-brand-orange">.UZ</span>
+                </span>
+            </a>
+
+            <!-- Desktop Links -->
+            <nav class="hidden md:flex items-center gap-6 text-sm font-medium text-zinc-400">
+                <a href="https://topics.ferris.uz" class="hover:text-white transition-colors flex items-center gap-1.5">
+                    <span class="text-brand-orange font-mono">#</span> Mavzular
+                </a>
+                <a href="https://groups.ferris.uz" class="hover:text-white transition-colors flex items-center gap-1.5">
+                    <span class="text-zinc-500 font-mono">👥</span> Jamiyatlar
+                </a>
+                <a href="https://ferris.uz/profile" id="navProfileLink" class="hidden hover:text-white transition-colors flex items-center gap-1.5 text-zinc-300">
+                    <span>👤</span> Profilim
+                </a>
+                <a href="https://ferris.uz#cli-download" class="hover:text-white transition-colors">
+                    CLI Ilova
+                </a>
+                <a href="https://ferris.uz#playground" class="hover:text-white transition-colors">
+                    Playground
+                </a>
+                <a href="https://api.ferris.uz/api/v1/context" target="_blank" class="hover:text-white transition-colors flex items-center gap-1">
+                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span> API
+                </a>
+            </nav>
+
+            <!-- Right Controls: CLI + Auth Block -->
+            <div class="flex items-center gap-3">
+                <a href="https://ferris.uz#cli-download" class="hidden lg:inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-zinc-900 border border-white/15 text-zinc-300 hover:text-white hover:bg-zinc-800 transition-all">
+                    <span>⬇</span> ferris-cli
+                </a>
+
+                <!-- Auth Navigation Element -->
+                <div id="authNavWrapper" class="flex items-center gap-2">
+                    <!-- State: Logged Out -->
+                    <button id="navLoginBtn" onclick="openAuthModal()" class="inline-flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-semibold rounded-lg bg-brand-orange hover:bg-orange-600 text-white transition-all shadow-sm">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"></path></svg>
+                        <span>Kirish</span>
+                    </button>
+
+                    <!-- State: Logged In -->
+                    <div id="navUserBlock" class="hidden items-center gap-2">
+                        <button id="navDmBtn" onclick="toggleDmDrawer()" class="relative p-1.5 px-2.5 rounded-xl bg-zinc-900/80 hover:bg-zinc-800 border border-white/10 text-xs font-semibold text-zinc-200 hover:text-white transition-colors flex items-center gap-1.5 shadow-sm" title="Shaxsiy Xabarlar (DM)">
+                            <span>✉️</span>
+                            <span class="hidden sm:inline font-mono">DM</span>
+                            <span id="navDmBadge" class="hidden w-2 h-2 rounded-full bg-brand-orange animate-ping"></span>
+                        </button>
+                        <a href="https://ferris.uz/profile" class="flex items-center gap-2 p-1 px-2.5 rounded-xl bg-zinc-900/80 hover:bg-zinc-800 border border-white/10 transition-colors" title="Mening Profilim">
+                            <img id="navUserAvatar" src="/logo.jpg" alt="Avatar" class="w-6 h-6 rounded-full object-cover border border-white/20"/>
+                            <span id="navUserName" class="text-xs font-semibold text-zinc-200 hidden sm:inline max-w-[120px] truncate"></span>
+                        </a>
+                        <button onclick="logoutUser()" class="p-1.5 text-zinc-400 hover:text-rose-400 rounded-lg hover:bg-zinc-800 transition-colors" title="Chiqish">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
+                        </button>
+                    </div>
+                </div>
+                <script>
+                    (function() {
+                        try {
+                            const cookieMatch = document.cookie.match(/(^| )ferris_session=([^;]+)/);
+                            const token = (cookieMatch && cookieMatch[2]) || localStorage.getItem('ferris_session');
+                            if (token && token.trim().length > 0) {
+                                const lBtn = document.getElementById('navLoginBtn');
+                                const uBlock = document.getElementById('navUserBlock');
+                                const pLink = document.getElementById('navProfileLink');
+                                const mProfile = document.getElementById('mobileProfileLink');
+                                const avatar = document.getElementById('navUserAvatar');
+                                const name = document.getElementById('navUserName');
+                                if (lBtn) lBtn.classList.add('hidden');
+                                if (uBlock) { uBlock.classList.remove('hidden'); uBlock.classList.add('flex'); }
+                                if (pLink) { pLink.classList.remove('hidden'); pLink.classList.add('flex'); }
+                                if (mProfile) mProfile.classList.remove('hidden');
+                                const cached = JSON.parse(localStorage.getItem('ferris_user_cache') || '{}');
+                                if (cached.avatar_url && avatar) avatar.src = cached.avatar_url;
+                                if (cached.username && name) name.innerText = '@' + cached.username;
+                            }
+                        } catch(e) {}
+                    })();
+                </script>
+
+                <!-- Mobile Menu Button -->
+                <button id="mobileMenuBtn" class="md:hidden p-2 rounded-lg text-zinc-400 hover:text-white hover:bg-zinc-900 focus:outline-none" aria-label="Menyu">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Mobile Drawer -->
+    <div id="mobileDrawer" class="hidden md:hidden fixed inset-x-0 top-16 bg-zinc-950/95 backdrop-blur-2xl border-b border-white/10 px-6 py-6 z-40 transition-all">
+        <div class="flex flex-col gap-4 text-sm font-medium">
+            <a href="https://topics.ferris.uz" class="text-zinc-300 hover:text-white flex items-center justify-between py-1 border-b border-white/5">
+                <span>📌 topics.ferris.uz (Mavzular)</span>
+                <span class="text-xs font-mono text-brand-orange">Subdomen &rarr;</span>
+            </a>
+            <a href="https://groups.ferris.uz" class="text-zinc-300 hover:text-white flex items-center justify-between py-1 border-b border-white/5">
+                <span>👥 groups.ferris.uz (Jamiyatlar)</span>
+                <span class="text-xs font-mono text-zinc-400">Subdomen &rarr;</span>
+            </a>
+            <button onclick="toggleDmDrawer()" class="text-left text-zinc-300 hover:text-white py-1 border-b border-white/5 flex items-center justify-between">
+                <span>✉️ Shaxsiy Xabarlar (DM)</span>
+                <span class="text-xs font-mono text-emerald-400">Jonli WS &rarr;</span>
+            </button>
+            <a href="https://ferris.uz/profile" id="mobileProfileLink" class="hidden text-zinc-300 hover:text-white py-1 border-b border-white/5">
+                👤 Mening Profilim
+            </a>
+            <a href="https://ferris.uz#cli-download" class="text-zinc-300 hover:text-white py-1 border-b border-white/5">
+                💻 ferris-cli O'rnatish
+            </a>
+            <a href="https://ferris.uz#playground" class="text-zinc-300 hover:text-white py-1 border-b border-white/5">
+                ⚡ Rust Kod Playground
+            </a>
+            <a href="https://api.ferris.uz/api/v1/context" target="_blank" class="text-zinc-300 hover:text-white py-1">
+                📡 api.ferris.uz (JSON API)
+            </a>
+        </div>
+    </div>
+
+    <!-- Main View Content -->
+    <main class="flex-grow">
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Clean Compact Minimalist Footer -->
+    <footer class="border-t border-white/10 bg-zinc-950/60 mt-20 py-8 px-4 sm:px-6">
+        <div class="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-zinc-500 font-mono">
+            <div class="flex items-center gap-2.5">
+                <img src="/logo.jpg" alt="Ferris" class="w-5 h-5 rounded object-cover grayscale opacity-70"/>
+                <span class="text-zinc-300 font-semibold font-sans">FERRIS.UZ</span>
+                <span>&bull; O'zbekiston Rust Hamjamiyati</span>
+            </div>
+            <div class="flex items-center gap-5">
+                <a href="https://topics.ferris.uz" class="hover:text-zinc-300 transition-colors">topics.ferris.uz</a>
+                <a href="https://groups.ferris.uz" class="hover:text-zinc-300 transition-colors">groups.ferris.uz</a>
+                <a href="https://ferris.uz/profile" class="hover:text-zinc-300 transition-colors">Profil</a>
+                <a href="https://ferris.uz/privacy" class="hover:text-zinc-300 transition-colors text-zinc-400 font-sans">Maxfiylik Siyosati</a>
+                <a href="https://ferris.uz/terms" class="hover:text-zinc-300 transition-colors text-zinc-400 font-sans">Foydalanish Qoidalari</a>
+                <a href="https://api.ferris.uz/api/v1/context" class="hover:text-zinc-300 transition-colors">api.ferris.uz</a>
+                <a href="https://github.com/iskurama/ferris-uz" target="_blank" class="hover:text-zinc-300 transition-colors">GitHub</a>
+            </div>
+            <div>
+                &copy; 2026 Ferris.uz &bull; Cloudflare Universal SSL
+            </div>
+        </div>
+    </footer>
+
+    <!-- Floating DM Launcher Button -->
+    <button id="floatingDmBtn" onclick="toggleDmDrawer()" class="fixed bottom-6 right-6 z-40 flex items-center gap-2 px-3.5 py-2.5 rounded-2xl bg-zinc-950/90 hover:bg-zinc-900 border border-brand-orange/40 text-white font-medium text-xs shadow-2xl backdrop-blur-lg transition-all hover:scale-105 group" title="Shaxsiy Xabarlar (DM)">
+        <span class="text-base group-hover:rotate-12 transition-transform">✉️</span>
+        <span class="font-semibold font-mono hidden sm:inline">Shaxsiy Chat</span>
+        <span id="floatingDmBadge" class="hidden w-2 h-2 rounded-full bg-brand-orange animate-ping"></span>
+    </button>
+
+    <!-- Direct Message (DM) Slide-over Drawer -->
+    <div id="dmDrawerOverlay" class="hidden fixed inset-0 z-50 bg-black/60 backdrop-blur-sm transition-opacity" onclick="toggleDmDrawer()"></div>
+    <div id="dmDrawer" class="fixed top-0 right-0 bottom-0 z-50 w-full max-w-md bg-zinc-950 border-l border-white/15 shadow-2xl flex flex-col transform translate-x-full transition-transform duration-300 ease-in-out">
+        <!-- Drawer Header -->
+        <div class="p-4 border-b border-white/10 flex items-center justify-between bg-zinc-900/50 backdrop-blur-md">
+            <div class="flex items-center gap-2.5">
+                <button id="dmBackBtn" onclick="showDmList()" class="hidden p-1.5 rounded-lg text-zinc-400 hover:text-white hover:bg-zinc-800 transition-colors" title="Ortga">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+                </button>
+                <div class="flex flex-col">
+                    <h3 id="dmHeaderTitle" class="text-sm font-bold text-white tracking-tight flex items-center gap-2">
+                        <span>✉️</span> Shaxsiy Xabarlar (DM)
+                    </h3>
+                    <span id="dmHeaderSubtitle" class="text-[10px] font-mono text-zinc-500">Real-time WebSocket &bull; PostgreSQL 16</span>
+                </div>
+            </div>
+            <div class="flex items-center gap-3">
+                <span id="dmWsBadge" class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-[10px] font-mono text-emerald-400">
+                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                    <span>WS Online</span>
+                </span>
+                <button onclick="toggleDmDrawer()" class="p-1 rounded-lg text-zinc-500 hover:text-white text-xl leading-none transition-colors">&times;</button>
+            </div>
+        </div>
+
+        <!-- View 1: Conversations List -->
+        <div id="dmListView" class="flex-grow flex flex-col overflow-hidden">
+            <!-- New Chat Input -->
+            <div class="p-4 border-b border-white/5 bg-zinc-900/20">
+                <label class="block text-[11px] font-mono text-zinc-400 mb-1.5 font-medium">Yangi suhbat boshlash:</label>
+                <form onsubmit="startNewDmChat(event)" class="flex gap-2">
+                    <div class="relative flex-grow">
+                        <span class="absolute left-3 top-2.5 text-zinc-500 text-xs font-mono">@</span>
+                        <input id="dmTargetInput" type="text" placeholder="username (masalan: iskurama)" class="w-full bg-black/60 border border-white/10 rounded-xl pl-7 pr-3 py-2 text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-brand-orange/60 font-mono" required/>
+                    </div>
+                    <button type="submit" class="px-3 py-2 rounded-xl bg-brand-orange hover:bg-orange-600 text-white font-semibold text-xs transition-colors shrink-0">
+                        Ochish
+                    </button>
+                </form>
+                <div class="flex items-center gap-2 mt-2.5 text-[11px] text-zinc-500 font-mono">
+                    <span>Tavsiya:</span>
+                    <button onclick="openDmWith('iskurama')" class="text-cyan-400 hover:underline">@iskurama</button>
+                    <span>&bull;</span>
+                    <button onclick="openDmWith('ibrohimkoha')" class="text-yellow-400 hover:underline">@ibrohimkoha</button>
+                </div>
+            </div>
+
+            <!-- Conversations List Container -->
+            <div id="dmConvosContainer" class="flex-grow overflow-y-auto p-3 space-y-1">
+                <div class="p-6 text-center text-xs text-zinc-500 font-mono">
+                    Suhbatlar yuklanmoqda...
+                </div>
+            </div>
+        </div>
+
+        <!-- View 2: Active Chat View -->
+        <div id="dmChatView" class="hidden flex-grow flex flex-col overflow-hidden">
+            <!-- Active Partner Banner -->
+            <div class="px-4 py-2 bg-black/40 border-b border-white/5 flex items-center justify-between text-xs">
+                <div class="flex items-center gap-2">
+                    <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+                    <span class="text-zinc-400">Suhbatdosh:</span>
+                    <a id="dmPartnerProfileLink" href="#" target="_blank" class="font-bold text-cyan-400 hover:underline font-mono"></a>
+                </div>
+                <div class="flex items-center gap-2">
+                    <button id="dmBlockToggleBtn" onclick="toggleBlockActiveUser()" class="px-2.5 py-1 rounded-lg bg-zinc-800 hover:bg-rose-950/40 text-zinc-400 hover:text-rose-400 border border-white/10 text-[11px] font-mono transition-colors">
+                        🚫 Bloklash
+                    </button>
+                    <span class="text-[10px] font-mono text-zinc-500 hidden sm:inline">PostgreSQL</span>
+                </div>
+            </div>
+
+            <!-- Blocked Notice Banner -->
+            <div id="dmBlockedBanner" class="hidden px-4 py-2 bg-rose-950/40 border-b border-rose-500/20 text-rose-300 text-xs text-center font-mono">
+                🚫 Ushbu foydalanuvchi bilan yozishma bloklangan.
+            </div>
+
+            <!-- Messages Scroll Container -->
+            <div id="dmMessagesContainer" class="flex-grow overflow-y-auto p-4 space-y-3 flex flex-col">
+                <!-- Dynamic messages -->
+            </div>
+
+            <!-- Input Box -->
+            <div class="p-3 border-t border-white/10 bg-zinc-900/60 backdrop-blur-md">
+                <form onsubmit="sendDmMessage(event)" class="flex items-center gap-2">
+                    <input id="dmTextInput" type="text" placeholder="Xabar yozing (Enter bosing)..." autocomplete="off" class="flex-grow bg-black/60 border border-white/10 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-brand-orange/60 transition-colors" required/>
+                    <button type="submit" id="dmSendBtn" class="px-3.5 py-2.5 rounded-xl bg-brand-orange hover:bg-orange-600 text-white font-semibold text-xs transition-colors flex items-center gap-1 shrink-0">
+                        <span>Yuborish</span>
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path></svg>
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Incoming DM Toast Notification -->
+    <div id="dmToast" class="hidden fixed bottom-6 left-6 z-50 max-w-sm bg-zinc-950 border border-brand-orange/40 rounded-2xl p-4 shadow-2xl backdrop-blur-lg flex items-start gap-3 cursor-pointer hover:bg-zinc-900 transition-all" onclick="openDmFromToast()">
+        <span class="text-2xl">📩</span>
+        <div class="flex flex-col">
+            <div class="flex items-center justify-between gap-4">
+                <h4 id="dmToastSender" class="text-xs font-bold text-white font-mono"></h4>
+                <span class="text-[10px] font-mono text-zinc-500">Hozirgina</span>
+            </div>
+            <p id="dmToastText" class="text-xs text-zinc-300 mt-0.5 line-clamp-2"></p>
+        </div>
+    </div>
+
+    <!-- Universal Auth Modal (GitHub & Telegram SSO) -->
+    <div id="authModal" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4">
+        <div class="w-full max-w-sm bg-zinc-950 border border-white/15 rounded-2xl p-6 shadow-2xl flex flex-col gap-5 text-center relative">
+            <div class="flex items-center justify-between pb-3 border-b border-white/10">
+                <div class="flex items-center gap-2.5">
+                    <img src="/logo.jpg" alt="Ferris" class="w-6 h-6 rounded-md"/>
+                    <h3 class="text-sm font-bold text-white tracking-tight">Ferris.uz ga Kirish</h3>
+                </div>
+                <button onclick="closeAuthModal()" class="text-zinc-500 hover:text-white text-xl leading-none">&times;</button>
+            </div>
+            
+            <p class="text-xs text-zinc-400 leading-relaxed text-left">
+                Jamiyatlarga a'zo bo'lish, mavzu ochish va fikr bildirish uchun profilingiz bilan kiring:
+            </p>
+
+            <div class="flex flex-col gap-3">
+                <!-- GitHub OAuth (with return_to) -->
+                <a id="modalGithubBtn" href="https://ferris.uz/api/auth/github" class="w-full flex items-center justify-center gap-2.5 px-4 py-2.5 rounded-xl bg-zinc-900 hover:bg-zinc-800 border border-white/15 text-white font-medium text-xs transition-all shadow-sm">
+                    <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+                    <span>GitHub orqali kirish</span>
+                </a>
+
+                <!-- Telegram Options: Subdomain SSO Button vs Direct Widget on ferris.uz -->
+                <div id="telegramAuthContainer" class="flex flex-col items-center justify-center p-3 rounded-xl bg-zinc-900/60 border border-white/10 gap-2">
+                    <div id="tgSubdomainBtnWrap" class="w-full">
+                        <a id="modalTelegramSSOBtn" href="https://ferris.uz/login" class="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-sky-500/10 hover:bg-sky-500/20 border border-sky-500/30 text-sky-400 font-semibold text-xs transition-all">
+                            <span>🔵 Telegram orqali kirish &rarr;</span>
+                        </a>
+                    </div>
+                    <div id="tgDirectWidgetWrap" class="hidden min-h-[40px] flex items-center justify-center">
+                        <script async src="https://telegram.org/js/telegram-widget.js?22" 
+                                data-telegram-login="ferrisuzbot" 
+                                data-size="medium" 
+                                data-onauth="onTelegramAuth(user)" 
+                                data-request-access="write"></script>
+                    </div>
+                </div>
+            </div>
+
+            <div class="text-[11px] text-zinc-500 font-mono pt-2 border-t border-white/5">
+                🔒 Sessiya barcha *.ferris.uz subdomenlari uchun umumiy saqlanadi
+            </div>
+        </div>
+    </div>
+
+    <!-- Core Global Client Auth & Navigation Scripts -->
+    <script>
+        // Mobile Drawer
+        const btn = document.getElementById('mobileMenuBtn');
+        const drawer = document.getElementById('mobileDrawer');
+        if (btn && drawer) {
+            btn.addEventListener('click', () => drawer.classList.toggle('hidden'));
+        }
+
+        // Cross-Subdomain Cookie Utilities (Domain=.ferris.uz)
+        function setFerrisCookie(token) {
+            const host = window.location.hostname;
+            const domainPart = host.endsWith('ferris.uz') ? '; domain=.ferris.uz' : '';
+            document.cookie = `ferris_session=${token}${domainPart}; path=/; max-age=2592000; SameSite=Lax; Secure`;
+        }
+
+        function getFerrisCookie() {
+            const match = document.cookie.match(new RegExp('(^| )ferris_session=([^;]+)'));
+            return match ? match[2].trim() : null;
+        }
+
+        function clearFerrisCookie() {
+            const host = window.location.hostname;
+            if (host.endsWith('ferris.uz')) {
+                document.cookie = 'ferris_session=; domain=.ferris.uz; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; max-age=0';
+            }
+            document.cookie = 'ferris_session=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; max-age=0';
+        }
+
+        // Auth Helpers
+        window.openAuthModal = function() {
+            const m = document.getElementById('authModal');
+            if (!m) return;
+
+            // Set return_to on buttons
+            const currentUrl = window.location.href;
+            const ghBtn = document.getElementById('modalGithubBtn');
+            const tgBtn = document.getElementById('modalTelegramSSOBtn');
+            if (ghBtn) ghBtn.href = `https://ferris.uz/api/auth/github?return_to=${encodeURIComponent(currentUrl)}`;
+            if (tgBtn) tgBtn.href = `https://ferris.uz/login?return_to=${encodeURIComponent(currentUrl)}`;
+
+            // Check if we are on main domain or subdomain
+            const isMainDomain = window.location.hostname === 'ferris.uz' || window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+            const subWrap = document.getElementById('tgSubdomainBtnWrap');
+            const widgetWrap = document.getElementById('tgDirectWidgetWrap');
+            if (isMainDomain) {
+                if (subWrap) subWrap.classList.add('hidden');
+                if (widgetWrap) widgetWrap.classList.remove('hidden');
+            } else {
+                if (subWrap) subWrap.classList.remove('hidden');
+                if (widgetWrap) widgetWrap.classList.add('hidden');
+            }
+
+            m.classList.remove('hidden');
+        };
+
+        window.closeAuthModal = function() {
+            const m = document.getElementById('authModal');
+            if (m) m.classList.add('hidden');
+        };
+
+        // Primary source of truth is always the cross-subdomain cookie
+        window.getAuthToken = function() {
+            const cookie = getFerrisCookie();
+            if (cookie && cookie.length > 0) {
+                try { localStorage.setItem('ferris_session', cookie); } catch(e) {}
+                return cookie;
+            }
+            try {
+                const ls = localStorage.getItem('ferris_session');
+                if (ls && ls.length > 0) return ls.trim();
+            } catch(e) {}
+            return null;
+        };
+
+        window.requireAuth = function(action) {
+            const token = window.getAuthToken();
+            if (!token) {
+                window.openAuthModal();
+                return false;
+            }
+            if (typeof action === 'function') {
+                action(token);
+            }
+            return true;
+        };
+
+        // Telegram Widget Auth Callback (runs on ferris.uz)
+        window.onTelegramAuth = async function(user) {
+            try {
+                const res = await fetch('https://ferris.uz/api/auth/telegram', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(user)
+                });
+                const data = await res.json();
+                if (res.ok && data.success) {
+                    setFerrisCookie(data.token);
+                    try { localStorage.setItem('ferris_session', data.token); } catch(e) {}
+                    window.closeAuthModal();
+
+                    const params = new URLSearchParams(window.location.search);
+                    const ret = params.get('return_to');
+                    if (ret && (ret.startsWith('https://') || ret.startsWith('http://'))) {
+                        window.location.href = ret;
+                    } else {
+                        window.location.reload();
+                    }
+                } else {
+                    alert(data.error || 'Telegram autentifikatsiya xatosi');
+                }
+            } catch (err) {
+                alert('Server bilan bog\'lanishda xatolik: ' + err);
+            }
+        };
+
+        // Logout
+        window.logoutUser = async function() {
+            const token = window.getAuthToken();
+            if (token) {
+                try {
+                    await fetch(`/api/auth/logout?token=${encodeURIComponent(token)}`, { method: 'POST' });
+                } catch(e) {}
+            }
+            clearFerrisCookie();
+            try {
+                localStorage.removeItem('ferris_session');
+                localStorage.removeItem('ferris_user_cache');
+            } catch(e) {}
+            window.location.href = 'https://ferris.uz';
+        };
+
+        // Init Auth on Load
+        (async function initAuth() {
+            // Check if returned with github_token in URL
+            const params = new URLSearchParams(window.location.search);
+            const ghToken = params.get('github_token');
+            if (ghToken) {
+                setFerrisCookie(ghToken);
+                try { localStorage.setItem('ferris_session', ghToken); } catch(e) {}
+                window.history.replaceState({}, document.title, window.location.pathname);
+            }
+
+            const token = window.getAuthToken();
+            if (!token) {
+                const lBtn = document.getElementById('navLoginBtn');
+                const uBlock = document.getElementById('navUserBlock');
+                if (lBtn) lBtn.classList.remove('hidden');
+                if (uBlock) { uBlock.classList.add('hidden'); uBlock.classList.remove('flex'); }
+                return;
+            }
+
+            try {
+                // Use same-origin relative endpoint for fastest response without CORS overhead
+                const res = await fetch(`/api/auth/me?token=${encodeURIComponent(token)}`);
+                if (res.ok) {
+                    const user = await res.json();
+                    window.currentUser = user;
+
+                    // Ensure cross-domain cookie and storage stay fresh
+                    setFerrisCookie(token);
+                    try {
+                        localStorage.setItem('ferris_session', token);
+                        localStorage.setItem('ferris_user_cache', JSON.stringify({
+                            username: user.username || user.display_name,
+                            avatar_url: user.avatar_url
+                        }));
+                    } catch(e) {}
+
+                    const loginBtn = document.getElementById('navLoginBtn');
+                    const userBlock = document.getElementById('navUserBlock');
+                    const avatar = document.getElementById('navUserAvatar');
+                    const name = document.getElementById('navUserName');
+                    const profileLink = document.getElementById('navProfileLink');
+                    const mobileProfile = document.getElementById('mobileProfileLink');
+
+                    if (loginBtn) loginBtn.classList.add('hidden');
+                    if (userBlock) {
+                        userBlock.classList.remove('hidden');
+                        userBlock.classList.add('flex');
+                    }
+                    if (profileLink) {
+                        profileLink.classList.remove('hidden');
+                        profileLink.classList.add('flex');
+                    }
+                    if (mobileProfile) mobileProfile.classList.remove('hidden');
+                    if (avatar && user.avatar_url) avatar.src = user.avatar_url;
+                    if (name) name.innerText = '@' + (user.username || user.display_name);
+
+                    // Callback hook for pages that need to update button states based on currentUser
+                    if (typeof window.onUserLoaded === 'function') {
+                        window.onUserLoaded(user);
+                    }
+                } else if (res.status === 401) {
+                    // Stale or invalid session: ONLY clear if failing token matches current cookie
+                    if (getFerrisCookie() === token) {
+                        clearFerrisCookie();
+                    }
+                    try {
+                        if (localStorage.getItem('ferris_session') === token) {
+                            localStorage.removeItem('ferris_session');
+                        }
+                        localStorage.removeItem('ferris_user_cache');
+                    } catch(e) {}
+                    const lBtn = document.getElementById('navLoginBtn');
+                    const uBlock = document.getElementById('navUserBlock');
+                    const pLink = document.getElementById('navProfileLink');
+                    const mProfile = document.getElementById('mobileProfileLink');
+                    if (lBtn) lBtn.classList.remove('hidden');
+                    if (uBlock) { uBlock.classList.add('hidden'); uBlock.classList.remove('flex'); }
+                    if (pLink) { pLink.classList.add('hidden'); pLink.classList.remove('flex'); }
+                    if (mProfile) mProfile.classList.add('hidden');
+                }
+            } catch(e) {
+                console.error("Auth sync error", e);
+            }
+        })();
+
+        // =========================================================================
+        // REAL-TIME DIRECT MESSAGING (DM) & WEBSOCKET ENGINE
+        // =========================================================================
+        window.activeDmUser = null;
+        let dmWs = null;
+        let lastToastSender = null;
+
+        window.toggleDmDrawer = function() {
+            const drawer = document.getElementById('dmDrawer');
+            const overlay = document.getElementById('dmDrawerOverlay');
+            if (!drawer) return;
+
+            const isOpen = !drawer.classList.contains('translate-x-full');
+            if (isOpen) {
+                drawer.classList.add('translate-x-full');
+                if (overlay) overlay.classList.add('hidden');
+            } else {
+                if (!window.getAuthToken()) {
+                    window.openAuthModal();
+                    return;
+                }
+                drawer.classList.remove('translate-x-full');
+                if (overlay) overlay.classList.remove('hidden');
+                hideDmBadges();
+                if (!window.activeDmUser) {
+                    loadDmConversations();
+                }
+            }
+        };
+
+        window.showDmList = function() {
+            window.activeDmUser = null;
+            document.getElementById('dmListView').classList.remove('hidden');
+            document.getElementById('dmChatView').classList.add('hidden');
+            document.getElementById('dmBackBtn').classList.add('hidden');
+            document.getElementById('dmHeaderTitle').innerHTML = '<span>✉️</span> Shaxsiy Xabarlar (DM)';
+            document.getElementById('dmHeaderSubtitle').innerText = 'Real-time WebSocket • PostgreSQL 16';
+            loadDmConversations();
+        };
+
+        window.openDmWith = async function(username) {
+            const cleanUser = username.trim().replace(/^@/, '');
+            if (!cleanUser) return;
+
+            if (!window.getAuthToken()) {
+                window.openAuthModal();
+                return;
+            }
+
+            window.activeDmUser = cleanUser;
+
+            const drawer = document.getElementById('dmDrawer');
+            const overlay = document.getElementById('dmDrawerOverlay');
+            if (drawer) drawer.classList.remove('translate-x-full');
+            if (overlay) overlay.classList.remove('hidden');
+
+            document.getElementById('dmListView').classList.add('hidden');
+            document.getElementById('dmChatView').classList.remove('hidden');
+            document.getElementById('dmBackBtn').classList.remove('hidden');
+            document.getElementById('dmHeaderTitle').innerHTML = `<span>💬</span> @${cleanUser}`;
+            document.getElementById('dmHeaderSubtitle').innerText = 'Shaxsiy suhbat';
+
+            const pLink = document.getElementById('dmPartnerProfileLink');
+            if (pLink) {
+                pLink.innerText = `@${cleanUser}`;
+                pLink.href = `/profile/${cleanUser}`;
+            }
+
+            hideDmBadges();
+            await loadDmMessages(cleanUser);
+            setTimeout(() => {
+                const inp = document.getElementById('dmTextInput');
+                if (inp) inp.focus();
+            }, 100);
+        };
+
+        window.startNewDmChat = function(e) {
+            e.preventDefault();
+            const input = document.getElementById('dmTargetInput');
+            if (input && input.value.trim()) {
+                openDmWith(input.value.trim());
+                input.value = '';
+            }
+        };
+
+        window.loadDmConversations = async function() {
+            const token = window.getAuthToken();
+            if (!token) return;
+
+            const container = document.getElementById('dmConvosContainer');
+            if (!container) return;
+
+            try {
+                const res = await fetch('/api/v1/dm', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (res.ok) {
+                    const data = await res.json();
+                    const convos = data.conversations || [];
+                    if (convos.length === 0) {
+                        container.innerHTML = `
+                            <div class="p-8 text-center text-xs text-zinc-500 font-mono">
+                                <span class="text-2xl block mb-2">💬</span>
+                                Hozircha hech qanday shaxsiy xabar yo'q.<br/>
+                                Yuqoridagi maydonga username kiritib yangi suhbat boshlang!
+                            </div>
+                        `;
+                        return;
+                    }
+
+                    container.innerHTML = convos.map(c => {
+                        const dateStr = c.timestamp ? new Date(c.timestamp * 1000).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : '';
+                        return `
+                            <div onclick="openDmWith('${c.username}')" class="p-3 rounded-xl hover:bg-zinc-900 border border-transparent hover:border-white/5 transition-all cursor-pointer flex items-center justify-between gap-3 group">
+                                <div class="flex items-center gap-3 min-w-0">
+                                    <div class="w-9 h-9 rounded-xl bg-zinc-800 border border-white/10 flex items-center justify-center text-xs font-mono font-bold text-brand-orange shrink-0">
+                                        @
+                                    </div>
+                                    <div class="flex flex-col min-w-0">
+                                        <span class="text-xs font-bold text-white group-hover:text-brand-orange transition-colors font-mono truncate">@${c.username}</span>
+                                        <span class="text-[11px] text-zinc-400 truncate">${escapeHtml(c.last_message || '')}</span>
+                                    </div>
+                                </div>
+                                <span class="text-[10px] font-mono text-zinc-500 shrink-0">${dateStr}</span>
+                            </div>
+                        `;
+                    }).join('');
+                }
+            } catch(err) {
+                console.error('Failed to load DM conversations', err);
+            }
+        };
+
+        window.activeDmBlockedByMe = false;
+        window.activeDmBlockedByThem = false;
+
+        window.loadDmMessages = async function(username) {
+            const token = window.getAuthToken();
+            if (!token) return;
+
+            const container = document.getElementById('dmMessagesContainer');
+            if (!container) return;
+            container.innerHTML = '<div class="text-center text-xs text-zinc-500 font-mono py-8">Yozishmalar tarixi yuklanmoqda...</div>';
+
+            try {
+                const res = await fetch(`/api/v1/dm/${encodeURIComponent(username)}`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (res.ok) {
+                    const data = await res.json();
+                    window.activeDmBlockedByMe = !!data.is_blocked_by_me;
+                    window.activeDmBlockedByThem = !!data.is_blocked_by_them;
+
+                    updateDmBlockUI();
+
+                    const messages = data.messages || [];
+                    if (messages.length === 0) {
+                        container.innerHTML = `
+                            <div class="text-center text-xs text-zinc-500 font-mono py-12">
+                                <span class="text-3xl block mb-2">👋</span>
+                                @${username} bilan suhbat hali bo'sh.<br/>
+                                Birinchi xabaringizni yozing!
+                            </div>
+                        `;
+                    } else {
+                        container.innerHTML = '';
+                        const myUsername = window.currentUser ? window.currentUser.username : null;
+                        messages.forEach(m => {
+                            renderDmBubble(m, myUsername);
+                        });
+                        scrollDmToBottom();
+                    }
+                }
+            } catch(err) {
+                container.innerHTML = '<div class="text-center text-xs text-rose-400 py-8">Xatolik: suhbat tarixini yuklab bo\'lmadi.</div>';
+            }
+        };
+
+        function updateDmBlockUI() {
+            const blockBtn = document.getElementById('dmBlockToggleBtn');
+            const banner = document.getElementById('dmBlockedBanner');
+            const input = document.getElementById('dmTextInput');
+            const sendBtn = document.getElementById('dmSendBtn');
+
+            if (window.activeDmBlockedByMe) {
+                if (blockBtn) {
+                    blockBtn.innerText = '✅ Blokdan chiqarish';
+                    blockBtn.className = 'px-2.5 py-1 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30 text-[11px] font-mono transition-colors';
+                }
+                if (banner) {
+                    banner.classList.remove('hidden');
+                    banner.innerText = "🚫 Siz bu foydalanuvchini bloklagansiz. Xabar yuborish taqiqlangan.";
+                }
+                if (input) { input.disabled = true; input.placeholder = "Suhbat bloklangan"; }
+                if (sendBtn) { sendBtn.disabled = true; sendBtn.classList.add('opacity-50'); }
+            } else if (window.activeDmBlockedByThem) {
+                if (blockBtn) {
+                    blockBtn.innerText = '🚫 Bloklash';
+                    blockBtn.className = 'px-2.5 py-1 rounded-lg bg-zinc-800 hover:bg-rose-950/40 text-zinc-400 hover:text-rose-400 border border-white/10 text-[11px] font-mono transition-colors';
+                }
+                if (banner) {
+                    banner.classList.remove('hidden');
+                    banner.innerText = "🚫 Ushbu foydalanuvchi sizni bloklagan. Xabar yuborib bo'lmaydi.";
+                }
+                if (input) { input.disabled = true; input.placeholder = "Foydalanuvchi sizni bloklagan"; }
+                if (sendBtn) { sendBtn.disabled = true; sendBtn.classList.add('opacity-50'); }
+            } else {
+                if (blockBtn) {
+                    blockBtn.innerText = '🚫 Bloklash';
+                    blockBtn.className = 'px-2.5 py-1 rounded-lg bg-zinc-800 hover:bg-rose-950/40 text-zinc-400 hover:text-rose-400 border border-white/10 text-[11px] font-mono transition-colors';
+                }
+                if (banner) banner.classList.add('hidden');
+                if (input) { input.disabled = false; input.placeholder = "Xabar yozing (Enter bosing)..."; }
+                if (sendBtn) { sendBtn.disabled = false; sendBtn.classList.remove('opacity-50'); }
+            }
+        }
+
+        window.toggleBlockActiveUser = async function() {
+            if (!window.activeDmUser) return;
+            window.requireAuth(async (token) => {
+                const action = window.activeDmBlockedByMe ? 'unblock' : 'block';
+                try {
+                    const res = await fetch(`/api/v1/users/${window.activeDmUser}/${action}`, {
+                        method: 'POST',
+                        headers: { 'Authorization': `Bearer ${token}` }
+                    });
+                    if (res.ok) {
+                        window.activeDmBlockedByMe = !window.activeDmBlockedByMe;
+                        updateDmBlockUI();
+                    } else {
+                        const err = await res.json();
+                        alert(err.error || "Amalni bajarib bo'lmadi");
+                    }
+                } catch(e) {
+                    alert("Xatolik: " + e);
+                }
+            });
+        };
+
+        function renderDmBubble(msg, myUsername) {
+            const container = document.getElementById('dmMessagesContainer');
+            if (!container) return;
+
+            const isMe = myUsername ? (msg.sender === myUsername) : false;
+            const timeStr = msg.timestamp ? new Date(msg.timestamp * 1000).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : '';
+
+            const wrap = document.createElement('div');
+            wrap.id = `dm-msg-${msg.id}`;
+            wrap.className = `flex flex-col ${isMe ? 'items-end' : 'items-start'} gap-1 group`;
+
+            const bubble = document.createElement('div');
+            bubble.className = isMe
+                ? 'p-3 rounded-2xl rounded-br-sm bg-orange-600/20 border border-orange-500/40 text-orange-100 text-xs max-w-[85%] break-words shadow-sm'
+                : 'p-3 rounded-2xl rounded-bl-sm bg-zinc-900 border border-white/10 text-zinc-200 text-xs max-w-[85%] break-words shadow-sm';
+            bubble.innerText = msg.text;
+
+            const ts = document.createElement('div');
+            ts.className = 'text-[10px] font-mono text-zinc-500 px-1 flex items-center gap-1.5';
+            ts.innerHTML = `<span>${isMe ? 'Siz' : '@' + msg.sender} • ${timeStr}</span>`;
+
+            if (isMe) {
+                const delBtn = document.createElement('button');
+                delBtn.className = 'opacity-0 group-hover:opacity-100 text-zinc-500 hover:text-rose-400 text-[11px] transition-opacity cursor-pointer';
+                delBtn.title = "Xabarni o'chirish";
+                delBtn.innerText = '🗑️';
+                delBtn.onclick = (e) => {
+                    e.stopPropagation();
+                    deleteDmMessage(msg.id);
+                };
+                ts.appendChild(delBtn);
+            }
+
+            wrap.appendChild(bubble);
+            wrap.appendChild(ts);
+            container.appendChild(wrap);
+        }
+
+        window.deleteDmMessage = async function(id) {
+            if (!confirm("Ushbu xabarni o'chirishni xohlaysizmi?")) return;
+            const token = window.getAuthToken();
+            if (!token) return;
+
+            try {
+                const res = await fetch(`/api/v1/dm/messages/${id}`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (res.ok) {
+                    const el = document.getElementById(`dm-msg-${id}`);
+                    if (el) el.remove();
+                } else {
+                    const err = await res.json();
+                    alert(err.error || "Xabarni o'chirib bo'lmadi");
+                }
+            } catch(e) {
+                alert("Xatolik: " + e);
+            }
+        };
+
+        window.sendDmMessage = async function(e) {
+            e.preventDefault();
+            const input = document.getElementById('dmTextInput');
+            if (!input || !input.value.trim() || !window.activeDmUser) return;
+
+            const text = input.value.trim();
+            const token = window.getAuthToken();
+            if (!token) return;
+
+            const targetUser = window.activeDmUser;
+            input.value = '';
+
+            try {
+                const res = await fetch(`/api/v1/dm/${encodeURIComponent(targetUser)}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ text: text })
+                });
+                if (res.ok) {
+                    scrollDmToBottom();
+                }
+            } catch(err) {
+                console.error('Failed to send DM', err);
+            }
+        };
+
+        function scrollDmToBottom() {
+            const container = document.getElementById('dmMessagesContainer');
+            if (container) {
+                container.scrollTop = container.scrollHeight;
+            }
+        }
+
+        function showDmToast(dm) {
+            const toast = document.getElementById('dmToast');
+            const sElem = document.getElementById('dmToastSender');
+            const tElem = document.getElementById('dmToastText');
+            if (!toast || !sElem || !tElem) return;
+
+            lastToastSender = dm.sender_username;
+            sElem.innerText = `@${dm.sender_username}`;
+            tElem.innerText = dm.text;
+
+            toast.classList.remove('hidden');
+            setTimeout(() => {
+                toast.classList.add('hidden');
+            }, 6000);
+
+            // Show badges
+            const navBadge = document.getElementById('navDmBadge');
+            const floatBadge = document.getElementById('floatingDmBadge');
+            if (navBadge) navBadge.classList.remove('hidden');
+            if (floatBadge) floatBadge.classList.remove('hidden');
+        }
+
+        window.openDmFromToast = function() {
+            const toast = document.getElementById('dmToast');
+            if (toast) toast.classList.add('hidden');
+            if (lastToastSender) {
+                openDmWith(lastToastSender);
+            } else {
+                toggleDmDrawer();
+            }
+        };
+
+        function hideDmBadges() {
+            const navBadge = document.getElementById('navDmBadge');
+            const floatBadge = document.getElementById('floatingDmBadge');
+            if (navBadge) navBadge.classList.add('hidden');
+            if (floatBadge) floatBadge.classList.add('hidden');
+        }
+
+        function escapeHtml(str) {
+            return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+        }
+
+        // Global WebSocket Connection
+        function initGlobalWebSocket() {
+            try {
+                if (dmWs && (dmWs.readyState === WebSocket.OPEN || dmWs.readyState === WebSocket.CONNECTING)) {
+                    return;
+                }
+                const proto = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+                const token = window.getAuthToken ? window.getAuthToken() : null;
+                const tokenParam = token ? `?token=${encodeURIComponent(token)}` : '';
+                const wsUrl = `${proto}//ferris.uz/ws/community${tokenParam}`;
+                dmWs = new WebSocket(wsUrl);
+
+                dmWs.onopen = function() {
+                    const b = document.getElementById('dmWsBadge');
+                    if (b) {
+                        b.className = 'inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-[10px] font-mono text-emerald-400';
+                        b.innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span><span>WS Online</span>';
+                    }
+                };
+
+                dmWs.onmessage = function(event) {
+                    try {
+                        const packet = JSON.parse(event.data);
+                        if (packet.event === 'direct_message') {
+                            const dm = packet.data;
+                            const myUsername = window.currentUser ? window.currentUser.username : null;
+
+                            // If currently chatting with this user:
+                            if (window.activeDmUser && (dm.sender_username === window.activeDmUser || (dm.sender_username === myUsername && dm.receiver_username === window.activeDmUser))) {
+                                renderDmBubble({
+                                    sender: dm.sender_username,
+                                    receiver: dm.receiver_username,
+                                    text: dm.text,
+                                    timestamp: dm.timestamp
+                                }, myUsername);
+                                scrollDmToBottom();
+                            } else if (myUsername && dm.receiver_username === myUsername) {
+                                showDmToast(dm);
+                            }
+
+                            // Refresh conversation list if drawer is visible
+                            const drawer = document.getElementById('dmDrawer');
+                            if (drawer && !drawer.classList.contains('translate-x-full') && !window.activeDmUser) {
+                                loadDmConversations();
+                            }
+                        }
+                    } catch(e) {}
+                };
+
+                dmWs.onclose = function() {
+                    const b = document.getElementById('dmWsBadge');
+                    if (b) {
+                        b.className = 'inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-amber-500/10 border border-amber-500/20 text-[10px] font-mono text-amber-400';
+                        b.innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span><span>Ulanmoqda...</span>';
+                    }
+                    setTimeout(initGlobalWebSocket, 3000);
+                };
+            } catch(e) {
+                console.error("WS error", e);
+            }
+        }
+
+        window.addEventListener('DOMContentLoaded', initGlobalWebSocket);
+    </script>
+    {% block scripts %}{% endblock %}
+</body>
+</html>

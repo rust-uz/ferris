@@ -1,0 +1,343 @@
+{% extends "base.html" %}
+
+{% block title %}topics.ferris.uz — Rust Mavzulari va Muhokamalar Forumi{% endblock %}
+{% block description %}O'zbekiston Rustaceanlar forumi: f/rust, f/async, f/systems, f/quantum muhokamalari.{% endblock %}
+
+{% block content %}
+<div class="max-w-6xl mx-auto px-4 sm:px-6 py-10 flex flex-col gap-12">
+
+    <!-- Topics Header -->
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-white/10">
+        <div>
+            <div class="flex items-center gap-2 mb-1.5">
+                <span class="text-xs font-mono text-brand-orange bg-brand-orange/10 border border-brand-orange/20 px-2.5 py-0.5 rounded-full">topics.ferris.uz</span>
+                <span class="text-xs text-zinc-500 font-mono">Forum & Discussions</span>
+            </div>
+            <h1 class="text-2xl sm:text-3xl font-bold tracking-tight text-white">📌 Mavzular va Kategoriyalar</h1>
+            <p class="text-sm text-zinc-400 mt-1">Rasmiy Rust texnik yo'nalishlari va hamjamiyat muhokamalari</p>
+        </div>
+        <button onclick="handleNewPostClick()" class="px-4 py-2.5 rounded-xl bg-brand-orange hover:bg-orange-600 text-white font-semibold text-xs transition-all shadow-md self-start sm:self-auto shrink-0 flex items-center gap-1.5">
+            <span>+</span> Yangi Muhokama
+        </button>
+    </div>
+
+    <!-- Topics Grid -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        {% for topic in topics %}
+        <div class="p-5 rounded-2xl bg-zinc-900/40 border border-white/10 hover:border-brand-orange/30 transition-all flex flex-col justify-between">
+            <div>
+                <div class="flex items-center justify-between mb-3">
+                    <span class="text-2xl">{{ topic.icon }}</span>
+                    <span class="text-xs font-mono text-amber-400 bg-amber-400/10 border border-amber-400/20 px-2 py-0.5 rounded">{{ topic.slug }}</span>
+                </div>
+                <h3 class="text-base font-bold text-white mb-1.5">{{ topic.title }}</h3>
+                <p class="text-xs text-zinc-400 leading-relaxed">
+                    {% if let Some(desc) = topic.description %}
+                        {{ desc }}
+                    {% else %}
+                        Mavzu bo'yicha muhokamalar.
+                    {% endif %}
+                </p>
+            </div>
+            <div class="mt-4 pt-3 border-t border-white/5 flex items-center justify-between text-xs text-zinc-500 font-mono">
+                <span>Kanal faol</span>
+                <span class="text-brand-orange">f/{{ topic.slug }}</span>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Discussions Feed -->
+    <div class="mt-6">
+        <h2 class="text-xl font-bold tracking-tight text-white mb-4 flex items-center gap-2">
+            <span>💬</span> Barcha Muhokamalar
+        </h2>
+
+        <div class="flex flex-col gap-4">
+            {% if posts.is_empty() %}
+            <div class="p-10 rounded-2xl bg-zinc-900/20 border border-dashed border-white/10 text-center flex flex-col items-center">
+                <span class="text-3xl mb-2">🦀</span>
+                <h3 class="text-base font-semibold text-white mb-1">Hozircha muhokamalar yo'q</h3>
+                <p class="text-xs text-zinc-400 max-w-sm mb-4">Birinchi bo'lib savol bering yoki foydali Rust loyihangizni e'lon qiling!</p>
+                <button onclick="handleNewPostClick()" class="px-4 py-2 rounded-xl bg-brand-orange hover:bg-orange-600 text-xs font-semibold text-white shadow-md transition-colors">
+                    + Birinchi Muhokamani Yozish
+                </button>
+            </div>
+            {% else %}
+            {% for item in posts %}
+            <article class="p-6 rounded-2xl bg-zinc-900/40 border border-white/10 hover:border-white/20 transition-all flex flex-col gap-3.5">
+                <div class="flex items-center justify-between flex-wrap gap-2">
+                    <div class="flex items-center gap-3 text-xs text-zinc-400 font-mono">
+                        <span class="text-amber-400 font-semibold">f/rust</span>
+                        <span>&bull;</span>
+                        <span class="text-zinc-300">
+                            {% if let Some(author) = item.post.author_name %}
+                                @{{ author }}
+                            {% else %}
+                                Rustacean
+                            {% endif %}
+                        </span>
+                        <span>&bull;</span>
+                        <span class="text-zinc-500">{{ item.post.created_at.format("%Y-%m-%d %H:%M") }}</span>
+                    </div>
+                    <div class="post-owner-actions hidden flex items-center gap-2" data-author="{{ item.post.author_name.as_deref().unwrap_or("") }}">
+                        <button onclick="editPostPrompt('{{ item.post.id }}', this)" class="text-xs text-zinc-400 hover:text-brand-orange transition-colors flex items-center gap-1 font-mono">
+                            <span>✏️</span> Tahrirlash
+                        </button>
+                        <button onclick="deletePostPrompt('{{ item.post.id }}')" class="text-xs text-zinc-400 hover:text-rose-400 transition-colors flex items-center gap-1 font-mono">
+                            <span>🗑️</span> O'chirish
+                        </button>
+                    </div>
+                </div>
+
+                <h3 class="post-title text-lg font-bold text-white hover:text-brand-orange transition-colors">
+                    {{ item.post.title }}
+                </h3>
+
+                <p class="post-content text-sm text-zinc-300 leading-relaxed font-sans">
+                    {{ item.post.content }}
+                </p>
+
+                <!-- Comments / Replies Section -->
+                <div class="mt-4 pt-4 border-t border-white/5 flex flex-col gap-3">
+                    <div class="flex items-center justify-between text-xs text-zinc-400 font-mono">
+                        <span class="font-semibold text-zinc-300 flex items-center gap-1.5">
+                            <span>💬</span> Javoblar ({% if item.comments.is_empty() %}0{% else %}{{ item.comments.len() }}{% endif %})
+                        </span>
+                    </div>
+
+                    <!-- Existing Comments List -->
+                    {% if !item.comments.is_empty() %}
+                    <div class="flex flex-col gap-2.5 pl-3 border-l-2 border-brand-orange/30">
+                        {% for comment in item.comments %}
+                        <div class="p-3 rounded-xl bg-black/40 border border-white/5 text-xs flex flex-col gap-1">
+                            <div class="flex items-center justify-between text-[11px] font-mono text-zinc-400">
+                                <span class="font-semibold text-brand-orange">@{{ comment.author_name }}</span>
+                                <div class="flex items-center gap-2">
+                                    <span class="text-zinc-600">{{ comment.created_at.format("%H:%M") }}</span>
+                                    <button class="comment-owner-action hidden text-zinc-600 hover:text-rose-400 transition-colors cursor-pointer" data-author="{{ comment.author_name }}" onclick="deleteCommentPrompt('{{ comment.id }}')" title="Izohni o'chirish">🗑️</button>
+                                </div>
+                            </div>
+                            <p class="text-zinc-200 font-sans leading-relaxed text-xs">{{ comment.content }}</p>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+
+                    <!-- Reply Form -->
+                    <form onsubmit="replyToPost('{{ item.post.id }}', this); return false;" class="flex items-center gap-2 mt-2">
+                        <input type="text" name="content" required placeholder="Ushbu muhokamaga javob yozing..." class="flex-grow px-3.5 py-2 rounded-xl bg-zinc-950 border border-white/10 text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-brand-orange font-sans"/>
+                        <button type="submit" class="px-4 py-2 rounded-xl bg-brand-orange hover:bg-orange-600 text-white font-semibold text-xs transition-colors shrink-0 flex items-center gap-1">
+                            <span>Javob berish</span> &rarr;
+                        </button>
+                    </form>
+                </div>
+            </article>
+            {% endfor %}
+            {% endif %}
+        </div>
+    </div>
+
+</div>
+
+<!-- Modal: New Post -->
+<div id="postModal" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="w-full max-w-lg bg-zinc-950 border border-white/15 rounded-2xl p-6 shadow-2xl flex flex-col gap-4">
+        <div class="flex items-center justify-between pb-3 border-b border-white/10">
+            <h3 class="text-base font-bold text-white">Yangi Muhokama Chop Etish</h3>
+            <button onclick="document.getElementById('postModal').classList.add('hidden')" class="text-zinc-500 hover:text-white text-xl">&times;</button>
+        </div>
+        <div class="flex flex-col gap-3 text-xs">
+            <div>
+                <label class="block text-zinc-400 font-medium mb-1">Mavzu kanali:</label>
+                <select id="postTopic" class="w-full px-3 py-2 rounded-lg bg-zinc-900 border border-white/10 text-white focus:outline-none focus:border-brand-orange">
+                    {% for topic in topics %}
+                    <option value="{{ topic.slug }}">{{ topic.slug }} — {{ topic.title }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div>
+                <label class="block text-zinc-400 font-medium mb-1">Sarlavha:</label>
+                <input type="text" id="postTitle" placeholder="Muhokama sarlavhasi..." class="w-full px-3 py-2 rounded-lg bg-zinc-900 border border-white/10 text-white focus:outline-none focus:border-brand-orange font-sans"/>
+            </div>
+            <div>
+                <label class="block text-zinc-400 font-medium mb-1">Matn (Markdown formatida):</label>
+                <textarea id="postContent" rows="5" placeholder="Kodingiz yoki savolingizni yozing..." class="w-full px-3 py-2 rounded-lg bg-zinc-900 border border-white/10 text-white focus:outline-none focus:border-brand-orange font-sans"></textarea>
+            </div>
+        </div>
+        <div class="flex justify-end gap-2 pt-2 border-t border-white/10">
+            <button onclick="document.getElementById('postModal').classList.add('hidden')" class="px-4 py-2 rounded-lg text-zinc-400 hover:text-white text-xs">Bekor qilish</button>
+            <button onclick="submitPost()" class="px-5 py-2 rounded-lg bg-brand-orange hover:bg-orange-600 text-white font-semibold text-xs transition-colors">Chop etish</button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    function handleNewPostClick() {
+        window.requireAuth(() => {
+            document.getElementById('postModal').classList.remove('hidden');
+        });
+    }
+
+    async function submitPost() {
+        const token = window.getAuthToken();
+        if (!token) {
+            window.openAuthModal();
+            return;
+        }
+
+        const topic = document.getElementById('postTopic').value;
+        const title = document.getElementById('postTitle').value.trim();
+        const content = document.getElementById('postContent').value.trim();
+        if (!title || !content) return alert("Sarlavha va matnni to'ldiring!");
+
+        try {
+            const res = await fetch('/api/v1/posts', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({ topic_slug: topic, title, content })
+            });
+            const data = await res.json();
+            if (res.ok) {
+                location.reload();
+            } else {
+                alert(data.error || "Postni chop etib bo'lmadi.");
+            }
+        } catch(e) {
+            alert("Xatolik: " + e);
+        }
+    }
+
+    async function replyToPost(postId, form) {
+        window.requireAuth(async (token) => {
+            const input = form.querySelector('input[name="content"]');
+            const content = input.value.trim();
+            if (!content) return;
+
+            try {
+                const res = await fetch(`/api/v1/posts/${postId}/comments`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ content })
+                });
+                const data = await res.json();
+                if (res.ok) {
+                    location.reload();
+                } else {
+                    alert(data.error || "Javobni yuborib bo'lmadi.");
+                }
+            } catch (e) {
+                alert("Xatolik: " + e);
+            }
+        });
+    }
+
+    function applyOwnershipActions(user) {
+        if (!user) return;
+        const isSpecial = (user.username === 'iskurama');
+        document.querySelectorAll('.post-owner-actions').forEach(el => {
+            const author = el.dataset.author;
+            if (isSpecial || author === user.username || author === user.display_name) {
+                el.classList.remove('hidden');
+            }
+        });
+        document.querySelectorAll('.comment-owner-action').forEach(el => {
+            const author = el.dataset.author;
+            if (isSpecial || author === user.username || author === user.display_name) {
+                el.classList.remove('hidden');
+            }
+        });
+    }
+
+    window.onUserLoaded = function(user) {
+        applyOwnershipActions(user);
+    };
+
+    if (window.currentUser) {
+        applyOwnershipActions(window.currentUser);
+    }
+
+    async function deletePostPrompt(postId) {
+        if (!confirm("Ushbu muhokamani butunlay o'chirmoqchimisiz?")) return;
+        const token = window.getAuthToken();
+        if (!token) return;
+        try {
+            const res = await fetch(`/api/v1/posts/${postId}`, {
+                method: 'DELETE',
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (res.ok) {
+                location.reload();
+            } else {
+                const err = await res.json();
+                alert(err.error || "Postni o'chirib bo'lmadi");
+            }
+        } catch(e) {
+            alert("Xatolik: " + e);
+        }
+    }
+
+    async function editPostPrompt(postId, btn) {
+        const article = btn.closest('article');
+        const titleEl = article.querySelector('.post-title');
+        const contentEl = article.querySelector('.post-content');
+        const currentTitle = titleEl ? titleEl.innerText.trim() : '';
+        const currentContent = contentEl ? contentEl.innerText.trim() : '';
+
+        const newTitle = prompt("Yangi sarlavha:", currentTitle);
+        if (newTitle === null) return;
+        const newContent = prompt("Yangi matn:", currentContent);
+        if (newContent === null) return;
+
+        const token = window.getAuthToken();
+        if (!token) return;
+
+        try {
+            const res = await fetch(`/api/v1/posts/${postId}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({ title: newTitle, content: newContent })
+            });
+            if (res.ok) {
+                location.reload();
+            } else {
+                const err = await res.json();
+                alert(err.error || "Postni tahrirlab bo'lmadi");
+            }
+        } catch(e) {
+            alert("Xatolik: " + e);
+        }
+    }
+
+    async function deleteCommentPrompt(commentId) {
+        if (!confirm("Ushbu izohni o'chirmoqchimisiz?")) return;
+        const token = window.getAuthToken();
+        if (!token) return;
+        try {
+            const res = await fetch(`/api/v1/comments/${commentId}`, {
+                method: 'DELETE',
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (res.ok) {
+                location.reload();
+            } else {
+                const err = await res.json();
+                alert(err.error || "Izohni o'chirib bo'lmadi");
+            }
+        } catch(e) {
+            alert("Xatolik: " + e);
+        }
+    }
+</script>
+{% endblock %}

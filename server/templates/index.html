@@ -1,0 +1,311 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="max-w-6xl mx-auto px-4 sm:px-6 py-12 md:py-20 flex flex-col gap-24">
+
+    <!-- 1. HERO SECTION -->
+    <section class="text-center flex flex-col items-center max-w-3xl mx-auto">
+        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-zinc-900 border border-white/10 text-xs font-mono text-zinc-300 mb-6 shadow-sm">
+            <span class="w-2 h-2 rounded-full bg-brand-orange animate-ping"></span>
+            <span>100% OCHIQ MANBALI RUST EKOTIZIMI</span>
+        </div>
+
+        <h1 class="text-4xl sm:text-6xl font-extrabold tracking-tight text-white leading-[1.15] mb-6">
+            Tizimli Dasturlash.<br/>
+            <span class="bg-gradient-to-r from-brand-orange to-amber-400 bg-clip-text text-transparent">Xotira Xavfsizligi.</span> Maksimal Tezlik.
+        </h1>
+
+        <p class="text-base sm:text-lg text-zinc-400 leading-relaxed max-w-2xl mb-8">
+            Garbage Collector kechikishlarisiz, toza xotira va yuqori RPS.
+            O'zbekiston Rust dasturchilari forumi, jamiyatlar hamda rasmiy <code class="text-brand-orange font-mono font-medium px-1.5 py-0.5 rounded bg-zinc-900 border border-white/10">ferris-cli</code> terminal vositasi.
+        </p>
+
+        <div class="flex flex-col sm:flex-row items-center gap-3.5 w-full justify-center mb-8">
+            <a href="#cli-download" class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-brand-orange hover:bg-orange-600 text-white font-semibold text-sm transition-all shadow-lg shadow-orange-950/40">
+                <span>⚡ ferris-cli O'rnatish</span>
+            </a>
+            <a href="https://topics.ferris.uz" class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-zinc-900 hover:bg-zinc-800 border border-white/10 hover:border-white/20 text-zinc-200 font-semibold text-sm transition-all shadow-sm">
+                <span>📌 Mavzular Portali &rarr;</span>
+            </a>
+        </div>
+
+        <!-- 1-Line Quick Install Bar -->
+        <div class="w-full max-w-lg flex items-center justify-between gap-3 px-4 py-2.5 rounded-xl bg-zinc-950/80 border border-white/15 font-mono text-xs text-zinc-300 shadow-inner">
+            <span class="text-emerald-400 select-none">$</span>
+            <code id="quickCmd" class="flex-grow text-left select-all">curl -fsSL https://ferris.uz/install.sh | sh</code>
+            <button onclick="copyText('curl -fsSL https://ferris.uz/install.sh | sh', this)" class="px-2.5 py-1 rounded bg-zinc-800 hover:bg-zinc-700 text-zinc-200 text-xs transition-colors shrink-0">
+                Nusxa
+            </button>
+        </div>
+    </section>
+
+    <!-- 2. SUBDOMAINS ARCHITECTURE HUB -->
+    <section>
+        <div class="flex flex-col items-center text-center mb-10">
+            <span class="text-xs font-mono font-semibold text-brand-orange tracking-wider uppercase mb-1.5">Cloud Architecture</span>
+            <h2 class="text-2xl sm:text-3xl font-bold tracking-tight text-white">Ferris.uz Subdomenlar Tizimi</h2>
+            <p class="text-sm text-zinc-400 mt-2 max-w-xl">Har bir yo'nalish o'zining mustaqil subdomeni va maxsus funksiyalariga ega</p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <!-- Topics Card -->
+            <a href="https://topics.ferris.uz" class="group flex flex-col p-6 rounded-2xl bg-zinc-900/40 border border-white/10 hover:border-brand-orange/40 hover:bg-zinc-900/70 transition-all duration-200">
+                <div class="flex items-center justify-between mb-4">
+                    <span class="text-2xl">📌</span>
+                    <span class="text-xs font-mono text-amber-400 bg-amber-400/10 border border-amber-400/20 px-2.5 py-0.5 rounded-full">topics.ferris.uz</span>
+                </div>
+                <h3 class="text-lg font-bold text-white group-hover:text-brand-orange transition-colors mb-2">Mavzular & Forum</h3>
+                <p class="text-sm text-zinc-400 leading-relaxed flex-grow">
+                    <code class="text-zinc-300 font-mono">f/rust</code>, <code class="text-zinc-300 font-mono">f/async</code>, <code class="text-zinc-300 font-mono">f/systems</code> va <code class="text-zinc-300 font-mono">f/quantum</code> bo'yicha texnik muhokamalar va maqolalar portali.
+                </p>
+                <div class="mt-4 pt-4 border-t border-white/5 flex items-center justify-between text-xs font-semibold text-brand-orange">
+                    <span>Mavzularga kirish</span>
+                    <span class="group-hover:translate-x-1 transition-transform">&rarr;</span>
+                </div>
+            </a>
+
+            <!-- Groups Card -->
+            <a href="https://groups.ferris.uz" class="group flex flex-col p-6 rounded-2xl bg-zinc-900/40 border border-white/10 hover:border-emerald-500/40 hover:bg-zinc-900/70 transition-all duration-200">
+                <div class="flex items-center justify-between mb-4">
+                    <span class="text-2xl">👥</span>
+                    <span class="text-xs font-mono text-emerald-400 bg-emerald-400/10 border border-emerald-400/20 px-2.5 py-0.5 rounded-full">groups.ferris.uz</span>
+                </div>
+                <h3 class="text-lg font-bold text-white group-hover:text-emerald-400 transition-colors mb-2">Jamiyatlar & Guruhlar</h3>
+                <p class="text-sm text-zinc-400 leading-relaxed flex-grow">
+                    Rustaceanlar to'garaklari, mahalliy meetup guruhlari va ochiq loyihalar katalogi. Yangi jamiyat ochish imkoniyati.
+                </p>
+                <div class="mt-4 pt-4 border-t border-white/5 flex items-center justify-between text-xs font-semibold text-emerald-400">
+                    <span>Jamiyatlarni ko'rish</span>
+                    <span class="group-hover:translate-x-1 transition-transform">&rarr;</span>
+                </div>
+            </a>
+
+            <!-- API Card -->
+            <a href="https://api.ferris.uz/api/v1/context" target="_blank" class="group flex flex-col p-6 rounded-2xl bg-zinc-900/40 border border-white/10 hover:border-cyan-500/40 hover:bg-zinc-900/70 transition-all duration-200">
+                <div class="flex items-center justify-between mb-4">
+                    <span class="text-2xl">📡</span>
+                    <span class="text-xs font-mono text-cyan-400 bg-cyan-400/10 border border-cyan-400/20 px-2.5 py-0.5 rounded-full">api.ferris.uz</span>
+                </div>
+                <h3 class="text-lg font-bold text-white group-hover:text-cyan-400 transition-colors mb-2">REST & WebSocket API</h3>
+                <p class="text-sm text-zinc-400 leading-relaxed flex-grow">
+                    Axum va Tokio asosidagi ultra-tezkor Rust backend. Barcha subdomenlar va ferris-cli uchun yagona miya.
+                </p>
+                <div class="mt-4 pt-4 border-t border-white/5 flex items-center justify-between text-xs font-semibold text-cyan-400">
+                    <span>API Context ko'rish</span>
+                    <span class="group-hover:translate-x-1 transition-transform">&rarr;</span>
+                </div>
+            </a>
+        </div>
+    </section>
+
+    <!-- 3. CLI DOWNLOAD & INSTALL SECTION -->
+    <section id="cli-download" class="p-6 sm:p-10 rounded-3xl bg-zinc-900/30 border border-white/10 backdrop-blur-md">
+        <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-8">
+            <div>
+                <span class="text-xs font-mono font-semibold text-brand-orange uppercase">Developer Tool & Sovereign Infrastructure</span>
+                <h2 class="text-2xl sm:text-3xl font-bold tracking-tight text-white mt-1">💻 ferris-cli — Terminal Vositasini O'rnatish</h2>
+                <p class="text-sm text-zinc-400 mt-1">Linux, macOS va Windows tizimlari uchun universal paketlar va binar yig'ilmalar (v0.2.0)</p>
+            </div>
+            <div class="flex flex-wrap gap-2 shrink-0">
+                <a href="/downloads/ferris-linux" download="ferris" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-brand-orange hover:bg-orange-600 text-white text-xs font-semibold shadow-md shadow-orange-500/20 transition-all">
+                    <span>⬇</span> Linux x86_64
+                </a>
+                <a href="/downloads/ferris-cli_0.2.0_amd64.deb" download class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-zinc-200 text-xs font-semibold border border-white/10 transition-all">
+                    <span>📦</span> .deb (Ubuntu/Debian)
+                </a>
+                <a href="https://crates.io/crates/ferris-cli" target="_blank" rel="noopener" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-zinc-200 text-xs font-semibold border border-white/10 transition-all">
+                    <span>🦀</span> Crates.io v0.2.0
+                </a>
+            </div>
+        </div>
+
+        <!-- OS Selector Tabs -->
+        <div class="flex border-b border-white/10 gap-1 sm:gap-2 mb-6 overflow-x-auto pb-1">
+            <button onclick="switchTab('linux')" id="tab-btn-linux" class="tab-btn px-3 sm:px-4 py-2 text-xs sm:text-sm font-semibold border-b-2 border-brand-orange text-white shrink-0">
+                🐧 Linux (curl)
+            </button>
+            <button onclick="switchTab('brew')" id="tab-btn-brew" class="tab-btn px-3 sm:px-4 py-2 text-xs sm:text-sm font-semibold border-b-2 border-transparent text-zinc-400 hover:text-zinc-200 shrink-0">
+                🍺 Homebrew (macOS)
+            </button>
+            <button onclick="switchTab('arch')" id="tab-btn-arch" class="tab-btn px-3 sm:px-4 py-2 text-xs sm:text-sm font-semibold border-b-2 border-transparent text-zinc-400 hover:text-zinc-200 shrink-0">
+                🏹 Arch Linux (AUR)
+            </button>
+            <button onclick="switchTab('debian')" id="tab-btn-debian" class="tab-btn px-3 sm:px-4 py-2 text-xs sm:text-sm font-semibold border-b-2 border-transparent text-zinc-400 hover:text-zinc-200 shrink-0">
+                📦 Debian / Ubuntu
+            </button>
+            <button onclick="switchTab('windows')" id="tab-btn-windows" class="tab-btn px-3 sm:px-4 py-2 text-xs sm:text-sm font-semibold border-b-2 border-transparent text-zinc-400 hover:text-zinc-200 shrink-0">
+                🪟 Windows (PowerShell)
+            </button>
+            <button onclick="switchTab('cargo')" id="tab-btn-cargo" class="tab-btn px-3 sm:px-4 py-2 text-xs sm:text-sm font-semibold border-b-2 border-transparent text-zinc-400 hover:text-zinc-200 shrink-0">
+                🦀 Cargo
+            </button>
+        </div>
+
+        <!-- Tab 1: Linux Script -->
+        <div id="tab-content-linux" class="tab-pane flex flex-col gap-4">
+            <div class="flex items-center justify-between gap-3 px-4 py-3 rounded-xl bg-zinc-950 border border-white/15 font-mono text-xs sm:text-sm text-zinc-200 overflow-x-auto">
+                <span class="text-emerald-400 select-none">$</span>
+                <code class="flex-grow select-all">curl -fsSL https://ferris.uz/install.sh | sh</code>
+                <button onclick="copyText('curl -fsSL https://ferris.uz/install.sh | sh', this)" class="px-3 py-1 rounded bg-zinc-800 hover:bg-zinc-700 text-xs text-white shrink-0">
+                    Nusxa
+                </button>
+            </div>
+            <p class="text-xs text-zinc-500 font-mono">Binar SHA-256 xesh tekshiruvi bilan avtomatik <code class="text-zinc-400">/usr/local/bin/ferris</code> (yoki <code class="text-zinc-400">~/.local/bin/ferris</code>) ga xavfsiz o'rnatiladi.</p>
+        </div>
+
+        <!-- Tab 2: Homebrew -->
+        <div id="tab-content-brew" class="tab-pane hidden flex flex-col gap-4">
+            <div class="flex items-center justify-between gap-3 px-4 py-3 rounded-xl bg-zinc-950 border border-white/15 font-mono text-xs sm:text-sm text-zinc-200 overflow-x-auto">
+                <span class="text-amber-400 select-none">$</span>
+                <code class="flex-grow select-all">brew install https://ferris.uz/downloads/ferris.rb</code>
+                <button onclick="copyText('brew install https://ferris.uz/downloads/ferris.rb', this)" class="px-3 py-1 rounded bg-zinc-800 hover:bg-zinc-700 text-xs text-white shrink-0">
+                    Nusxa
+                </button>
+            </div>
+            <p class="text-xs text-zinc-500 font-mono">macOS (Apple Silicon M1-M4 & Intel) va Linuxbrew uchun to'liq avtomatik formula.</p>
+        </div>
+
+        <!-- Tab 3: Arch Linux (AUR) -->
+        <div id="tab-content-arch" class="tab-pane hidden flex flex-col gap-4">
+            <div class="flex items-center justify-between gap-3 px-4 py-3 rounded-xl bg-zinc-950 border border-white/15 font-mono text-xs sm:text-sm text-zinc-200 overflow-x-auto">
+                <span class="text-sky-400 select-none">$</span>
+                <code class="flex-grow select-all">yay -S ferris-cli-bin</code>
+                <button onclick="copyText('yay -S ferris-cli-bin', this)" class="px-3 py-1 rounded bg-zinc-800 hover:bg-zinc-700 text-xs text-white shrink-0">
+                    Nusxa
+                </button>
+            </div>
+            <p class="text-xs text-zinc-500 font-mono">Yoki manbadan yig'ish uchun: <code class="text-zinc-400">paru -S ferris-cli</code></p>
+        </div>
+
+        <!-- Tab 4: Debian / Ubuntu -->
+        <div id="tab-content-debian" class="tab-pane hidden flex flex-col gap-4">
+            <div class="flex items-center justify-between gap-3 px-4 py-3 rounded-xl bg-zinc-950 border border-white/15 font-mono text-xs sm:text-sm text-zinc-200 overflow-x-auto">
+                <span class="text-red-400 select-none">$</span>
+                <code class="flex-grow select-all">curl -fsSLO https://ferris.uz/downloads/ferris-cli_0.2.0_amd64.deb && sudo dpkg -i ferris-cli_0.2.0_amd64.deb</code>
+                <button onclick="copyText('curl -fsSLO https://ferris.uz/downloads/ferris-cli_0.2.0_amd64.deb && sudo dpkg -i ferris-cli_0.2.0_amd64.deb', this)" class="px-3 py-1 rounded bg-zinc-800 hover:bg-zinc-700 text-xs text-white shrink-0">
+                    Nusxa
+                </button>
+            </div>
+            <p class="text-xs text-zinc-500 font-mono">Debian, Ubuntu, Linux Mint va Pop!_OS tizimlariga rasmiy paket boshqaruvi bilan o'rnatish.</p>
+        </div>
+
+        <!-- Tab 5: Windows -->
+        <div id="tab-content-windows" class="tab-pane hidden flex flex-col gap-4">
+            <div class="flex items-center justify-between gap-3 px-4 py-3 rounded-xl bg-zinc-950 border border-white/15 font-mono text-xs sm:text-sm text-zinc-200 overflow-x-auto">
+                <span class="text-cyan-400 select-none">PS&gt;</span>
+                <code class="flex-grow select-all">iwr -useb https://ferris.uz/install.ps1 | iex</code>
+                <button onclick="copyText('iwr -useb https://ferris.uz/install.ps1 | iex', this)" class="px-3 py-1 rounded bg-zinc-800 hover:bg-zinc-700 text-xs text-white shrink-0">
+                    Nusxa
+                </button>
+            </div>
+            <p class="text-xs text-zinc-500 font-mono">PowerShell orqali avtomatik foydalanuvchi PATH muhitiga qo'shiladi.</p>
+        </div>
+
+        <!-- Tab 6: Cargo -->
+        <div id="tab-content-cargo" class="tab-pane hidden flex flex-col gap-4">
+            <div class="flex items-center justify-between gap-3 px-4 py-3 rounded-xl bg-zinc-950 border border-white/15 font-mono text-xs sm:text-sm text-zinc-200 overflow-x-auto">
+                <span class="text-brand-orange select-none">$</span>
+                <code class="flex-grow select-all">cargo install ferris-cli</code>
+                <button onclick="copyText('cargo install ferris-cli', this)" class="px-3 py-1 rounded bg-zinc-800 hover:bg-zinc-700 text-xs text-white shrink-0">
+                    Nusxa
+                </button>
+            </div>
+            <p class="text-xs text-zinc-500 font-mono">Rust toolchain mavjud barcha operatsion tizimlarda to'g'ridan-to'g'ri Crates.io reyestridan o'rnatish.</p>
+        </div>
+
+        <!-- Terminal Output Demo -->
+        <div class="mt-8 rounded-2xl bg-black border border-white/15 overflow-hidden shadow-2xl font-mono text-xs">
+            <div class="flex items-center justify-between px-4 py-2.5 bg-zinc-900 border-b border-white/10">
+                <div class="flex items-center gap-2">
+                    <span class="w-3 h-3 rounded-full bg-red-500/80"></span>
+                    <span class="w-3 h-3 rounded-full bg-amber-500/80"></span>
+                    <span class="w-3 h-3 rounded-full bg-emerald-500/80"></span>
+                </div>
+                <span class="text-zinc-500 text-[11px]">bash &bull; ferris-cli v0.2.0</span>
+            </div>
+            <div class="p-4 sm:p-6 text-zinc-300 leading-relaxed overflow-x-auto space-y-2">
+                <p><span class="text-emerald-400 font-bold">$</span> ferris ping</p>
+                <p class="text-emerald-400 pl-4">✅ API aloqada: https://api.ferris.uz (Cloudflare Universal SSL)</p>
+                <p class="pt-2"><span class="text-emerald-400 font-bold">$</span> ferris topic list</p>
+                <p class="text-amber-400 pl-4 font-semibold">📌 Ferris.uz Mavzulari (topics.ferris.uz):</p>
+                <p class="text-zinc-400 pl-6">🦀 f/rust       - Rust Core & Ekotizim</p>
+                <p class="text-zinc-400 pl-6">⚡ f/async      - Asinxron Dasturlash & Tokio</p>
+                <p class="text-zinc-400 pl-6">🐧 f/systems    - Tizimli Dasturlash & Linux</p>
+                <p class="text-zinc-400 pl-6">🔮 f/quantum    - Kvant Hisoblash & AI</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- 4. INTERACTIVE RUST PLAYGROUND -->
+    <section id="playground" class="p-6 sm:p-10 rounded-3xl bg-zinc-900/30 border border-white/10 backdrop-blur-md">
+        <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-6">
+            <div>
+                <span class="text-xs font-mono font-semibold text-brand-orange uppercase">Interactive Lab</span>
+                <h2 class="text-2xl sm:text-3xl font-bold tracking-tight text-white mt-1">⚡ Rust Kod Laboratoriyasi</h2>
+                <p class="text-sm text-zinc-400 mt-1">Brauzerda Rust sintaksisi, xotira xavfsizligi va Tokio asinxronligini sinang</p>
+            </div>
+            <button id="runPlaygroundBtn" class="px-5 py-2.5 rounded-xl bg-brand-orange hover:bg-orange-600 text-white font-semibold text-xs transition-all shadow-md self-start sm:self-auto">
+                ▶ Kodni Sinash
+            </button>
+        </div>
+
+        <div class="rounded-2xl bg-black border border-white/15 overflow-hidden font-mono text-xs shadow-xl">
+            <div class="flex items-center justify-between px-4 py-2 bg-zinc-900 border-b border-white/10">
+                <span class="text-zinc-400 font-semibold">async_tokio.rs</span>
+                <span class="text-zinc-600">Rust 2021 Edition</span>
+            </div>
+            <pre class="p-4 sm:p-6 text-zinc-200 overflow-x-auto leading-relaxed"><code id="codeText">// 🚀 Tokio Asinxron Vazifa Namunasi
+use tokio::time::{sleep, Duration};
+
+#[tokio::main]
+async fn main() {
+    println!("🦀 Ferris: Tokio dvigateli ishga tushdi...");
+    
+    let handle = tokio::spawn(async {
+        sleep(Duration::from_millis(50)).await;
+        "⚡ 10,000+ so'rovlar nol GC pauzalarisiz bajarildi!"
+    });
+
+    let result = handle.await.unwrap();
+    println!("{}", result);
+}</code></pre>
+            <div class="px-4 py-3 bg-zinc-950 border-t border-white/10 text-xs">
+                <span class="text-zinc-500 font-bold block mb-1">Konsol Chiqishi:</span>
+                <div id="consoleOut" class="text-emerald-400 font-mono">[INFO] Kod tayyor. "Kodni Sinash" tugmasini bosing...</div>
+            </div>
+        </div>
+    </section>
+
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    function copyText(text, btn) {
+        navigator.clipboard.writeText(text);
+        const old = btn.innerText;
+        btn.innerText = '✅';
+        setTimeout(() => btn.innerText = old, 1500);
+    }
+
+    function switchTab(os) {
+        document.querySelectorAll('.tab-btn').forEach(b => {
+            b.classList.remove('border-brand-orange', 'text-white');
+            b.classList.add('border-transparent', 'text-zinc-400');
+        });
+        document.querySelectorAll('.tab-pane').forEach(p => p.classList.add('hidden'));
+
+        document.getElementById(`tab-btn-${os}`).classList.add('border-brand-orange', 'text-white');
+        document.getElementById(`tab-btn-${os}`).classList.remove('border-transparent', 'text-zinc-400');
+        document.getElementById(`tab-content-${os}`).classList.remove('hidden');
+    }
+
+    document.getElementById('runPlaygroundBtn')?.addEventListener('click', () => {
+        const out = document.getElementById('consoleOut');
+        out.innerHTML = '<span class="text-zinc-400">Compiling (rustc --release)...</span>';
+        setTimeout(() => {
+            out.innerHTML = '<span class="text-white">🦀 Ferris: Tokio dvigateli ishga tushdi...</span><br/><span class="text-emerald-400">⚡ 10,000+ so\'rovlar nol GC pauzalarisiz bajarildi!</span>';
+        }, 300);
+    });
+</script>
+{% endblock %}

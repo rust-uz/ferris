@@ -1,0 +1,15 @@
+.env
+.env.*
+target/
+**/target/
+*.log
+ferris_db.json
+
+# Binary distribution artifacts
+static/downloads/ferris-linux
+static/downloads/*.deb
+static/downloads/*.exe
+distribution/debian/*.deb
+distribution/aur/*/*.pkg.tar.zst
+distribution/aur/*/src/
+distribution/aur/*/pkg/

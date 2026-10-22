@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="uz" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>topics.ferris.uz — Rust Mavzulari va Muhokamalar Forumi</title>
+    <meta name="description" content="O'zbekiston Rustaceanlar forumi: f/rust, f/async, f/systems, f/quantum muhokamalari.">
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="icon" href="/logo.jpg">
+    <link rel="stylesheet" href="/style.css?v=6.0">
+</head>
+<body>
+    <div class="ambient-canvas">
+        <div class="cyber-grid"></div>
+    </div>
+
+    <!-- Navigation -->
+    <header class="navbar">
+        <div class="nav-container">
+            <a href="https://ferris.uz" class="brand-logo">
+                <img src="/logo.jpg" alt="Logo" class="brand-img"/>
+                <span class="brand-text">TOPICS<span class="brand-dot">.FERRIS.UZ</span></span>
+            </a>
+
+            <nav class="nav-links">
+                <a href="https://ferris.uz" class="nav-portal-link">&larr; Bosh sahifa</a>
+                <a href="https://groups.ferris.uz" class="nav-portal-link">Jamiyatlar</a>
+                <a href="https://ferris.uz#cli-download" class="nav-portal-link">CLI Ilova</a>
+            </nav>
+
+            <div class="nav-actions">
+                <button id="createPostBtn" class="btn btn-primary btn-sm">+ Yangi Muhokama</button>
+            </div>
+        </div>
+    </header>
+
+    <main class="main-content">
+        <!-- TOPICS HEADER -->
+        <section class="section">
+            <div class="section-header">
+                <div class="section-badge">FORUM & DISCUSSIONS</div>
+                <h1 class="section-title">📌 Mavzular va Kategoriyalar (#topics)</h1>
+                <p class="section-desc">Rust dasturlash tilining har bir yo'nalishi bo'yicha maxsus kanallar</p>
+            </div>
+
+            <!-- TOPICS LIST -->
+            <div id="topicsGrid" class="topics-grid">
+                <!-- JavaScript /api/v1/topics yuklaydi -->
+            </div>
+        </section>
+
+        <!-- POSTS / DISCUSSIONS FEED -->
+        <section class="section">
+            <div class="section-header">
+                <div class="section-badge">LATEST POSTS</div>
+                <h2 class="section-title">Eng So'nggi Muhokamalar</h2>
+            </div>
+
+            <div id="postsFeed" class="posts-feed">
+                <div class="post-card">
+                    <div class="post-meta">
+                        <span class="post-topic">f/rust</span>
+                        <span class="post-author">@iskurama</span>
+                        <span class="post-date">Bugun</span>
+                    </div>
+                    <h3 class="post-title">Rust 1.85 relizida asinxron traitlar va yangi qulayliklar</h3>
+                    <p class="post-snippet">Rust dasturlash tilining so'nggi relizlarida `async fn in traits` to'liq barqarorlashdi. Tizim arxitekturasida qanday yutuqlarga erishamiz?</p>
+                </div>
+
+                <div class="post-card">
+                    <div class="post-meta">
+                        <span class="post-topic">f/quantum</span>
+                        <span class="post-author">@quantum_dev</span>
+                        <span class="post-date">Kecha</span>
+                    </div>
+                    <h3 class="post-title">Rust'da Rigetti QCS SDK va Hadamard simulyatsiyasini o'rnatish</h3>
+                    <p class="post-snippet">Kvant qubitlari superpozitsiyasini oddiy xotirada emas, Rust'ning zero-cost xotira xavfsizligida sinab ko'rish usullari haqida qo'llanma.</p>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Post Creation Modal -->
+    <div id="postModal" class="modal-backdrop" style="display: none;">
+        <div class="modal-box">
+            <div class="modal-header">
+                <h3>Yangi Muhokama Chop Etish</h3>
+                <button id="closePostModalBtn" class="close-btn">&times;</button>
+            </div>
+            <div class="modal-body">
+                <label class="modal-label">Mavzu (Topic):</label>
+                <select id="newPostTopic" class="modal-input">
+                    <option value="f/rust">f/rust — Rust Core</option>
+                    <option value="f/async">f/async — Tokio & Axum</option>
+                    <option value="f/systems">f/systems — Linux & Kernel</option>
+                    <option value="f/quantum">f/quantum — Kvant & AI</option>
+                </select>
+
+                <label class="modal-label">Sarlavha:</label>
+                <input type="text" id="newPostTitle" class="modal-input" placeholder="Muhokama mavzusi..."/>
+
+                <label class="modal-label">Matn (Markdown):</label>
+                <textarea id="newPostContent" class="modal-textarea" rows="6" placeholder="Kodingiz yoki savolingizni yozing..."></textarea>
+            </div>
+            <div class="modal-footer">
+                <button id="submitPostBtn" class="btn btn-primary">Chop etish</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- CLEAN COMPACT FOOTER -->
+    <footer class="footer">
+        <div class="footer-container">
+            <div class="footer-brand">
+                <img src="/logo.jpg" alt="Logo" class="footer-mini-logo"/>
+                <span class="footer-brand-name">FERRIS<span class="brand-dot">.UZ</span></span>
+                <span class="footer-motto">&bull; topics.ferris.uz</span>
+            </div>
+            <div class="footer-links">
+                <a href="https://ferris.uz">ferris.uz</a>
+                <a href="https://groups.ferris.uz">groups.ferris.uz</a>
+                <a href="https://api.ferris.uz/api/v1/context">api.ferris.uz</a>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <span>&copy; 2026 Ferris.uz &bull; Cloudflare Universal SSL &bull; 100% Rust</span>
+        </div>
+    </footer>
+
+    <script src="/app.js?v=6.0"></script>
+</body>
+</html>

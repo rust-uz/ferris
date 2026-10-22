@@ -1,0 +1,453 @@
+{% extends "base.html" %}
+
+{% block title %}{{ group.name }} — groups.ferris.uz/f/{{ group.slug }}{% endblock %}
+{% block description %}{{ group.name }} hamjamiyati rasmiy sahifasi va muhokamalar maydoni.{% endblock %}
+
+{% block content %}
+<div class="max-w-6xl mx-auto px-4 sm:px-6 py-10 flex flex-col gap-10">
+
+    <!-- Breadcrumb -->
+    <nav class="flex items-center gap-2 text-xs font-mono text-zinc-500">
+        <a href="https://groups.ferris.uz" class="hover:text-emerald-400 transition-colors">groups.ferris.uz</a>
+        <span>/</span>
+        <span class="text-zinc-300">f/{{ group.slug }}</span>
+    </nav>
+
+    <!-- Group Header Banner -->
+    <div class="p-6 sm:p-8 rounded-3xl bg-zinc-900/40 border border-white/10 backdrop-blur-md flex flex-col gap-6">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-6">
+            <div class="flex items-start sm:items-center gap-4">
+                <img src="{{ group.avatar_url }}" alt="{{ group.name }}" class="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl object-cover border border-white/15 shadow-lg shrink-0"/>
+                <div>
+                    <div class="flex items-center gap-2 mb-1.5 flex-wrap">
+                        <span class="text-xs font-mono text-emerald-400 bg-emerald-400/10 border border-emerald-400/20 px-2.5 py-0.5 rounded-full">
+                            f/{{ group.slug }}
+                        </span>
+                        <span class="text-xs font-mono text-zinc-500">Rasmiy Jamiyat</span>
+                    </div>
+                    <h1 class="text-2xl sm:text-3xl font-bold tracking-tight text-white">{{ group.name }}</h1>
+                    <p class="text-xs sm:text-sm text-zinc-400 mt-1 max-w-xl">
+                        {% if let Some(desc) = group.description %}
+                            {{ desc }}
+                        {% else %}
+                            O'zbekiston Rustaceanlar ochiq dasturchilar guruhi.
+                        {% endif %}
+                    </p>
+                </div>
+            </div>
+
+            <!-- Join / Post Action Buttons -->
+            <div class="flex items-center gap-3 shrink-0 self-start sm:self-center">
+                <button onclick="toggleJoin('{{ group.slug }}', this)" id="groupDetailJoinBtn" class="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs transition-all shadow-md flex items-center gap-1.5">
+                    <span>👥 A'zo bo'lish</span>
+                </button>
+                <button onclick="handleNewPostClick()" class="px-4 py-2.5 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-zinc-200 border border-white/15 text-xs font-semibold transition-all flex items-center gap-1.5">
+                    <span>+ Yangi Mavzu</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Group Stats & Members Row -->
+        <div class="pt-6 border-t border-white/5 flex flex-wrap items-center justify-between gap-4 text-xs font-mono">
+            <div class="flex items-center gap-6">
+                <div class="flex items-center gap-2">
+                    <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                    <span class="text-zinc-300 font-bold" id="detailMemberCount">{{ members_count }}</span>
+                    <span class="text-zinc-500">haqiqiy a'zo</span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="text-brand-orange">💬</span>
+                    <span class="text-zinc-300 font-bold">{{ posts.len() }}</span>
+                    <span class="text-zinc-500">mavzu</span>
+                </div>
+            </div>
+
+            <!-- Members Preview Avatars / Usernames -->
+            <div class="flex items-center gap-2">
+                <span class="text-zinc-500">A'zolar:</span>
+                <div id="membersListWrap" class="flex items-center gap-1.5 flex-wrap">
+                    {% for member in members %}
+                    <span id="memberTag-{{ member }}" class="px-2 py-0.5 rounded bg-zinc-800 border border-white/10 text-zinc-300 text-[11px]">@{{ member }}</span>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Group Discussions List -->
+    <div class="flex flex-col gap-6">
+        <div class="flex items-center justify-between pb-3 border-b border-white/10">
+            <h2 class="text-lg font-bold text-white flex items-center gap-2">
+                <span>💬</span> Jamiyat Muhokamalari
+            </h2>
+            <span class="text-xs font-mono text-zinc-500">{{ posts.len() }} ta post</span>
+        </div>
+
+        {% if posts.is_empty() %}
+        <div class="p-12 rounded-3xl bg-zinc-900/20 border border-dashed border-white/10 text-center flex flex-col items-center">
+            <span class="text-4xl mb-3">🦀</span>
+            <h3 class="text-base font-semibold text-white mb-1">Ushbu jamiyatda hozircha mavzular ochilmagan</h3>
+            <p class="text-xs text-zinc-400 max-w-sm mb-5">Savolingizni bering, loyihangizni baham ko'ring yoki boshqa a'zolar bilan fikr almashing!</p>
+            <button onclick="handleNewPostClick()" class="px-5 py-2.5 rounded-xl bg-brand-orange hover:bg-orange-600 text-white font-semibold text-xs transition-colors shadow-md">
+                + Birinchi Mavzuni Yozish
+            </button>
+        </div>
+        {% else %}
+        <div class="flex flex-col gap-4">
+            {% for item in posts %}
+            <article class="p-6 rounded-2xl bg-zinc-900/40 border border-white/10 hover:border-white/20 transition-all flex flex-col gap-3.5">
+                <div class="flex items-center justify-between flex-wrap gap-2">
+                    <div class="flex items-center gap-3 text-xs text-zinc-400 font-mono">
+                        <span class="text-emerald-400 font-semibold">f/{{ group.slug }}</span>
+                        <span>&bull;</span>
+                        <span class="text-zinc-300">
+                            {% if let Some(author) = item.post.author_name %}
+                                @{{ author }}
+                            {% else %}
+                                Rustacean
+                            {% endif %}
+                        </span>
+                        <span>&bull;</span>
+                        <span class="text-zinc-500">{{ item.post.created_at.format("%Y-%m-%d %H:%M") }}</span>
+                    </div>
+                    <div class="post-owner-actions hidden flex items-center gap-2" data-author="{{ item.post.author_name.as_deref().unwrap_or("") }}">
+                        <button onclick="editPostPrompt('{{ item.post.id }}', this)" class="text-xs text-zinc-400 hover:text-emerald-400 transition-colors flex items-center gap-1 font-mono">
+                            <span>✏️</span> Tahrirlash
+                        </button>
+                        <button onclick="deletePostPrompt('{{ item.post.id }}')" class="text-xs text-zinc-400 hover:text-rose-400 transition-colors flex items-center gap-1 font-mono">
+                            <span>🗑️</span> O'chirish
+                        </button>
+                    </div>
+                </div>
+
+                <h3 class="post-title text-lg font-bold text-white hover:text-brand-orange transition-colors">
+                    {{ item.post.title }}
+                </h3>
+
+                <p class="post-content text-sm text-zinc-300 leading-relaxed font-sans">
+                    {{ item.post.content }}
+                </p>
+
+                <!-- Comments & Reply Box -->
+                <div class="mt-4 pt-4 border-t border-white/5 flex flex-col gap-3">
+                    <div class="flex items-center justify-between text-xs text-zinc-400 font-mono">
+                        <span class="font-semibold text-zinc-300 flex items-center gap-1.5">
+                            <span>💬</span> Javoblar ({% if item.comments.is_empty() %}0{% else %}{{ item.comments.len() }}{% endif %})
+                        </span>
+                    </div>
+
+                    {% if !item.comments.is_empty() %}
+                    <div class="flex flex-col gap-2 pl-3 border-l-2 border-emerald-500/30">
+                        {% for comment in item.comments %}
+                        <div class="p-3 rounded-xl bg-black/40 border border-white/5 text-xs flex flex-col gap-1">
+                            <div class="flex items-center justify-between text-[11px] font-mono text-zinc-400">
+                                <span class="font-semibold text-emerald-400">@{{ comment.author_name }}</span>
+                                <div class="flex items-center gap-2">
+                                    <span class="text-zinc-600">{{ comment.created_at.format("%H:%M") }}</span>
+                                    <button class="comment-owner-action hidden text-zinc-600 hover:text-rose-400 transition-colors cursor-pointer" data-author="{{ comment.author_name }}" onclick="deleteCommentPrompt('{{ comment.id }}')" title="Izohni o'chirish">🗑️</button>
+                                </div>
+                            </div>
+                            <p class="text-zinc-200 font-sans leading-relaxed">{{ comment.content }}</p>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+
+                    <!-- Reply Form -->
+                    <form onsubmit="replyToGroupPost('{{ item.post.id }}', this); return false;" class="flex items-center gap-2 mt-2">
+                        <input type="text" name="content" required placeholder="Fikr yoki javob yozing..." class="flex-grow px-3.5 py-2 rounded-xl bg-zinc-950 border border-white/10 text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-emerald-500 font-sans"/>
+                        <button type="submit" class="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs transition-colors shrink-0 flex items-center gap-1">
+                            <span>Javob berish</span> &rarr;
+                        </button>
+                    </form>
+                </div>
+            </article>
+            {% endfor %}
+        </div>
+        {% endif %}
+    </div>
+
+</div>
+
+<!-- Modal: New Group Post -->
+<div id="newGroupPostModal" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="w-full max-w-lg bg-zinc-950 border border-white/15 rounded-2xl p-6 shadow-2xl flex flex-col gap-4">
+        <div class="flex items-center justify-between pb-3 border-b border-white/10">
+            <h3 class="text-base font-bold text-white">Yangi Mavzu Yozish &bull; f/{{ group.slug }}</h3>
+            <button onclick="document.getElementById('newGroupPostModal').classList.add('hidden')" class="text-zinc-500 hover:text-white text-xl">&times;</button>
+        </div>
+        <div class="flex flex-col gap-3 text-xs">
+            <div>
+                <label class="block text-zinc-400 font-medium mb-1">Mavzu sarlavhasi:</label>
+                <input type="text" id="groupPostTitle" placeholder="Muhokama sarlavhasi..." class="w-full px-3 py-2 rounded-lg bg-zinc-900 border border-white/10 text-white focus:outline-none focus:border-emerald-500 font-sans"/>
+            </div>
+            <div>
+                <label class="block text-zinc-400 font-medium mb-1">Matn (Markdown):</label>
+                <textarea id="groupPostContent" rows="5" placeholder="Kodingiz, fikringiz yoki savolingizni yozing..." class="w-full px-3 py-2 rounded-lg bg-zinc-900 border border-white/10 text-white focus:outline-none focus:border-emerald-500 font-sans"></textarea>
+            </div>
+        </div>
+        <div class="flex justify-end gap-2 pt-2 border-t border-white/10">
+            <button onclick="document.getElementById('newGroupPostModal').classList.add('hidden')" class="px-4 py-2 rounded-lg text-zinc-400 hover:text-white text-xs">Bekor qilish</button>
+            <button onclick="submitGroupPost('{{ group.slug }}')" class="px-5 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs transition-colors">Chop etish</button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    const currentGroupMembers = [{% for m in members %}"{{ m }}",{% endfor %}];
+
+    function applyGroupJoinButtonState(user) {
+        const btn = document.getElementById('groupDetailJoinBtn');
+        if (!btn || !user) return;
+        if (currentGroupMembers.includes(user.username)) {
+            btn.innerHTML = "<span>✓ A'zodan chiqish</span>";
+            btn.className = "px-4 py-2.5 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 font-semibold text-xs border border-rose-500/30 transition-all shadow-md flex items-center gap-1.5";
+        } else {
+            btn.innerHTML = "<span>👥 A'zo bo'lish</span>";
+            btn.className = "px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs transition-all shadow-md flex items-center gap-1.5";
+        }
+    }
+
+    // Hook called when currentUser is loaded by base.html
+    window.onUserLoaded = function(user) {
+        applyGroupJoinButtonState(user);
+    };
+
+    // If currentUser is already loaded
+    if (window.currentUser) {
+        applyGroupJoinButtonState(window.currentUser);
+    }
+
+    function handleNewPostClick() {
+        window.requireAuth(() => {
+            document.getElementById('newGroupPostModal').classList.remove('hidden');
+        });
+    }
+
+    async function toggleJoin(slug, btn) {
+        window.requireAuth(async (token) => {
+            btn.disabled = true;
+            btn.classList.add('opacity-50');
+            try {
+                const res = await fetch(`/api/v1/groups/${slug}/join`, {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await res.json();
+                if (res.ok && data.success) {
+                    const countEl = document.getElementById('detailMemberCount');
+                    if (countEl) countEl.innerText = data.members_count;
+
+                    const membersWrap = document.getElementById('membersListWrap');
+                    const username = data.username;
+
+                    if (data.is_member) {
+                        btn.innerHTML = "<span>✓ A'zodan chiqish</span>";
+                        btn.className = "px-4 py-2.5 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 font-semibold text-xs border border-rose-500/30 transition-all shadow-md flex items-center gap-1.5";
+                        
+                        if (!currentGroupMembers.includes(username)) {
+                            currentGroupMembers.push(username);
+                        }
+
+                        if (membersWrap && !document.getElementById(`memberTag-${username}`)) {
+                            const newSpan = document.createElement('span');
+                            newSpan.id = `memberTag-${username}`;
+                            newSpan.className = 'px-2 py-0.5 rounded bg-zinc-800 border border-emerald-500/30 text-emerald-400 text-[11px] font-mono';
+                            newSpan.innerText = `@${username}`;
+                            membersWrap.appendChild(newSpan);
+                        }
+                        alert(`Tabriklaymiz! Siz f/${slug} jamiyatiga muvaffaqiyatli a'zo bo'ldingiz! 🎉`);
+                    } else {
+                        btn.innerHTML = "<span>👥 A'zo bo'lish</span>";
+                        btn.className = "px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs transition-all shadow-md flex items-center gap-1.5";
+
+                        const idx = currentGroupMembers.indexOf(username);
+                        if (idx > -1) currentGroupMembers.splice(idx, 1);
+
+                        const tag = document.getElementById(`memberTag-${username}`);
+                        if (tag) tag.remove();
+                        alert(`Siz f/${slug} jamiyati a'zoligidan chiqdingiz.`);
+                    }
+                } else {
+                    alert(data.error || "Guruhga a'zo bo'lib bo'lmadi");
+                }
+            } catch(e) {
+                alert("Server xatosi: " + e);
+            } finally {
+                btn.disabled = false;
+                btn.classList.remove('opacity-50');
+            }
+        });
+    }
+
+    async function submitGroupPost(jamiyatSlug) {
+        const token = window.getAuthToken();
+        if (!token) {
+            window.openAuthModal();
+            return;
+        }
+
+        const title = document.getElementById('groupPostTitle').value.trim();
+        const content = document.getElementById('groupPostContent').value.trim();
+
+        if (!title || !content) {
+            alert("Sarlavha va matnni to'ldiring!");
+            return;
+        }
+
+        try {
+            const res = await fetch('/api/v1/posts', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({
+                    jamiyat_slug: jamiyatSlug,
+                    title,
+                    content
+                })
+            });
+            const data = await res.json();
+            if (res.ok) {
+                window.location.reload();
+            } else {
+                alert(data.error || "Mavzuni chop etib bo'lmadi.");
+            }
+        } catch(e) {
+            alert("Xatolik: " + e);
+        }
+    }
+
+    async function replyToGroupPost(postId, form) {
+        window.requireAuth(async (token) => {
+            const input = form.querySelector('input[name="content"]');
+            const content = input.value.trim();
+            if (!content) return;
+
+            try {
+                const res = await fetch(`/api/v1/posts/${postId}/comments`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ content })
+                });
+                const data = await res.json();
+                if (res.ok) {
+                    window.location.reload();
+                } else {
+                    alert(data.error || "Javobni saqlab bo'lmadi.");
+                }
+            } catch(e) {
+                alert("Xatolik: " + e);
+            }
+        });
+    }
+
+    function applyOwnershipActions(user) {
+        if (!user) return;
+        const isSpecial = (user.username === 'iskurama');
+        document.querySelectorAll('.post-owner-actions').forEach(el => {
+            const author = el.dataset.author;
+            if (isSpecial || author === user.username || author === user.display_name) {
+                el.classList.remove('hidden');
+            }
+        });
+        document.querySelectorAll('.comment-owner-action').forEach(el => {
+            const author = el.dataset.author;
+            if (isSpecial || author === user.username || author === user.display_name) {
+                el.classList.remove('hidden');
+            }
+        });
+    }
+
+    const prevOnUserLoaded = window.onUserLoaded;
+    window.onUserLoaded = function(user) {
+        if (prevOnUserLoaded) prevOnUserLoaded(user);
+        applyOwnershipActions(user);
+    };
+
+    if (window.currentUser) {
+        applyOwnershipActions(window.currentUser);
+    }
+
+    async function deletePostPrompt(postId) {
+        if (!confirm("Ushbu muhokamani butunlay o'chirmoqchimisiz?")) return;
+        const token = window.getAuthToken();
+        if (!token) return;
+        try {
+            const res = await fetch(`/api/v1/posts/${postId}`, {
+                method: 'DELETE',
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (res.ok) {
+                location.reload();
+            } else {
+                const err = await res.json();
+                alert(err.error || "Postni o'chirib bo'lmadi");
+            }
+        } catch(e) {
+            alert("Xatolik: " + e);
+        }
+    }
+
+    async function editPostPrompt(postId, btn) {
+        const article = btn.closest('article');
+        const titleEl = article.querySelector('.post-title');
+        const contentEl = article.querySelector('.post-content');
+        const currentTitle = titleEl ? titleEl.innerText.trim() : '';
+        const currentContent = contentEl ? contentEl.innerText.trim() : '';
+
+        const newTitle = prompt("Yangi sarlavha:", currentTitle);
+        if (newTitle === null) return;
+        const newContent = prompt("Yangi matn:", currentContent);
+        if (newContent === null) return;
+
+        const token = window.getAuthToken();
+        if (!token) return;
+
+        try {
+            const res = await fetch(`/api/v1/posts/${postId}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({ title: newTitle, content: newContent })
+            });
+            if (res.ok) {
+                location.reload();
+            } else {
+                const err = await res.json();
+                alert(err.error || "Postni tahrirlab bo'lmadi");
+            }
+        } catch(e) {
+            alert("Xatolik: " + e);
+        }
+    }
+
+    async function deleteCommentPrompt(commentId) {
+        if (!confirm("Ushbu izohni o'chirmoqchimisiz?")) return;
+        const token = window.getAuthToken();
+        if (!token) return;
+        try {
+            const res = await fetch(`/api/v1/comments/${commentId}`, {
+                method: 'DELETE',
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (res.ok) {
+                location.reload();
+            } else {
+                const err = await res.json();
+                alert(err.error || "Izohni o'chirib bo'lmadi");
+            }
+        } catch(e) {
+            alert("Xatolik: " + e);
+        }
+    }
+</script>
+{% endblock %}

@@ -1,0 +1,15 @@
+pkgbase = ferris-cli-bin
+	pkgdesc = Sovereign Rust developer platform CLI for ferris.uz (pre-built binary)
+	pkgver = 0.2.0
+	pkgrel = 1
+	url = https://ferris.uz
+	arch = x86_64
+	license = MIT
+	license = Apache-2.0
+	provides = ferris
+	provides = ferris-cli
+	conflicts = ferris-cli
+	source = ferris-linux-0.2.0::https://ferris.uz/downloads/ferris-linux
+	sha256sums = 4246c0ad92673fcb1c6e9ba9deb8114b82787c4d27d30c4f9919206c52e5a4ec
+
+pkgname = ferris-cli-bin

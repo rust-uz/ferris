@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="uz" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+    <title>Ferris.uz — O'zbekiston Rust Tizim Dasturlash Ekotizimi</title>
+    <meta name="description" content="O'zbekiston Rustaceanlar hamjamiyati, rasmiy CLI vositasi, mavzular va jamiyatlar portali.">
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="icon" href="/logo.jpg">
+    <link rel="stylesheet" href="/style.css?v=6.0">
+</head>
+<body>
+    <!-- Subtle Ambient Backdrop -->
+    <div class="ambient-canvas">
+        <div class="cyber-grid"></div>
+    </div>
+
+    <!-- Navigation Bar -->
+    <header class="navbar">
+        <div class="nav-container">
+            <a href="https://ferris.uz" class="brand-logo">
+                <img src="/logo.jpg" alt="Ferris Logo" class="brand-img"/>
+                <span class="brand-text">FERRIS<span class="brand-dot">.UZ</span></span>
+            </a>
+
+            <!-- Subdomain Portals Nav -->
+            <nav class="nav-links">
+                <a href="https://topics.ferris.uz" class="nav-portal-link"><span class="nav-hash">#</span> Mavzular</a>
+                <a href="https://groups.ferris.uz" class="nav-portal-link"><span class="nav-hash">👥</span> Jamiyatlar</a>
+                <a href="#cli-download" class="nav-portal-link">💻 CLI Ilova</a>
+                <a href="#playground" class="nav-portal-link">⚡ Playground</a>
+                <a href="https://api.ferris.uz/api/v1/context" target="_blank" class="nav-portal-link">📡 API</a>
+            </nav>
+
+            <div class="nav-actions">
+                <a href="#cli-download" class="btn btn-primary btn-sm">
+                    <span>⬇ CLI Yuklab Olish</span>
+                </a>
+                <button id="mobileMenuBtn" class="mobile-toggle" aria-label="Menyu">
+                    <span class="bar"></span>
+                    <span class="bar"></span>
+                    <span class="bar"></span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Mobile Nav Overlay -->
+    <div id="mobileNav" class="mobile-nav-drawer">
+        <div class="mobile-nav-links">
+            <a href="https://topics.ferris.uz" class="mobile-link">📌 topics.ferris.uz — Mavzular & Forum</a>
+            <a href="https://groups.ferris.uz" class="mobile-link">👥 groups.ferris.uz — Jamiyatlar</a>
+            <a href="#cli-download" class="mobile-link">💻 ferris-cli — Terminal Vositasini O'rnatish</a>
+            <a href="#playground" class="mobile-link">⚡ Rust Kod Sinov Maydoni</a>
+            <a href="https://api.ferris.uz/api/v1/context" target="_blank" class="mobile-link">📡 api.ferris.uz — Backend API</a>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- 1. HERO SECTION -->
+        <section class="hero-section">
+            <div class="hero-badge">
+                <span class="badge-dot"></span>
+                <span>O'ZBEKISTON RUSTACEANLAR EKOTIZIMI &bull; 100% OCHIQ MANBALI</span>
+            </div>
+
+            <h1 class="hero-title">
+                Tizimli Dasturlash.<br>
+                <span class="gradient-text">Xotira Xavfsizligi.</span> Benuqson Tezlik.
+            </h1>
+
+            <p class="hero-description">
+                Garbage Collector kechikishlarisiz, toza xotira va yuqori unumdorlik.
+                Subdomenlar ekotizimi, jamiyatlar hamda rasmiy <code>ferris-cli</code> vositasi.
+            </p>
+
+            <div class="hero-actions">
+                <a href="#cli-download" class="btn btn-primary btn-lg">
+                    <span>⚡ ferris-cli O'rnatish</span>
+                </a>
+                <a href="https://topics.ferris.uz" class="btn btn-secondary btn-lg">
+                    <span>📌 Mavzular Portali &rarr;</span>
+                </a>
+            </div>
+
+            <div class="install-bar">
+                <span class="prompt-sym">$</span>
+                <code id="curlCommand">curl -fsSL https://ferris.uz/install.sh | sh</code>
+                <button class="copy-btn" id="copyBtn" title="Nusxa olish">
+                    <span class="copy-icon">📋</span>
+                </button>
+            </div>
+        </section>
+
+        <!-- 2. SUBDOMAINS ARCHITECTURE SHOWCASE -->
+        <section class="section subdomains-overview-section">
+            <div class="section-header">
+                <div class="section-badge">CLOUD ECOSYSTEM</div>
+                <h2 class="section-title">Ferris.uz Subdomenlar Tizimi</h2>
+                <p class="section-desc">Har bir yo'nalish o'zining mustaqil subdomeni va maxsus imkoniyatlariga ega</p>
+            </div>
+
+            <div class="portal-cards-grid">
+                <!-- Topics Portal Card -->
+                <a href="https://topics.ferris.uz" class="portal-card">
+                    <div class="portal-badge">topics.ferris.uz</div>
+                    <div class="portal-icon">📌</div>
+                    <h3 class="portal-title">Mavzular & Forum</h3>
+                    <p class="portal-desc"><code>f/rust</code>, <code>f/async</code>, <code>f/systems</code>, <code>f/quantum</code> bo'yicha texnik muhokamalar va maqolalar portali.</p>
+                    <div class="portal-action">Sahifaga o'tish &rarr;</div>
+                </a>
+
+                <!-- Groups Portal Card -->
+                <a href="https://groups.ferris.uz" class="portal-card">
+                    <div class="portal-badge">groups.ferris.uz</div>
+                    <div class="portal-icon">👥</div>
+                    <h3 class="portal-title">Jamiyatlar & Guruhlar</h3>
+                    <p class="portal-desc">Rust dasturchilari to'garaklari, mahalliy meetup guruhlari va ochiq loyihalar katalogi.</p>
+                    <div class="portal-action">Jamiyatlarni ko'rish &rarr;</div>
+                </a>
+
+                <!-- API Portal Card -->
+                <a href="https://api.ferris.uz/api/v1/context" target="_blank" class="portal-card">
+                    <div class="portal-badge">api.ferris.uz</div>
+                    <div class="portal-icon">📡</div>
+                    <h3 class="portal-title">REST & WebSocket API</h3>
+                    <p class="portal-desc">Axum va Tokio asosidagi ultra-tezkor backend. Barcha klientlar va CLI ilovalari uchun yagona miya.</p>
+                    <div class="portal-action">API Context &rarr;</div>
+                </a>
+            </div>
+        </section>
+
+        <!-- 3. CLI DOWNLOAD & INSTALL SECTION -->
+        <section id="cli-download" class="section cli-download-section">
+            <div class="section-header">
+                <div class="section-badge">OFFICIAL CLI TOOL</div>
+                <h2 class="section-title">💻 ferris-cli — Terminal Vositasini O'rnatish</h2>
+                <p class="section-desc">Linux, macOS va Windows tizimlari uchun bir zumda o'rnatiluvchi rasmiy dastur</p>
+            </div>
+
+            <div class="cli-installer-container">
+                <!-- OS Tabs -->
+                <div class="cli-tabs">
+                    <button class="cli-tab active" data-os="linux">🐧 Linux & macOS</button>
+                    <button class="cli-tab" data-os="windows">🪟 Windows (PowerShell)</button>
+                    <button class="cli-tab" data-os="cargo">🦀 Cargo (Crates.io)</button>
+                </div>
+
+                <!-- Linux Tab Content -->
+                <div id="cliTabLinux" class="cli-tab-content active">
+                    <div class="cmd-box">
+                        <span class="cmd-prefix">$</span>
+                        <code>curl -fsSL https://ferris.uz/install.sh | sh</code>
+                        <button class="btn btn-sm btn-secondary copy-cmd-btn" data-clipboard="curl -fsSL https://ferris.uz/install.sh | sh">Nusxa olish</button>
+                    </div>
+                    <div class="cli-actions-row">
+                        <a href="/downloads/ferris-linux" download="ferris" class="btn btn-primary btn-sm">
+                            ⬇ Linux Binary yuklab olish (ELF x86_64, 7MB)
+                        </a>
+                        <span class="cli-note">Kompilyatsiyasiz, to'g'ridan-to'g'ri ishlaydigan binary</span>
+                    </div>
+                </div>
+
+                <!-- Windows Tab Content -->
+                <div id="cliTabWindows" class="cli-tab-content">
+                    <div class="cmd-box">
+                        <span class="cmd-prefix">PS&gt;</span>
+                        <code>iwr -useb https://ferris.uz/install.ps1 | iex</code>
+                        <button class="btn btn-sm btn-secondary copy-cmd-btn" data-clipboard="iwr -useb https://ferris.uz/install.ps1 | iex">Nusxa olish</button>
+                    </div>
+                    <div class="cli-actions-row">
+                        <span class="cli-note">PowerShell orqali avtomatik PATH ga qo'shiladi</span>
+                    </div>
+                </div>
+
+                <!-- Cargo Tab Content -->
+                <div id="cliTabCargo" class="cli-tab-content">
+                    <div class="cmd-box">
+                        <span class="cmd-prefix">$</span>
+                        <code>cargo install ferris-cli</code>
+                        <button class="btn btn-sm btn-secondary copy-cmd-btn" data-clipboard="cargo install ferris-cli">Nusxa olish</button>
+                    </div>
+                </div>
+
+                <!-- CLI Terminal Showcase -->
+                <div class="cli-preview-box">
+                    <div class="term-window-header">
+                        <div class="term-dots">
+                            <span class="dot red"></span>
+                            <span class="dot yellow"></span>
+                            <span class="dot green"></span>
+                        </div>
+                        <span class="term-title">bash &bull; ferris-cli v0.2.0</span>
+                    </div>
+                    <div class="term-window-body">
+                        <p class="term-line"><span class="term-prompt">$</span> ferris ping</p>
+                        <p class="term-output term-success">✅ API aloqada: https://api.ferris.uz (Cloudflare Universal SSL)</p>
+                        <br/>
+                        <p class="term-line"><span class="term-prompt">$</span> ferris topic list</p>
+                        <p class="term-output">📌 Ferris.uz Mavzulari (topics.ferris.uz):</p>
+                        <p class="term-output">  🦀 f/rust       - Rust Core & Ekotizim</p>
+                        <p class="term-output">  ⚡ f/async      - Asinxron Dasturlash & Tokio</p>
+                        <p class="term-output">  🐧 f/systems    - Tizimli Dasturlash & Linux</p>
+                        <p class="term-output">  🔮 f/quantum    - Kvant Hisoblash & AI</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 4. INTERACTIVE RUST PLAYGROUND -->
+        <section id="playground" class="section playground-section">
+            <div class="section-header">
+                <div class="section-badge">INTERACTIVE LAB</div>
+                <h2 class="section-title">Rust Kod Laboratoriyasi</h2>
+                <p class="section-desc">Brauzerda Rust sintaksisi, xotira xavfsizligi va asinxronlikni his qiling</p>
+            </div>
+
+            <div class="playground-card">
+                <div class="playground-header">
+                    <div class="playground-tabs">
+                        <button class="pg-tab active" data-sample="tokio">async_tokio.rs</button>
+                        <button class="pg-tab" data-sample="memory">borrow_checker.rs</button>
+                        <button class="pg-tab" data-sample="quantum">quantum_sim.rs</button>
+                    </div>
+                    <div class="pg-actions">
+                        <button id="runCodeBtn" class="btn btn-primary btn-sm">▶ Kodni Sinash</button>
+                    </div>
+                </div>
+                <div class="playground-body">
+                    <pre class="code-editor"><code id="codeViewer">// 🚀 Tokio Asinxron Vazifa Namunasi
+use tokio::time::{sleep, Duration};
+
+#[tokio::main]
+async fn main() {
+    println!("Rustacean: Tokio dvigateli ishga tushdi...");
+    
+    let handle = tokio::spawn(async {
+        sleep(Duration::from_millis(50)).await;
+        "⚡ 10,000+ so'rovlar nol xotira yo'qotishisiz bajarildi!"
+    });
+
+    let result = handle.await.unwrap();
+    println!("{}", result);
+}</code></pre>
+                </div>
+                <div class="playground-console">
+                    <div class="console-title">Konsol Natijasi:</div>
+                    <div id="consoleOutput" class="console-text">[INFO] Kod tayyor. "Kodni Sinash" tugmasini bosing...</div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- CLEAN COMPACT FOOTER -->
+    <footer class="footer">
+        <div class="footer-container">
+            <div class="footer-brand">
+                <img src="/logo.jpg" alt="Logo" class="footer-mini-logo"/>
+                <span class="footer-brand-name">FERRIS<span class="brand-dot">.UZ</span></span>
+                <span class="footer-motto">&bull; O'zbekiston Rust Hamjamiyati</span>
+            </div>
+            <div class="footer-links">
+                <a href="https://topics.ferris.uz">topics.ferris.uz</a>
+                <a href="https://groups.ferris.uz">groups.ferris.uz</a>
+                <a href="https://api.ferris.uz/api/v1/context">api.ferris.uz</a>
+                <a href="https://github.com/iskurama/ferris-uz" target="_blank">GitHub</a>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <span>&copy; 2026 Ferris.uz &bull; Cloudflare Universal SSL &bull; 100% Rust</span>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="/app.js?v=6.0"></script>
+</body>
+</html>

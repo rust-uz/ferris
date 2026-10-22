@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="uz" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>groups.ferris.uz — Rustacean Jamiyatlari va Guruhlari</title>
+    <meta name="description" content="O'zbekiston Rust dasturchilari jamiyatlari, klublari va meetup guruhlari.">
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="icon" href="/logo.jpg">
+    <link rel="stylesheet" href="/style.css?v=6.0">
+</head>
+<body>
+    <div class="ambient-canvas">
+        <div class="cyber-grid"></div>
+    </div>
+
+    <!-- Navigation -->
+    <header class="navbar">
+        <div class="nav-container">
+            <a href="https://ferris.uz" class="brand-logo">
+                <img src="/logo.jpg" alt="Logo" class="brand-img"/>
+                <span class="brand-text">GROUPS<span class="brand-dot">.FERRIS.UZ</span></span>
+            </a>
+
+            <nav class="nav-links">
+                <a href="https://ferris.uz" class="nav-portal-link">&larr; Bosh sahifa</a>
+                <a href="https://topics.ferris.uz" class="nav-portal-link">Mavzular</a>
+                <a href="https://ferris.uz#cli-download" class="nav-portal-link">CLI Ilova</a>
+            </nav>
+
+            <div class="nav-actions">
+                <button id="openCreateGroupBtn" class="btn btn-primary btn-sm">+ Yangi Jamiyat</button>
+            </div>
+        </div>
+    </header>
+
+    <main class="main-content">
+        <!-- GROUPS HEADER -->
+        <section class="section">
+            <div class="section-header">
+                <div class="section-badge">COMMUNITY DIRECTORY</div>
+                <h1 class="section-title">👥 Faol Jamiyatlar va Klublar</h1>
+                <p class="section-desc">Rust dasturchilari va tizim muhandislari birlashgan ochiq jamoalar</p>
+            </div>
+
+            <!-- GROUPS LIST -->
+            <div id="groupsGrid" class="groups-grid">
+                <!-- JavaScript /api/v1/groups yuklaydi -->
+            </div>
+        </section>
+    </main>
+
+    <!-- Create Group Modal -->
+    <div id="createGroupModal" class="modal-backdrop" style="display: none;">
+        <div class="modal-box">
+            <div class="modal-header">
+                <h3>Yangi Jamiyat Ochish</h3>
+                <button id="closeGroupModalBtn" class="close-btn">&times;</button>
+            </div>
+            <div class="modal-body">
+                <label class="modal-label">Unikal Nom / Slug (masalan: rust-samarkand):</label>
+                <input type="text" id="newGroupSlug" class="modal-input" placeholder="slug-nomi"/>
+
+                <label class="modal-label">Jamiyat Nomi:</label>
+                <input type="text" id="newGroupName" class="modal-input" placeholder="Jamiyat nomi..."/>
+
+                <label class="modal-label">Tavsifi:</label>
+                <textarea id="newGroupDesc" class="modal-textarea" rows="4" placeholder="Jamiyat maqsadi va yo'nalishi haqida..."></textarea>
+            </div>
+            <div class="modal-footer">
+                <button id="submitGroupBtn" class="btn btn-primary">Yaratish</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- CLEAN COMPACT FOOTER -->
+    <footer class="footer">
+        <div class="footer-container">
+            <div class="footer-brand">
+                <img src="/logo.jpg" alt="Logo" class="footer-mini-logo"/>
+                <span class="footer-brand-name">FERRIS<span class="brand-dot">.UZ</span></span>
+                <span class="footer-motto">&bull; groups.ferris.uz</span>
+            </div>
+            <div class="footer-links">
+                <a href="https://ferris.uz">ferris.uz</a>
+                <a href="https://topics.ferris.uz">topics.ferris.uz</a>
+                <a href="https://api.ferris.uz/api/v1/context">api.ferris.uz</a>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <span>&copy; 2026 Ferris.uz &bull; Cloudflare Universal SSL &bull; 100% Rust</span>
+        </div>
+    </footer>
+
+    <script src="/app.js?v=6.0"></script>
+</body>
+</html>

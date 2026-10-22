@@ -1,0 +1,31 @@
+# Maintainer: iskurama <iskurama@ferris.uz>
+pkgname=ferris-cli
+pkgver=0.2.0
+pkgrel=1
+pkgdesc="Sovereign Rust developer platform CLI for ferris.uz"
+arch=('x86_64' 'aarch64')
+url="https://ferris.uz"
+license=('MIT' 'Apache-2.0')
+makedepends=('cargo' 'rust')
+provides=('ferris')
+conflicts=('ferris-cli-bin')
+source=("https://static.crates.io/crates/ferris-cli/ferris-cli-${pkgver}.crate")
+sha256sums=('c280aa3c94eb6566e0e1e3728263ff75cb5e39b6f1ef7829adcd272acbd62dcf')
+
+build() {
+    cd "ferris-cli-${pkgver}"
+    cargo build --release --locked
+}
+
+check() {
+    cd "ferris-cli-${pkgver}"
+    cargo test --release --locked
+}
+
+package() {
+    cd "ferris-cli-${pkgver}"
+    install -Dm755 "target/release/ferris" "${pkgdir}/usr/bin/ferris"
+    install -Dm644 "LICENSE-MIT" "${pkgdir}/usr/share/licenses/${pkgname}/LICENSE-MIT"
+    install -Dm644 "LICENSE-APACHE" "${pkgdir}/usr/share/licenses/${pkgname}/LICENSE-APACHE"
+    install -Dm644 "README.md" "${pkgdir}/usr/share/doc/${pkgname}/README.md"
+}

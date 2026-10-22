@@ -1,0 +1,186 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto px-4 sm:px-6 py-12">
+    <!-- Header -->
+    <div class="mb-10 text-center sm:text-left border-b border-white/10 pb-8">
+        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-zinc-900 border border-white/10 text-xs font-mono text-zinc-400 mb-4">
+            <span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
+            Hujjat versiyasi: 1.0 &bull; Kuchga kirish sanasi: 2026-yil 22-oktabr
+        </div>
+        <h1 class="text-3xl sm:text-4xl font-extrabold text-white tracking-tight mb-3">
+            Maxfiylik Siyosati <span class="text-zinc-500 font-normal font-mono text-xl sm:text-2xl">(Privacy Policy)</span>
+        </h1>
+        <p class="text-sm sm:text-base text-zinc-400 max-w-2xl leading-relaxed">
+            Ferris.uz — O'zbekiston Rust dasturchilari va tizimli muhandislar hamjamiyati platformasi. Ushbu hujjat sizning shaxsiy ma'lumotlaringiz qanday yig'ilishi, saqlanishi va himoyalanishini ochiq tushuntiradi.
+        </p>
+    </div>
+
+    <!-- Content Sections -->
+    <div class="space-y-8 text-zinc-300 text-sm leading-relaxed">
+
+        <!-- 1. Kirish -->
+        <section class="bg-zinc-900/40 border border-white/10 rounded-2xl p-6 sm:p-8 backdrop-blur-sm">
+            <div class="flex items-center gap-3 mb-4">
+                <span class="text-xl">🦀</span>
+                <h2 class="text-lg font-bold text-white tracking-tight">1. Umumiy Qoidalar va Prinsiplarimiz</h2>
+            </div>
+            <p class="mb-3">
+                Ferris.uz loyihasi (veb-sayt, subdomenlar va rasmiy <code class="bg-black/50 px-1.5 py-0.5 rounded text-zinc-200 font-mono text-xs">ferris</code> terminal CLI vositasi) ochiq kodli va jamoat mulki tamoyillariga asoslangan.
+            </p>
+            <p>
+                Bizning asosiy prinsipimiz: <strong class="text-white">Minimalizm va Maxfiylik</strong>. Biz siz haqingizda xizmat ishlashi uchun zarur bo'lgan minimal ma'lumotlardan tashqari hech qanday qo'shimcha yoki yashirin ma'lumot to'plamaymiz.
+            </p>
+        </section>
+
+        <!-- 2. Qanday ma'lumotlar to'planadi -->
+        <section class="bg-zinc-900/40 border border-white/10 rounded-2xl p-6 sm:p-8 backdrop-blur-sm">
+            <div class="flex items-center gap-3 mb-4">
+                <span class="text-xl">📋</span>
+                <h2 class="text-lg font-bold text-white tracking-tight">2. Qanday Ma'lumotlarni Yig'amiz?</h2>
+            </div>
+            <p class="mb-4">Platformadan foydalanish jarayonida faqat quyidagi ma'lumotlar qayta ishlanadi:</p>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div class="bg-black/40 border border-white/5 rounded-xl p-4">
+                    <h3 class="text-xs font-mono uppercase text-cyan-400 font-semibold mb-2">🔐 Autentifikatsiya (SSO)</h3>
+                    <p class="text-xs text-zinc-400">
+                        Biz parollarni saqlamaymiz. Kirish faqat <strong>GitHub OAuth</strong> yoki <strong>Telegram Login</strong> orqali amalga oshadi. Faqat sizning ochiq foydalanuvchi nomingiz (username), ismingiz va profilingiz avatar rasmi saqlanadi.
+                    </p>
+                </div>
+                <div class="bg-black/40 border border-white/5 rounded-xl p-4">
+                    <h3 class="text-xs font-mono uppercase text-yellow-400 font-semibold mb-2">💬 Ommaviy Kontent</h3>
+                    <p class="text-xs text-zinc-400">
+                        Siz yaratgan muhokama postlari, mavzularga yozgan izohlar, ommaviy chatdagi xabarlar va qaysi jamiyatlarga a'zo bo'lganingiz platforma foydalanuvchilariga ochiq ko'rinadi.
+                    </p>
+                </div>
+                <div class="bg-black/40 border border-white/5 rounded-xl p-4">
+                    <h3 class="text-xs font-mono uppercase text-pink-400 font-semibold mb-2">✉️ Shaxsiy Xabarlar (DM)</h3>
+                    <p class="text-xs text-zinc-400">
+                        Ikki foydalanuvchi o'rtasidagi shaxsiy chatlar faqat yuboruvchi va qabul qiluvchiga mo'ljallangan bo'lib, PostgreSQL bazasida saqlanadi hamda real-time WebSocket orqali uzatiladi.
+                    </p>
+                </div>
+                <div class="bg-black/40 border border-white/5 rounded-xl p-4">
+                    <h3 class="text-xs font-mono uppercase text-emerald-400 font-semibold mb-2">⚙️ Texnik Sessiya</h3>
+                    <p class="text-xs text-zinc-400">
+                        Xavfsiz ulanishni ta'minlash uchun Cloudflare orqali SSL shifrlash va yagona sessiya identifikatori (UUID token) ishlatiladi. IP manzillar doimiy profilga bog'lanmaydi.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- 3. Cookie fayllari va sessiyalar -->
+        <section class="bg-zinc-900/40 border border-white/10 rounded-2xl p-6 sm:p-8 backdrop-blur-sm">
+            <div class="flex items-center gap-3 mb-4">
+                <span class="text-xl">🍪</span>
+                <h2 class="text-lg font-bold text-white tracking-tight">3. Cookie Fayllari va Sessiya Xavfsizligi</h2>
+            </div>
+            <p class="mb-3">
+                Ferris.uz saytida <strong class="text-white">hech qanday uchinchi tomon reklama, tahliliy (Google Analytics, Yandex Metrika) yoki kuzatuvchi cookie fayllari yo'q</strong>.
+            </p>
+            <p class="mb-3">
+                Saytda faqat bitta texnik zarur cookie ishlatiladi:
+            </p>
+            <div class="bg-black/60 rounded-lg p-3 font-mono text-xs text-zinc-300 border border-white/5 mb-3">
+                ferris_session=&lt;uuid&gt;; Domain=.ferris.uz; Path=/; Secure; SameSite=Lax; Max-Age=2592000
+            </div>
+            <p class="text-xs text-zinc-400">
+                Ushbu cookie sizning barcha subdomenlar (topics.ferris.uz, groups.ferris.uz, profile.ferris.uz, api.ferris.uz) bo'yicha uzluksiz avtorizatsiyadan foydalanishingizni ta'minlaydi.
+            </p>
+        </section>
+
+        <!-- 4. Ma'lumotlarni saqlash va himoya -->
+        <section class="bg-zinc-900/40 border border-white/10 rounded-2xl p-6 sm:p-8 backdrop-blur-sm">
+            <div class="flex items-center gap-3 mb-4">
+                <span class="text-xl">🐘</span>
+                <h2 class="text-lg font-bold text-white tracking-tight">4. Ma'lumotlar Bazasi va Arxitektura</h2>
+            </div>
+            <ul class="space-y-2 list-disc list-inside text-zinc-300">
+                <li>Barcha ma'lumotlar zamonaviy va himoyalangan <strong>PostgreSQL 16</strong> ma'lumotlar bazasida saqlanadi.</li>
+                <li>API va WebSocket aloqalari <strong>TLS 1.3 / Cloudflare Universal SSL</strong> bilan shifrlangan.</li>
+                <li><strong>24 Soatlik Jamiyat TTL Qoidasi:</strong> Agar biror jamiyatda a'zolar soni 0 ga tushsa, server uni avtomatik nazoratga oladi va 24 soat o'tgach bazadan to'liq o'chirib tashlaydi.</li>
+            </ul>
+        </section>
+
+        <!-- 5. Uchinchi shaxslarga bermaslik kafolati -->
+        <section class="bg-zinc-900/40 border border-white/10 rounded-2xl p-6 sm:p-8 backdrop-blur-sm">
+            <div class="flex items-center gap-3 mb-4">
+                <span class="text-xl">🛡️</span>
+                <h2 class="text-lg font-bold text-white tracking-tight">5. Ma'lumotlarni Uchinchi Shaxslarga Bermaslik Kafolati</h2>
+            </div>
+            <div class="p-4 bg-emerald-950/30 border border-emerald-500/20 rounded-xl text-emerald-200">
+                Biz sizning ma'lumotlaringizni hech qachon sotmaymiz, ijaraga bermaymiz va reklama beruvchi kompaniyalarga taqdim etmaymiz. Ferris.uz to'liq notijorat, ochiq va hamjamiyat uchun xizmat qiluvchi muhandislik tashabbusidir.
+            </div>
+        </section>
+
+        <!-- 6. Foydalanuvchi huquqlari (CRUD & Maxfiylik) -->
+        <section class="bg-zinc-900/40 border border-white/10 rounded-2xl p-6 sm:p-8 backdrop-blur-sm">
+            <div class="flex items-center gap-3 mb-4">
+                <span class="text-xl">⚖️</span>
+                <h2 class="text-lg font-bold text-white tracking-tight">6. Sizning Huquqlaringiz va Kontent Nazorati (CRUD)</h2>
+            </div>
+            <p class="mb-3">Har bir ro'yxatdan o'tgan foydalanuvchi o'z ma'lumotlari ustidan to'liq nazoratga ega:</p>
+            <ul class="space-y-2 list-disc list-inside text-zinc-300">
+                <li><strong class="text-white">Tahrirlash huquqi (Rectification):</strong> O'zingiz chop etgan muhokama postlarini Web interfeys va CLI orqali (<code class="font-mono text-xs bg-black/50 px-1 py-0.5 rounded">ferris post edit &lt;id&gt;</code>) istalgan vaqtda tahrirlashingiz mumkin.</li>
+                <li><strong class="text-white">O'chirish huquqi (Right to Erasure / Unutilish):</strong> O'z postlaringiz, yozgan izohlaringiz va shaxsiy DM xabarlaringizni darhol va to'liq o'chirish imkoniyati taqdim etiladi.</li>
+                <li><strong class="text-white">Sessiyani bekor qilish:</strong> Istalgan paytda <code class="font-mono text-xs bg-black/50 px-1 py-0.5 rounded">ferris logout</code> buyrug'i yoki profil orqali tizimdan chiqib, sessiya tokenini o'chirishingiz mumkin.</li>
+            </ul>
+        </section>
+
+        <!-- 7. Bloklash va Bezorilikdan Himoyalanish -->
+        <section class="bg-zinc-900/40 border border-white/10 rounded-2xl p-6 sm:p-8 backdrop-blur-sm">
+            <div class="flex items-center gap-3 mb-4">
+                <span class="text-xl">🚫</span>
+                <h2 class="text-lg font-bold text-white tracking-tight">7. Foydalanuvchilarni Bloklash va Xavfsizlik Kafolati</h2>
+            </div>
+            <p class="mb-3">
+                Ferris.uz barcha qatnashchilar uchun qulay va xavfsiz muhit taqdim etadi. Spam, ta'qib yoki nomaqbul xabarlarni bartaraf etish uchun platformada <strong>Bloklash (Blocklist)</strong> mexanizmi amal qiladi:
+            </p>
+            <ul class="space-y-2 list-disc list-inside text-zinc-300 mb-4">
+                <li>Biror foydalanuvchini bloklaganingizda, u sizga shaxsiy xabar (DM) yubora olmaydi (Server darajasida <code class="font-mono text-xs bg-black/50 px-1 py-0.5 rounded">403 Forbidden</code> holati bilan to'xtatiladi).</li>
+                <li>Bloklash boshqaruvi Web'da foydalanuvchi profili va DM darchasida, shuningdek CLI da (<code class="font-mono text-xs bg-black/50 px-1 py-0.5 rounded">ferris block add/remove/list</code>) to'liq qo'llab-quvvatlanadi.</li>
+                <li>Bloklangan foydalanuvchilar ro'yxati faqat o'zingizga ko'rinadi va begonalarga oshkor qilinmaydi.</li>
+            </ul>
+        </section>
+
+        <!-- 8. Ma'lumotlarni Doimiy O'chirish (Hard Delete) -->
+        <section class="bg-zinc-900/40 border border-white/10 rounded-2xl p-6 sm:p-8 backdrop-blur-sm">
+            <div class="flex items-center gap-3 mb-4">
+                <span class="text-xl">🗑️</span>
+                <h2 class="text-lg font-bold text-white tracking-tight">8. Ma'lumotlarni Doimiy O'chirish (Hard Delete Kafolati)</h2>
+            </div>
+            <p class="mb-3 text-zinc-300">
+                Ko'plab platformalardan farqli o'laroq, biz ma'lumotlarni "yashirib qo'yish" (soft delete) amaliyotidan foydalanmaymiz:
+            </p>
+            <div class="p-4 bg-black/40 border border-white/10 rounded-xl space-y-2 text-xs font-mono text-zinc-300">
+                <p>• Post o'chirilganda: <span class="text-brand-orange">DELETE FROM posts WHERE id = $1</span> (barcha bog'liq izohlar CASCADE qoidasi bilan PostgreSQL diskidan jismonan o'chiriladi).</p>
+                <p>• Shaxsiy xabar o'chirilganda: <span class="text-brand-orange">DELETE FROM direct_messages WHERE id = $1</span> buyrug'i bajariladi.</p>
+                <p>• Jamiyatda a'zo 0 ga tushganda: 24 soatlik TTL taymeri yakunlanishi bilan jamiyat avtomatik tozalab tashlanadi.</p>
+            </div>
+        </section>
+
+        <!-- 9. Aloqa -->
+        <section class="bg-zinc-900/40 border border-white/10 rounded-2xl p-6 sm:p-8 backdrop-blur-sm">
+            <div class="flex items-center gap-3 mb-4">
+                <span class="text-xl">📬</span>
+                <h2 class="text-lg font-bold text-white tracking-tight">9. Aloqa va Savollar</h2>
+            </div>
+            <p class="mb-4">
+                Ushbu Maxfiylik Siyosati yoki shaxsiy ma'lumotlaringiz bo'yicha savollaringiz bo'lsa, loyiha asoschisi va ma'muriyatiga murojaat qilishingiz mumkin:
+            </p>
+            <div class="flex flex-wrap gap-4 text-xs font-mono">
+                <a href="https://profile.ferris.uz/@iskurama" class="px-3 py-2 rounded-lg bg-black/40 border border-white/10 text-cyan-400 hover:text-cyan-300 hover:border-cyan-500/50 transition-colors">
+                    👤 Ma'mur: @iskurama
+                </a>
+                <a href="https://github.com/iskurama/ferris-uz" target="_blank" class="px-3 py-2 rounded-lg bg-black/40 border border-white/10 text-zinc-300 hover:text-white hover:border-white/30 transition-colors">
+                    🐙 GitHub: iskurama/ferris-uz
+                </a>
+                <a href="https://t.me/iskurama" target="_blank" class="px-3 py-2 rounded-lg bg-black/40 border border-white/10 text-sky-400 hover:text-sky-300 hover:border-sky-500/50 transition-colors">
+                    ✈️ Telegram: @iskurama
+                </a>
+            </div>
+        </section>
+
+    </div>
+</div>
+{% endblock %}
