@@ -791,6 +791,8 @@ async fn main() {
         .route("/terms-of-service", get(terms_page_handler))
         .route("/install.sh", get(install_sh_handler))
         .route("/install.ps1", get(install_ps1_handler))
+        .route("/robots.txt", get(robots_handler))
+        .route("/sitemap.xml", get(sitemap_handler))
         // Tizim & Holat
         .route("/api/v1/ping", get(ping_handler))
         .route("/api/v1/stats", get(stats_handler))
@@ -1238,6 +1240,18 @@ async fn install_ps1_handler() -> impl IntoResponse {
     let content = std::fs::read_to_string("public/install.ps1")
         .unwrap_or_else(|_| std::fs::read_to_string("../static/install.ps1").unwrap_or_default());
     ([(axum::http::header::CONTENT_TYPE, "text/plain; charset=utf-8")], content)
+}
+
+async fn robots_handler() -> impl IntoResponse {
+    let content = std::fs::read_to_string("public/robots.txt")
+        .unwrap_or_else(|_| include_str!("../../static/robots.txt").to_string());
+    ([(axum::http::header::CONTENT_TYPE, "text/plain; charset=utf-8")], content)
+}
+
+async fn sitemap_handler() -> impl IntoResponse {
+    let content = std::fs::read_to_string("public/sitemap.xml")
+        .unwrap_or_else(|_| include_str!("../../static/sitemap.xml").to_string());
+    ([(axum::http::header::CONTENT_TYPE, "application/xml; charset=utf-8")], content)
 }
 
 async fn privacy_page_handler() -> impl IntoResponse {

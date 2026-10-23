@@ -5,6 +5,59 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
     <title>{% block title %}Ferris.uz — O'zbekiston Rust Tizim Dasturlash Ekotizimi{% endblock %}</title>
     <meta name="description" content="{% block description %}O'zbekiston Rustaceanlar hamjamiyati, rasmiy ferris-cli vositasi, mavzular va jamiyatlar portali.{% endblock %}">
+    <meta name="keywords" content="Rust, Rust Uzbekistan, rust-uz, ferris.uz, ferris-cli, tizimli dasturlash, systems programming, post-quantum cryptography, blake3, rust kitobi, doc.ferris.uz">
+    <meta name="author" content="Rust Uzbekistan Community / Ibrohim Miraxmedov">
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href="https://ferris.uz/">
+    <meta name="theme-color" content="#f74c00">
+
+    <!-- Open Graph (Facebook, Telegram, Discord, LinkedIn) -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://ferris.uz/">
+    <meta property="og:title" content="{% block og_title %}Ferris.uz — O'zbekiston Rust Tizim Dasturlash Ekotizimi{% endblock %}">
+    <meta property="og:description" content="{% block og_desc %}O'zbekiston Rustaceanlar rasmiy portali. ferris-cli (v0.2.1), Post-Quantum BLAKE3 kriptografiyasi va o'zbekcha Rust kitobi (doc.ferris.uz).{% endblock %}">
+    <meta property="og:image" content="https://ferris.uz/logo.png">
+    <meta property="og:site_name" content="Ferris.uz">
+    <meta property="og:locale" content="uz_UZ">
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:url" content="https://ferris.uz/">
+    <meta name="twitter:title" content="Ferris.uz — O'zbekiston Rust Ekotizimi">
+    <meta name="twitter:description" content="O'zbekiston suveren Rust dasturchilari forumi, ferris-cli va doc.ferris.uz rasmiy kitobi.">
+    <meta name="twitter:image" content="https://ferris.uz/logo.png">
+
+    <!-- Structured Data (JSON-LD) for Search AI & Google Rich Snippets -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Organization",
+      "name": "Rust Uzbekistan",
+      "alternateName": ["Ferris.uz", "rust-uz"],
+      "url": "https://ferris.uz",
+      "logo": "https://ferris.uz/logo.png",
+      "description": "O'zbekistonda tizimli dasturlash (systems programming), Rust tili va yuqori unumdorlikdagi infratuzilmani rivojlantiruvchi rasmiy hamjamiyat.",
+      "sameAs": [
+        "https://github.com/rust-uz",
+        "https://github.com/rust-uz/ferris",
+        "https://github.com/rust-uz/book",
+        "https://doc.ferris.uz"
+      ]
+    }
+    </script>
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebSite",
+      "name": "Ferris.uz",
+      "url": "https://ferris.uz",
+      "potentialAction": {
+        "@type": "SearchAction",
+        "target": "https://topics.ferris.uz?q={search_term_string}",
+        "query-input": "required name=search_term_string"
+      }
+    }
+    </script>
     
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
