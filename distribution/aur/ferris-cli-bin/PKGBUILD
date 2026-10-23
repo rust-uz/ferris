@@ -1,15 +1,15 @@
 # Maintainer: iskurama <iskurama@ferris.uz>
 pkgname=ferris-cli-bin
-pkgver=0.2.0
+pkgver=0.2.1
 pkgrel=1
-pkgdesc="Sovereign Rust developer platform CLI for ferris.uz (pre-built binary)"
+pkgdesc="Sovereign Rust developer platform CLI for ferris.uz & doc.ferris.uz (pre-built binary)"
 arch=('x86_64')
 url="https://ferris.uz"
 license=('MIT' 'Apache-2.0')
 provides=('ferris' 'ferris-cli')
 conflicts=('ferris-cli')
 source=("ferris-linux-${pkgver}::https://ferris.uz/downloads/ferris-linux")
-sha256sums=('4246c0ad92673fcb1c6e9ba9deb8114b82787c4d27d30c4f9919206c52e5a4ec')
+sha256sums=('1446419480c3561c8d778e843f1b90b6ee7c3a6f806b15497a1df7a40477f7a5')
 
 package() {
     install -Dm755 "${srcdir}/ferris-linux-${pkgver}" "${pkgdir}/usr/bin/ferris"

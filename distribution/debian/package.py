@@ -9,13 +9,13 @@ import tempfile
 import subprocess
 import shutil
 
-VERSION = "0.2.0"
+VERSION = "0.2.1"
 ARCH = "amd64"
 PKG_NAME = f"ferris-cli_{VERSION}_{ARCH}"
 OUTPUT_DEB = f"{PKG_NAME}.deb"
 
 PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "../.."))
-BINARY_PATH = os.path.join(PROJECT_ROOT, "server/public/downloads/ferris-linux")
+BINARY_PATH = os.path.join(PROJECT_ROOT, "cli/target/release/ferris")
 LICENSE_PATH = os.path.join(PROJECT_ROOT, "LICENSE-MIT")
 README_PATH = os.path.join(PROJECT_ROOT, "README.md")
 

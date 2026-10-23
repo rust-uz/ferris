@@ -1,6 +1,6 @@
 {
-    "version": "0.2.0",
-    "description": "Sovereign Rust developer platform CLI for ferris.uz",
+    "version": "0.2.1",
+    "description": "Sovereign Rust developer platform CLI for ferris.uz & doc.ferris.uz",
     "homepage": "https://ferris.uz",
     "license": "MIT OR Apache-2.0",
     "notes": "To build from source on any system: cargo install ferris-cli",
@@ -9,7 +9,7 @@
     },
     "architecture": {
         "64bit": {
-            "url": "https://github.com/iskurama/ferris-uz/releases/download/v0.2.0/ferris-windows-x64.exe#/ferris.exe",
+            "url": "https://github.com/rust-uz/ferris/releases/download/v0.2.1/ferris-windows-x64.exe#/ferris.exe",
             "hash": ""
         }
     },
@@ -21,7 +21,7 @@
     "autoupdate": {
         "architecture": {
             "64bit": {
-                "url": "https://github.com/iskurama/ferris-uz/releases/download/v$version/ferris-windows-x64.exe#/ferris.exe"
+                "url": "https://github.com/rust-uz/ferris/releases/download/v$version/ferris-windows-x64.exe#/ferris.exe"
             }
         }
     }

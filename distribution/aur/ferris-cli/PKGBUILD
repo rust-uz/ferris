@@ -1,8 +1,8 @@
 # Maintainer: iskurama <iskurama@ferris.uz>
 pkgname=ferris-cli
-pkgver=0.2.0
+pkgver=0.2.1
 pkgrel=1
-pkgdesc="Sovereign Rust developer platform CLI for ferris.uz"
+pkgdesc="Sovereign Rust developer platform CLI for ferris.uz & doc.ferris.uz"
 arch=('x86_64' 'aarch64')
 url="https://ferris.uz"
 license=('MIT' 'Apache-2.0')
@@ -10,7 +10,7 @@ makedepends=('cargo' 'rust')
 provides=('ferris')
 conflicts=('ferris-cli-bin')
 source=("https://static.crates.io/crates/ferris-cli/ferris-cli-${pkgver}.crate")
-sha256sums=('c280aa3c94eb6566e0e1e3728263ff75cb5e39b6f1ef7829adcd272acbd62dcf')
+sha256sums=('d977631b87941cd2d04c6eb03f3661adaa0a7756c814faf744c421a71454d747')
 
 build() {
     cd "ferris-cli-${pkgver}"
