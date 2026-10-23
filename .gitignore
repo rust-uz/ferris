@@ -13,3 +13,8 @@ distribution/debian/*.deb
 distribution/aur/*/*.pkg.tar.zst
 distribution/aur/*/src/
 distribution/aur/*/pkg/
+
+*.sql
+.env*
+*.local
+
