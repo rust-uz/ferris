@@ -813,6 +813,7 @@ async fn main() {
         // Postlar (Posts) & Kommentlar (Javoblar)
         .route("/api/v1/posts", get(posts_list_handler).post(post_create_handler))
         .route("/api/v1/posts/:id", get(post_detail_handler).put(post_update_handler).delete(post_delete_handler))
+        .route("/api/v1/posts/:id/view", post(post_record_view_handler))
         .route("/api/v1/posts/:id/comments", get(get_comments_handler).post(add_comment_handler))
         .route("/api/v1/comments/:id", delete(comment_delete_handler))
         // Foydalanuvchi Profili
@@ -857,7 +858,7 @@ async fn root_host_router(
         .unwrap_or("");
 
     if host.starts_with("topics.") {
-        topics_page_handler(State(state), headers).await.into_response()
+        topics_page_handler(State(state)).await.into_response()
     } else if host.starts_with("groups.") {
         groups_page_handler(State(state)).await.into_response()
     } else {
@@ -871,20 +872,7 @@ async fn root_host_router(
     }
 }
 
-async fn topics_page_handler(State(state): State<AppState>, headers: HeaderMap) -> impl IntoResponse {
-    let viewer_key = get_viewer_key(&headers, &state);
-
-    // Record views for all visible posts on the topics feed (deduplicated per user/IP)
-    {
-        let post_ids: Vec<Uuid> = {
-            let posts = state.posts.read().unwrap();
-            posts.iter().map(|p| p.id).collect()
-        };
-        for pid in post_ids {
-            record_post_view(pid, &viewer_key, &state);
-        }
-    }
-
+async fn topics_page_handler(State(state): State<AppState>) -> impl IntoResponse {
     let topics = state.topics.read().unwrap().clone();
     let posts = state.posts.read().unwrap().clone();
     let comments = state.comments.read().unwrap().clone();
@@ -1038,11 +1026,7 @@ pub fn record_post_view(post_id: Uuid, viewer_key: &str, state: &AppState) -> bo
         let views_calc = set.len() as i32;
         let mut posts = state.posts.write().unwrap();
         if let Some(post) = posts.iter_mut().find(|p| p.id == post_id) {
-            if post.views_count < views_calc {
-                post.views_count = views_calc;
-            } else {
-                post.views_count += 1;
-            }
+            post.views_count = views_calc;
         }
         drop(posts);
         drop(views_map);
@@ -1062,7 +1046,7 @@ pub fn record_post_view(post_id: Uuid, viewer_key: &str, state: &AppState) -> bo
                 .await;
 
                 let _ = sqlx::query(
-                    "UPDATE posts SET views_count = GREATEST(views_count, (SELECT COUNT(*) FROM post_views WHERE post_id = $1)) WHERE id = $1"
+                    "UPDATE posts SET views_count = (SELECT COUNT(*) FROM post_views WHERE post_id = $1) WHERE id = $1"
                 )
                 .bind(post_id)
                 .execute(&pool)
@@ -1078,7 +1062,7 @@ pub fn record_post_view(post_id: Uuid, viewer_key: &str, state: &AppState) -> bo
 async fn group_detail_page_handler(
     State(state): State<AppState>,
     Path(slug): Path<String>,
-    headers: HeaderMap,
+    _headers: HeaderMap,
 ) -> impl IntoResponse {
     let clean_slug = slug.trim_start_matches("f/").to_string();
     let groups = state.groups.read().unwrap();
@@ -1086,8 +1070,6 @@ async fn group_detail_page_handler(
         Some(g) => g,
         None => return (StatusCode::NOT_FOUND, "Jamiyat topilmadi").into_response(),
     };
-
-    let viewer_key = get_viewer_key(&headers, &state);
 
     let members = {
         let members_map = state.group_members.read().unwrap();
@@ -1097,11 +1079,6 @@ async fn group_detail_page_handler(
 
     let all_posts = state.posts.read().unwrap().clone();
     let all_comments = state.comments.read().unwrap().clone();
-
-    // Record views for posts belonging to this group
-    for p in all_posts.iter().filter(|p| p.jamiyat_id == Some(group.id)) {
-        record_post_view(p.id, &viewer_key, &state);
-    }
 
     let posts: Vec<PostWithComments> = all_posts
         .into_iter()
@@ -1667,6 +1644,24 @@ async fn post_detail_handler(
             Json(serde_json::json!({ "error": "Post topilmadi!" })),
         ))
     }
+}
+
+async fn post_record_view_handler(
+    State(state): State<AppState>,
+    Path(id): Path<Uuid>,
+    headers: HeaderMap,
+) -> Json<serde_json::Value> {
+    let viewer_key = get_viewer_key(&headers, &state);
+    let recorded = record_post_view(id, &viewer_key, &state);
+    let views_count = {
+        let posts = state.posts.read().unwrap();
+        posts.iter().find(|p| p.id == id).map(|p| p.views_count).unwrap_or(0)
+    };
+    Json(serde_json::json!({
+        "success": true,
+        "recorded": recorded,
+        "views_count": views_count
+    }))
 }
 
 #[derive(Deserialize)]
