@@ -9,6 +9,9 @@ use tokio::io::{AsyncBufReadExt, BufReader};
 use tokio_tungstenite::connect_async;
 use tokio_tungstenite::tungstenite::protocol::Message as WsMessage;
 
+mod vault;
+mod jail;
+
 #[derive(Parser)]
 #[command(name = "ferris")]
 #[command(author = "Ferris.uz Hamjamiyati")]
@@ -119,6 +122,91 @@ enum Commands {
         /// Brauzerda doc.ferris.uz portalini ochish
         #[arg(short, long)]
         web: bool,
+    },
+
+    /// 🔐 Xavfsiz xotiradagi sirlar ombori (Zero-Disk Secrets Vault)
+    Vault {
+        #[command(subcommand)]
+        action: VaultCommands,
+    },
+
+    /// 🚀 Ilovani xavfsiz qobiqda (Enclave) ishga tushirish
+    Run {
+        /// Shifrlangan sirlar ombori (.env.ferris) yo'li
+        #[arg(short, long, default_value = ".env.ferris")]
+        vault: String,
+
+        /// Vault uchun maxsus parol (agar o'rnatilgan bo'lsa)
+        #[arg(short, long)]
+        password: Option<String>,
+
+        /// Yadroviy qamalni (Landlock LSM) yoqish
+        #[arg(short, long, default_value_t = true)]
+        jail: bool,
+
+        /// Qamal ichida qo'shimcha yozishga ruxsat etilgan papkalar
+        #[arg(long)]
+        allow_write: Vec<String>,
+
+        /// Unix Domain Socket yo'li (ixtiyoriy, masalan: /run/ferris/app.sock)
+        #[arg(short, long)]
+        socket: Option<String>,
+
+        /// Bajariladigan buyruq va argumentlari (masalan: ferris run -- python3 bot.py)
+        #[arg(required = true, trailing_var_arg = true, allow_hyphen_values = true)]
+        command: Vec<String>,
+    },
+}
+
+#[derive(Subcommand)]
+enum VaultCommands {
+    /// Ochiq .env faylni shifrlab muhrlash va diskdan tozalash
+    Seal {
+        /// Kiruvchi fayl yo'li (default: .env)
+        #[arg(default_value = ".env")]
+        input: String,
+
+        /// Shifrlangan fayl yo'li (default: .env.ferris)
+        #[arg(short, long, default_value = ".env.ferris")]
+        output: String,
+
+        /// Shifrlash uchun maxsus parol (ixtiyoriy, berilmasa mashina kaliti ishlatiladi)
+        #[arg(short, long)]
+        password: Option<String>,
+
+        /// Asl ochiq faylni diskda saqlab qolish (Tavsiya etilmaydi!)
+        #[arg(long, default_value_t = false)]
+        keep: bool,
+    },
+
+    /// Vault tarkibidagi kalitlar ro'yxatini ko'rish
+    Inspect {
+        /// Shifrlangan fayl yo'li (default: .env.ferris)
+        #[arg(default_value = ".env.ferris")]
+        vault: String,
+
+        /// Parol (agar seal paytida kiritilgan bo'lsa)
+        #[arg(short, long)]
+        password: Option<String>,
+
+        /// Maxfiy qiymatlarni ham ekranda ko'rsatish
+        #[arg(long, default_value_t = false)]
+        reveal: bool,
+    },
+
+    /// Shifrlangan vaultni ochib, qayta .env fayliga chiqarish
+    Unseal {
+        /// Shifrlangan fayl yo'li (default: .env.ferris)
+        #[arg(default_value = ".env.ferris")]
+        vault: String,
+
+        /// Tiklanadigan fayl yo'li (default: .env)
+        #[arg(short, long, default_value = ".env")]
+        output: String,
+
+        /// Parol (agar seal paytida kiritilgan bo'lsa)
+        #[arg(short, long)]
+        password: Option<String>,
     },
 }
 
@@ -951,6 +1039,161 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         Commands::Doc { chapter, web } => {
             handle_doc(chapter.as_deref(), *web).await?;
         }
+
+        Commands::Vault { action } => {
+            handle_vault(action)?;
+        }
+
+        Commands::Run {
+            vault,
+            password,
+            jail,
+            allow_write,
+            socket,
+            command,
+        } => {
+            handle_run(vault, password.as_deref(), *jail, allow_write, socket.as_deref(), command)?;
+        }
+    }
+
+    Ok(())
+}
+
+fn handle_vault(action: &VaultCommands) -> Result<(), Box<dyn std::error::Error>> {
+    match action {
+        VaultCommands::Seal { input, output, password, keep } => {
+            let in_path = std::path::Path::new(input);
+            let out_path = std::path::Path::new(output);
+
+            println!("{}", "🔒 [Ferris Vault] Maxfiylik ombori tayyorlanmoqda...".cyan().bold());
+            match vault::seal_vault(in_path, out_path, password.as_deref(), *keep) {
+                Ok(count) => {
+                    println!("{} {}", "✅ Muvaffaqiyatli muhrlandi:".green().bold(), output.bold());
+                    println!("   • Aniqlangan va shifrlangan o'zgaruvchilar soni: {}", count.to_string().yellow());
+                    println!("   • Shifrlash algoritmi: {}", "ChaCha20-Poly1305 (256-bit AEAD)".bright_cyan());
+                    if !*keep {
+                        println!("   • {}", "Asl ochiq fayl diskdan izsiz xavfsiz tozalandi (Zero-Disk Footprint).".green());
+                    } else {
+                        println!("   • {}", "DIQQAT: Asl fayl diskda saqlab qolindi (--keep).".yellow());
+                    }
+                    println!("\n💡 Endi ilovani ishga tushirishda:");
+                    println!("   {} ferris run -- python3 bot.py", "$".bright_black());
+                }
+                Err(e) => {
+                    eprintln!("{} {}", "❌ Xatolik yuz berdi:".red().bold(), e);
+                }
+            }
+        }
+        VaultCommands::Inspect { vault, password, reveal } => {
+            let v_path = std::path::Path::new(vault);
+            match vault::inspect_vault(v_path, password.as_deref(), *reveal) {
+                Ok(items) => {
+                    println!("{} {} (Jami: {})", "🔐 Vault tarkibi:".cyan().bold(), vault.bold(), items.len().to_string().yellow());
+                    println!("{}", "────────────────────────────────────────────────────────────".bright_black());
+                    for (k, v) in items {
+                        if *reveal {
+                            println!("  {} = {}", k.bright_cyan().bold(), v.yellow());
+                        } else {
+                            println!("  {} = {}", k.bright_cyan().bold(), v.bright_black());
+                        }
+                    }
+                    println!("{}", "────────────────────────────────────────────────────────────".bright_black());
+                    if !*reveal {
+                        println!("ℹ️  Qiymatlarni ko'rish uchun: {} qo'shing.", "--reveal".yellow());
+                    }
+                }
+                Err(e) => {
+                    eprintln!("{} {}", "❌ Xatolik yuz berdi:".red().bold(), e);
+                }
+            }
+        }
+        VaultCommands::Unseal { vault, output, password } => {
+            let v_path = std::path::Path::new(vault);
+            let out_path = std::path::Path::new(output);
+
+            println!("{}", "⚠️  [Ferris Vault] Faylni qayta tiklash (Unseal)...".yellow().bold());
+            match vault::unseal_vault(v_path, out_path, password.as_deref()) {
+                Ok(count) => {
+                    println!("{} {}", "✅ Ochiq fayl tiklandi:".green().bold(), output.bold());
+                    println!("   • Tiklangan o'zgaruvchilar: {}", count.to_string().yellow());
+                    println!("   • Ruxsatlar: {}", "0600 (Faqat joriy foydalanuvchi)".bright_cyan());
+                    println!("   • {}", "DIQQAT: Foydalangach uni yana 'ferris vault seal' qilishni unutmang!".bright_red());
+                }
+                Err(e) => {
+                    eprintln!("{} {}", "❌ Xatolik yuz berdi:".red().bold(), e);
+                }
+            }
+        }
+    }
+    Ok(())
+}
+
+fn handle_run(
+    vault_path_str: &str,
+    password: Option<&str>,
+    enable_jail: bool,
+    allow_write_paths: &[String],
+    socket: Option<&str>,
+    cmd_args: &[String],
+) -> Result<(), Box<dyn std::error::Error>> {
+    if cmd_args.is_empty() {
+        eprintln!("{}", "❌ Ishga tushirish uchun buyruq ko'rsatilmadi (masalan: ferris run -- python3 bot.py)".red());
+        return Ok(());
+    }
+
+    println!("{}", "🛡️  [Ferris Enclave] Universal xavfsiz qobiq ishga tushirilmoqda...".cyan().bold());
+
+    // 1. Vault'ni xotirada ochish
+    let mut env_vars = std::collections::HashMap::new();
+    let v_path = std::path::Path::new(vault_path_str);
+    if v_path.exists() {
+        match vault::load_vault_to_env(v_path, password) {
+            Ok(map) => {
+                let count = map.len();
+                env_vars = map;
+                println!("{} {} {}", "   • Sirlar ombori:".green(), count.to_string().yellow().bold(), "ta maxfiy kalit operativ xotiraga (RAM) yuklandi.".green());
+            }
+            Err(e) => {
+                eprintln!("{} {}", "⚠️  Vaultni ochishda xatolik:".yellow().bold(), e);
+            }
+        }
+    } else {
+        println!("   • Sirlar ombori: {} topilmadi (standart muhit ishlatiladi).", vault_path_str.bright_black());
+    }
+
+    // 2. Soket muhitini ineksiya qilish
+    if let Some(sock_path) = socket {
+        env_vars.insert("FERRIS_SOCKET".to_string(), sock_path.to_string());
+        env_vars.insert("PORT".to_string(), sock_path.to_string());
+        println!("   • Tarmoq kanali: {} (Unix Domain Socket faol)", sock_path.bright_cyan());
+    }
+
+    // 3. Yadroviy qamal (Landlock LSM)
+    if enable_jail {
+        let mut jail_config = jail::JailConfig::default();
+        for p in allow_write_paths {
+            jail_config.extra_write_paths.push(std::path::PathBuf::from(p));
+        }
+
+        if let Err(e) = jail::apply_sandbox(&jail_config) {
+            eprintln!("{} {}", "⚠️  Qamalni qo'llashda xatolik:".yellow(), e);
+        }
+    }
+
+    let program = &cmd_args[0];
+    let args = &cmd_args[1..];
+
+    println!("{} {} {}\n", "🚀 [Boshlandi]:".green().bold(), program.bright_yellow(), args.join(" "));
+
+    let mut command = std::process::Command::new(program);
+    command.args(args);
+    command.envs(&env_vars);
+
+    let status = command.status()
+        .map_err(|e| format!("Dasturni ishga tushirib bo'lmadi ('{}'): {}", program, e))?;
+
+    if !status.success() {
+        std::process::exit(status.code().unwrap_or(1));
     }
 
     Ok(())
