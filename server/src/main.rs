@@ -793,6 +793,7 @@ async fn main() {
         .route("/install.ps1", get(install_ps1_handler))
         .route("/robots.txt", get(robots_handler))
         .route("/sitemap.xml", get(sitemap_handler))
+        .route("/favicon.ico", get(favicon_handler))
         // Tizim & Holat
         .route("/api/v1/ping", get(ping_handler))
         .route("/api/v1/stats", get(stats_handler))
@@ -1252,6 +1253,12 @@ async fn sitemap_handler() -> impl IntoResponse {
     let content = std::fs::read_to_string("public/sitemap.xml")
         .unwrap_or_else(|_| include_str!("../../static/sitemap.xml").to_string());
     ([(axum::http::header::CONTENT_TYPE, "application/xml; charset=utf-8")], content)
+}
+
+async fn favicon_handler() -> impl IntoResponse {
+    let bytes = std::fs::read("public/favicon.ico")
+        .unwrap_or_else(|_| include_bytes!("../../static/favicon.ico").to_vec());
+    ([(axum::http::header::CONTENT_TYPE, "image/x-icon")], bytes)
 }
 
 async fn privacy_page_handler() -> impl IntoResponse {

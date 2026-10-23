@@ -7,7 +7,7 @@
 
 use std::collections::HashMap;
 use std::fs::{self, File, OpenOptions};
-use std::io::Write;
+use std::io::{Seek, SeekFrom, Write};
 use std::path::{Path, PathBuf};
 use chacha20poly1305::{
     aead::{Aead, KeyInit},
@@ -131,7 +131,8 @@ pub fn secure_shred_file(path: &Path) -> Result<(), String> {
     let _ = file.write_all(&zeros);
     let _ = file.sync_all();
 
-    // 2-qadam: Barchasini tasodifiy baytlar bilan to'ldirish
+    // 2-qadam: Boshiga qaytib, barchasini tasodifiy baytlar bilan to'ldirish
+    let _ = file.seek(SeekFrom::Start(0));
     let mut random = vec![0u8; len];
     rand::rng().fill(random.as_mut_slice());
     let _ = file.write_all(&random);
@@ -160,7 +161,7 @@ pub fn seal_vault(
     let count = parse_env_string(&String::from_utf8_lossy(&plaintext)).len();
 
     let master_key = get_or_create_master_key(password)?;
-    let cipher = ChaCha20Poly1305::new(Key::from_slice(&master_key));
+    let cipher = ChaCha20Poly1305::new(&Key::from(master_key));
 
     // 12 baytlik tasodifiy Nonce
     let mut nonce_bytes = [0u8; NONCE_LEN];
@@ -218,10 +219,10 @@ pub fn load_vault_to_env(
 
     let master_key = get_or_create_master_key(password)?;
     let cipher = ChaCha20Poly1305::new(&Key::from(master_key));
-    let nonce = Nonce::from_slice(nonce_bytes);
+    let nonce = Nonce::try_from(nonce_bytes).map_err(|e| e.to_string())?;
 
     let mut decrypted = cipher
-        .decrypt(nonce, ciphertext)
+        .decrypt(&nonce, ciphertext)
         .map_err(|_| "Vaultni ochib bo'lmadi! Parol noto'g'ri yoki fayl boshqa serverda yaratilgan.".to_string())?;
 
     let env_str = String::from_utf8_lossy(&decrypted).to_string();
@@ -322,7 +323,11 @@ fn parse_env_string(content: &str) -> HashMap<String, String> {
             key.push(chars.next().unwrap());
         }
 
-        let key = key.trim().to_string();
+        let mut key = key.trim().to_string();
+        if let Some(stripped) = key.strip_prefix("export ") {
+            key = stripped.trim().to_string();
+        }
+
         if chars.peek() == Some(&'=') {
             chars.next(); // '=' ni o'tkazib yuborish
 
@@ -384,6 +389,12 @@ fn parse_env_string(content: &str) -> HashMap<String, String> {
                         val.push(ch);
                     }
                     val = val.trim().to_string();
+
+                    // Izohlarni tozalash (masalan: PORT=8080 # default port)
+                    if let Some(idx) = val.find(" #").or_else(|| val.find("\t#")) {
+                        val.truncate(idx);
+                        val = val.trim().to_string();
+                    }
                 }
             } else {
                 // Bo'sh qiymat

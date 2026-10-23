@@ -1,7 +1,8 @@
 // ==============================================================================
 // FERRIS JAIL — Linux Landlock LSM Security Sandbox
-// Restricts filesystem access to project directories only
-// Enforces PR_SET_NO_NEW_PRIVS to prevent privilege escalation
+// Restricts filesystem access: Code files are strictly READ-ONLY
+// Memory Hardening: PR_SET_DUMPABLE=0 & RLIMIT_CORE=0 (Zero Memory Leaks)
+// Network Jailing: CLONE_NEWNET Zero-Trust Network Namespace
 // ==============================================================================
 
 use std::path::{Path, PathBuf};
@@ -16,25 +17,72 @@ pub struct JailConfig {
     pub allow_cwd_write: bool,
     pub extra_write_paths: Vec<PathBuf>,
     pub extra_read_paths: Vec<PathBuf>,
+    pub isolate_network: bool,
+    pub protect_memory: bool,
 }
 
 impl Default for JailConfig {
     fn default() -> Self {
         Self {
-            allow_cwd_write: true,
+            allow_cwd_write: false, // Kod fayllari doimo faqat O'QISH huquqida!
             extra_write_paths: Vec::new(),
             extra_read_paths: Vec::new(),
+            isolate_network: false,
+            protect_memory: true,
         }
     }
 }
 
-/// Linux tizimlarida Landlock va NoNewPrivs orqali qamal o'rnatish
+/// Linux tizimlarida Landlock, NoNewPrivs, Memory Hardening va Tarmoq Qamali
 #[cfg(target_os = "linux")]
 pub fn apply_sandbox(config: &JailConfig) -> Result<(), String> {
     // 1. Yangi imtiyozlar olishni taqiqlash (NoNewPrivs)
     let res = unsafe { libc::prctl(libc::PR_SET_NO_NEW_PRIVS, 1, 0, 0, 0) };
     if res != 0 {
         return Err("PR_SET_NO_NEW_PRIVS o'rnatib bo'lmadi".to_string());
+    }
+
+    // 2. Xotira va Core Dump himoyasi (/proc/<pid>/environ va Core Dump larni bloklash)
+    if config.protect_memory {
+        unsafe {
+            // Boshqa jarayonlar /proc/<pid>/environ va /proc/<pid>/mem ni o'qiy olmaydi
+            libc::prctl(libc::PR_SET_DUMPABLE, 0, 0, 0, 0);
+
+            // Dastur qulaganda (crash) sirlar diskka yozilmasligi uchun Core Dump ni o'chirish
+            let rlim = libc::rlimit {
+                rlim_cur: 0,
+                rlim_max: 0,
+            };
+            libc::setrlimit(libc::RLIMIT_CORE, &rlim);
+        }
+    }
+
+    // 3. Tarmoq izolyatsiyasi (CLONE_NEWUSER | CLONE_NEWNET)
+    if config.isolate_network {
+        let res = unsafe { libc::unshare(libc::CLONE_NEWUSER | libc::CLONE_NEWNET) };
+        if res == 0 {
+            // Loopback (127.0.0.1 / localhost) interfeysini yoqish (IFF_UP | IFF_RUNNING)
+            unsafe {
+                let sock = libc::socket(libc::AF_INET, libc::SOCK_DGRAM, 0);
+                if sock >= 0 {
+                    let mut ifr: libc::ifreq = std::mem::zeroed();
+                    let name = b"lo\0";
+                    std::ptr::copy_nonoverlapping(
+                        name.as_ptr() as *const libc::c_char,
+                        ifr.ifr_name.as_mut_ptr(),
+                        name.len(),
+                    );
+                    if libc::ioctl(sock, libc::SIOCGIFFLAGS, &mut ifr) >= 0 {
+                        ifr.ifr_ifru.ifru_flags |= (libc::IFF_UP | libc::IFF_RUNNING) as libc::c_short;
+                        libc::ioctl(sock, libc::SIOCSIFFLAGS, &ifr);
+                    }
+                    libc::close(sock);
+                }
+            }
+            println!("🌐 [Ferris Net] To'liq tarmoq izolyatsiyasi faol (Tashqi internet uzildi, Localhost faollashtirildi).");
+        } else {
+            eprintln!("⚠️  [Ferris Net] Network namespace yaratilmadi (yadro ruxsati kerak).");
+        }
     }
 
     let read_access = AccessFs::ReadFile
@@ -71,21 +119,28 @@ pub fn apply_sandbox(config: &JailConfig) -> Result<(), String> {
 
     let mut rules: Vec<PathBeneath<PathFd>> = Vec::new();
 
-    // Tizim kutubxonalari va standart fayllarga faqat O'QISH ruxsatini berish
+    // Tizim kutubxonalari, tarmoq va standart konfiguratsiyalarga faqat O'QISH ruxsatini berish
     let system_read_paths = [
         "/usr",
         "/lib",
         "/lib64",
+        "/bin",
         "/etc/ssl",
         "/etc/pki",
+        "/etc/ca-certificates",
+        "/usr/share/ca-certificates",
+        "/run/systemd/resolve",
         "/etc/resolv.conf",
         "/etc/hosts",
         "/etc/nsswitch.conf",
+        "/etc/gai.conf",
+        "/etc/protocols",
+        "/etc/services",
         "/etc/ld.so.cache",
+        "/etc/localtime",
         "/proc",
         "/dev/urandom",
-        "/dev/null",
-        "/dev/zero",
+        "/dev/random",
     ];
 
     for path_str in &system_read_paths {
@@ -97,7 +152,28 @@ pub fn apply_sandbox(config: &JailConfig) -> Result<(), String> {
         }
     }
 
-    // Foydalanuvchi toolchain yo'llari (Node, Python, Bun, Cargo, Mise)
+    // Tizim qurilmalari, PTY, Shared Memory va vaqtinchalik xotira (YOZISH VA O'QISH talab qilinadigan yo'llar)
+    let system_write_paths = [
+        "/tmp",
+        "/var/tmp",
+        "/dev/shm",
+        "/dev/null",
+        "/dev/zero",
+        "/dev/full",
+        "/dev/tty",
+        "/dev/pts",
+    ];
+
+    for path_str in &system_write_paths {
+        let p = Path::new(path_str);
+        if p.exists() {
+            if let Ok(fd) = PathFd::new(p) {
+                rules.push(PathBeneath::new(fd, write_access));
+            }
+        }
+    }
+
+    // Foydalanuvchi toolchain yo'llari (Node, Python, Bun, Cargo, Mise, Pyenv, Deno)
     if let Ok(home) = std::env::var("HOME") {
         let home_p = PathBuf::from(home);
         let user_tool_paths = [
@@ -108,6 +184,8 @@ pub fn apply_sandbox(config: &JailConfig) -> Result<(), String> {
             home_p.join(".nvm"),
             home_p.join(".bun"),
             home_p.join(".asdf"),
+            home_p.join(".pyenv"),
+            home_p.join(".deno"),
         ];
         for p in &user_tool_paths {
             if p.exists() {
@@ -127,7 +205,7 @@ pub fn apply_sandbox(config: &JailConfig) -> Result<(), String> {
         }
     }
 
-    // Joriy ishchi papka (CWD)
+    // Joriy ishchi papka (CWD) — default bo'yicha FAQAT O'QISH (kod o'zgartirilmasligi uchun)
     if let Ok(cwd) = std::env::current_dir() {
         let cwd_access = if config.allow_cwd_write {
             write_access
@@ -140,18 +218,16 @@ pub fn apply_sandbox(config: &JailConfig) -> Result<(), String> {
         }
     }
 
-    // Vaqtincha /tmp papkasi
-    let tmp = Path::new("/tmp");
-    if tmp.exists() {
-        if let Ok(fd) = PathFd::new(tmp) {
-            rules.push(PathBeneath::new(fd, write_access));
-        }
-    }
 
-    // Maxsus yozish ruxsatnomalari
+    // Maxsus yozish ruxsatnomalari (masalan ./logs, ./data, ./uploads)
     for p in &config.extra_write_paths {
-        if p.exists() {
-            if let Ok(fd) = PathFd::new(p) {
+        // Agar ko'rsatilgan papka mavjud bo'lmasa, uni oldindan yaratib olish (aks holda Landlock uni o'tkazib yuboradi)
+        if !p.exists() {
+            let _ = std::fs::create_dir_all(p);
+        }
+        let canonical_p = std::fs::canonicalize(p).unwrap_or_else(|_| p.clone());
+        if canonical_p.exists() {
+            if let Ok(fd) = PathFd::new(&canonical_p) {
                 rules.push(PathBeneath::new(fd, write_access));
             }
         }
@@ -169,7 +245,12 @@ pub fn apply_sandbox(config: &JailConfig) -> Result<(), String> {
     // Qamal qoidalarini joriy jarayonga tatbiq etish
     match populated_ruleset.restrict_self() {
         Ok(_status) => {
-            println!("🛡️  [Ferris Jail] Yadroviy qamal (Landlock LSM) faollashtirildi.");
+            let write_mode = if config.allow_cwd_write {
+                "To'liq yozish (CWD Write)"
+            } else {
+                "Faqat o'qish (Read-Only Code Protection)"
+            };
+            println!("🛡️  [Ferris Jail] Yadroviy qamal (Landlock LSM) faollashtirildi [Rejim: {}].", write_mode);
         }
         Err(e) => {
             eprintln!("⚠️  [Ferris Jail] Qamalni cheklashda ogohlantirish: {:?}", e);

@@ -144,7 +144,15 @@ enum Commands {
         #[arg(short, long, default_value_t = true)]
         jail: bool,
 
-        /// Qamal ichida qo'shimcha yozishga ruxsat etilgan papkalar
+        /// Loyiha ildiziga yozishga ruxsat berish (Tavsiya etilmaydi, default: faqat o'qish)
+        #[arg(long, default_value_t = false)]
+        allow_cwd_write: bool,
+
+        /// To'liq tarmoq izolyatsiyasi (Tashqi internetni uzish)
+        #[arg(short = 'n', long, default_value_t = false)]
+        isolated_net: bool,
+
+        /// Qamal ichida qo'shimcha yozishga ruxsat etilgan papkalar (masalan: ./logs, ./data)
         #[arg(long)]
         allow_write: Vec<String>,
 
@@ -574,7 +582,7 @@ fn format_ts(ts: u64) -> String {
     }
 }
 
-#[tokio::main]
+#[tokio::main(flavor = "current_thread")]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let cli = Cli::parse();
     let client = reqwest::Client::new();
@@ -1048,11 +1056,22 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             vault,
             password,
             jail,
+            allow_cwd_write,
+            isolated_net,
             allow_write,
             socket,
             command,
         } => {
-            handle_run(vault, password.as_deref(), *jail, allow_write, socket.as_deref(), command)?;
+            handle_run(
+                vault,
+                password.as_deref(),
+                *jail,
+                *allow_cwd_write,
+                *isolated_net,
+                allow_write,
+                socket.as_deref(),
+                command,
+            )?;
         }
     }
 
@@ -1132,6 +1151,8 @@ fn handle_run(
     vault_path_str: &str,
     password: Option<&str>,
     enable_jail: bool,
+    allow_cwd_write: bool,
+    isolated_net: bool,
     allow_write_paths: &[String],
     socket: Option<&str>,
     cmd_args: &[String],
@@ -1162,17 +1183,35 @@ fn handle_run(
     }
 
     // 2. Soket muhitini ineksiya qilish
+    let mut socket_parent_dir: Option<std::path::PathBuf> = None;
     if let Some(sock_path) = socket {
         env_vars.insert("FERRIS_SOCKET".to_string(), sock_path.to_string());
         env_vars.insert("PORT".to_string(), sock_path.to_string());
         println!("   • Tarmoq kanali: {} (Unix Domain Socket faol)", sock_path.bright_cyan());
+
+        let sock_p = std::path::Path::new(sock_path);
+        if let Some(parent) = sock_p.parent() {
+            if !parent.as_os_str().is_empty() {
+                socket_parent_dir = Some(parent.to_path_buf());
+            }
+        }
     }
 
-    // 3. Yadroviy qamal (Landlock LSM)
+    if !allow_cwd_write {
+        // Python kod papkasiga __pycache__ yozishga urinib xatolik bermasligi uchun
+        env_vars.insert("PYTHONDONTWRITEBYTECODE".to_string(), "1".to_string());
+    }
+
+    // 3. Yadroviy qamal (Landlock LSM, Memory Hardening & Network Isolation)
     if enable_jail {
         let mut jail_config = jail::JailConfig::default();
+        jail_config.allow_cwd_write = allow_cwd_write;
+        jail_config.isolate_network = isolated_net;
         for p in allow_write_paths {
             jail_config.extra_write_paths.push(std::path::PathBuf::from(p));
+        }
+        if let Some(parent) = socket_parent_dir {
+            jail_config.extra_write_paths.push(parent);
         }
 
         if let Err(e) = jail::apply_sandbox(&jail_config) {

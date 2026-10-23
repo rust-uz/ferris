@@ -27,6 +27,28 @@ cargo install ferris-cli
 
 ## ⚡ Foydalanish (Usage)
 
+### 🛡️ 1. Ferris Enclave & Vault (Kiberxavfsizlik va Sirlar Ombori)
+Loyiha sirlarini (.env) diskda ochiq qoldirmasdan, ChaCha20-Poly1305 orqali shifrlash va Linux Landlock LSM yadroviy qamali ostida xavfsiz ishga tushirish:
+
+```bash
+# 1. .env faylni shifrlab muhrlash (ochiq nusxa xavfsiz tarzda diskdan yo'qotiladi):
+ferris vault seal
+
+# 2. Vault ichidagi kalitlar ro'yxatini ko'rish:
+ferris vault inspect
+ferris vault inspect --reveal
+
+# 3. Ilovani xavfsiz qobiqda (RAM-only secrets + Read-Only kod himoyasi) ishga tushirish:
+ferris run --allow-write ./logs -- python3 bot.py
+
+# 4. Zero-Network rejimi (Tashqi internet uziladi, Localhost va Unix Soket faol):
+ferris run -n -- python3 worker.py
+
+# 5. Kerak bo'lganda vaultni qayta .env ga chiqarish:
+ferris vault unseal
+```
+
+### 📡 2. Hamjamiyat va Tizim Buyruqlari
 ```bash
 # Tizim va API holatini tekshirish
 ferris ping
