@@ -68,6 +68,9 @@
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
     <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 
+    <!-- Lucide Modern Vector Icons -->
+    <script src="/js/lucide.min.js"></script>
+
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -139,23 +142,24 @@
 
             <!-- Desktop Links -->
             <nav class="hidden lg:flex items-center gap-6 text-sm font-medium text-zinc-400">
-                <a href="https://topics.ferris.uz" class="hover:text-white transition-colors flex items-center gap-1.5 py-1">
-                    <span class="text-brand-orange font-mono">#</span> Mavzular
+                <a href="https://topics.ferris.uz" class="hover:text-white transition-colors flex items-center gap-2 py-1">
+                    <i data-lucide="layers" class="w-4 h-4 text-brand-orange"></i> <span>Mavzular</span>
                 </a>
-                <a href="https://groups.ferris.uz" class="hover:text-white transition-colors flex items-center gap-1.5 py-1">
-                    <span class="text-zinc-500 font-mono">👥</span> Jamiyatlar
+                <a href="https://groups.ferris.uz" class="hover:text-white transition-colors flex items-center gap-2 py-1">
+                    <i data-lucide="users" class="w-4 h-4 text-emerald-400"></i> <span>Jamiyatlar</span>
                 </a>
-                <a href="https://ferris.uz/profile" id="navProfileLink" class="hidden hover:text-white transition-colors flex items-center gap-1.5 text-zinc-300 py-1">
-                    <span>👤</span> Profilim
+                <a href="https://ferris.uz/profile" id="navProfileLink" class="hidden hover:text-white transition-colors flex items-center gap-2 text-zinc-300 py-1">
+                    <i data-lucide="user" class="w-4 h-4 text-zinc-300"></i> <span>Profilim</span>
                 </a>
-                <a href="https://ferris.uz#cli-download" class="hover:text-white transition-colors py-1">
-                    CLI Ilova
+                <a href="https://ferris.uz#cli-download" class="hover:text-white transition-colors flex items-center gap-2 py-1">
+                    <i data-lucide="terminal" class="w-4 h-4 text-zinc-400"></i> <span>CLI Ilova</span>
                 </a>
-                <a href="https://ferris.uz#playground" class="hover:text-white transition-colors py-1">
-                    Playground
+                <a href="https://ferris.uz#playground" class="hover:text-white transition-colors flex items-center gap-2 py-1">
+                    <i data-lucide="play" class="w-4 h-4 text-zinc-400"></i> <span>Playground</span>
                 </a>
-                <a href="https://api.ferris.uz/api/v1/context" target="_blank" class="hover:text-white transition-colors flex items-center gap-1.5 py-1">
-                    <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> API
+                <a href="https://api.ferris.uz/api/v1/context" target="_blank" class="hover:text-white transition-colors flex items-center gap-2 py-1">
+                    <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                    <i data-lucide="cpu" class="w-4 h-4 text-cyan-400"></i> <span>API</span>
                 </a>
                 <a href="https://github.com/rust-uz/ferris" target="_blank" rel="noopener" class="hover:text-white transition-colors flex items-center gap-1.5 text-zinc-300 py-1">
                     <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
@@ -231,28 +235,28 @@
     <div id="mobileDrawer" class="hidden lg:hidden fixed inset-x-0 top-16 bg-zinc-950/98 backdrop-blur-2xl border-b border-white/10 px-5 py-6 z-40 transition-all max-h-[calc(100vh-4rem)] overflow-y-auto">
         <div class="flex flex-col gap-3 text-sm font-medium">
             <a href="https://topics.ferris.uz" class="text-zinc-200 hover:text-white flex items-center justify-between p-2.5 rounded-xl hover:bg-zinc-900/60 border border-transparent hover:border-white/5 transition-all">
-                <span class="flex items-center gap-2"><span>📌</span> topics.ferris.uz (Mavzular)</span>
+                <span class="flex items-center gap-2.5"><i data-lucide="layers" class="w-4 h-4 text-brand-orange"></i> topics.ferris.uz (Mavzular)</span>
                 <span class="text-xs font-mono text-brand-orange bg-brand-orange/10 px-2 py-0.5 rounded-md">Forum &rarr;</span>
             </a>
             <a href="https://groups.ferris.uz" class="text-zinc-200 hover:text-white flex items-center justify-between p-2.5 rounded-xl hover:bg-zinc-900/60 border border-transparent hover:border-white/5 transition-all">
-                <span class="flex items-center gap-2"><span>👥</span> groups.ferris.uz (Jamiyatlar)</span>
+                <span class="flex items-center gap-2.5"><i data-lucide="users" class="w-4 h-4 text-emerald-400"></i> groups.ferris.uz (Jamiyatlar)</span>
                 <span class="text-xs font-mono text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-md">Katalog &rarr;</span>
             </a>
             <button onclick="toggleDmDrawer()" class="text-left text-zinc-200 hover:text-white p-2.5 rounded-xl hover:bg-zinc-900/60 border border-transparent hover:border-white/5 flex items-center justify-between transition-all">
-                <span class="flex items-center gap-2"><span>✉️</span> Shaxsiy Xabarlar (DM)</span>
+                <span class="flex items-center gap-2.5"><i data-lucide="mail" class="w-4 h-4 text-cyan-400"></i> Shaxsiy Xabarlar (DM)</span>
                 <span class="text-xs font-mono text-cyan-400 bg-cyan-500/10 px-2 py-0.5 rounded-md">Jonli WS &rarr;</span>
             </button>
             <a href="https://ferris.uz/profile" id="mobileProfileLink" class="hidden text-zinc-200 hover:text-white p-2.5 rounded-xl hover:bg-zinc-900/60 border border-transparent hover:border-white/5">
-                <span class="flex items-center gap-2"><span>👤</span> Mening Profilim</span>
+                <span class="flex items-center gap-2.5"><i data-lucide="user" class="w-4 h-4 text-zinc-400"></i> Mening Profilim</span>
             </a>
             <a href="https://ferris.uz#cli-download" class="text-zinc-200 hover:text-white p-2.5 rounded-xl hover:bg-zinc-900/60 border border-transparent hover:border-white/5">
-                <span class="flex items-center gap-2"><span>💻</span> ferris-cli O'rnatish</span>
+                <span class="flex items-center gap-2.5"><i data-lucide="terminal" class="w-4 h-4 text-zinc-400"></i> ferris-cli O'rnatish</span>
             </a>
             <a href="https://ferris.uz#playground" class="text-zinc-200 hover:text-white p-2.5 rounded-xl hover:bg-zinc-900/60 border border-transparent hover:border-white/5">
-                <span class="flex items-center gap-2"><span>⚡</span> Rust Kod Playground</span>
+                <span class="flex items-center gap-2.5"><i data-lucide="play" class="w-4 h-4 text-brand-orange"></i> Rust Kod Playground</span>
             </a>
             <a href="https://api.ferris.uz/api/v1/context" target="_blank" class="text-zinc-200 hover:text-white p-2.5 rounded-xl hover:bg-zinc-900/60 border border-transparent hover:border-white/5 flex items-center justify-between">
-                <span class="flex items-center gap-2"><span>📡</span> api.ferris.uz (JSON API)</span>
+                <span class="flex items-center gap-2.5"><i data-lucide="cpu" class="w-4 h-4 text-cyan-400"></i> api.ferris.uz (JSON API)</span>
                 <span class="text-xs font-mono text-zinc-500">v1 &rarr;</span>
             </a>
             <a href="https://github.com/rust-uz/ferris" target="_blank" rel="noopener" class="text-zinc-200 hover:text-white p-2.5 rounded-xl hover:bg-zinc-900/60 border border-transparent hover:border-white/5 flex items-center justify-between mt-2 pt-3 border-t border-white/5">
@@ -450,8 +454,8 @@
                 </div>
             </div>
 
-            <div class="text-[11px] text-zinc-500 font-mono pt-2 border-t border-white/5">
-                🔒 Sessiya barcha *.ferris.uz subdomenlari uchun umumiy saqlanadi
+            <div class="text-[11px] text-zinc-500 font-mono pt-2 border-t border-white/5 flex items-center gap-1.5">
+                <i data-lucide="shield" class="w-3.5 h-3.5 text-zinc-400"></i> Sessiya barcha *.ferris.uz subdomenlari uchun umumiy saqlanadi
             </div>
         </div>
     </div>
@@ -733,7 +737,7 @@
             document.getElementById('dmListView').classList.add('hidden');
             document.getElementById('dmChatView').classList.remove('hidden');
             document.getElementById('dmBackBtn').classList.remove('hidden');
-            document.getElementById('dmHeaderTitle').innerHTML = `<span>💬</span> @${cleanUser}`;
+            document.getElementById('dmHeaderTitle').innerHTML = `<i data-lucide="message-square" class="w-4 h-4 text-cyan-400 inline mr-1.5"></i> @${cleanUser}`;
             document.getElementById('dmHeaderSubtitle').innerText = 'Shaxsiy suhbat';
 
             const pLink = document.getElementById('dmPartnerProfileLink');
@@ -776,11 +780,14 @@
                     if (convos.length === 0) {
                         container.innerHTML = `
                             <div class="p-8 text-center text-xs text-zinc-500 font-mono">
-                                <span class="text-2xl block mb-2">💬</span>
+                                <div class="w-10 h-10 rounded-2xl bg-zinc-900 border border-white/5 flex items-center justify-center mx-auto mb-3">
+                                    <i data-lucide="mail" class="w-5 h-5 text-zinc-400"></i>
+                                </div>
                                 Hozircha hech qanday shaxsiy xabar yo'q.<br/>
                                 Yuqoridagi maydonga username kiritib yangi suhbat boshlang!
                             </div>
                         `;
+                        if (window.lucide) lucide.createIcons();
                         return;
                     }
 
@@ -936,14 +943,15 @@
 
             if (isMe) {
                 const delBtn = document.createElement('button');
-                delBtn.className = 'opacity-0 group-hover:opacity-100 text-zinc-500 hover:text-rose-400 text-[11px] transition-opacity cursor-pointer';
+                delBtn.className = 'opacity-0 group-hover:opacity-100 text-zinc-500 hover:text-rose-400 text-[11px] transition-opacity cursor-pointer flex items-center gap-1';
                 delBtn.title = "Xabarni o'chirish";
-                delBtn.innerText = '🗑️';
+                delBtn.innerHTML = '<i data-lucide="trash-2" class="w-3 h-3"></i>';
                 delBtn.onclick = (e) => {
                     e.stopPropagation();
                     deleteDmMessage(msg.id);
                 };
                 ts.appendChild(delBtn);
+                if (window.lucide) setTimeout(() => lucide.createIcons(), 10);
             }
 
             wrap.appendChild(bubble);
@@ -1114,7 +1122,10 @@
             }
         }
 
-        window.addEventListener('DOMContentLoaded', initGlobalWebSocket);
+        window.addEventListener('DOMContentLoaded', () => {
+            initGlobalWebSocket();
+            if (window.lucide) lucide.createIcons();
+        });
     </script>
     {% block scripts %}{% endblock %}
 </body>
