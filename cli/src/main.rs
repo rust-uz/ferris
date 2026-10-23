@@ -12,7 +12,7 @@ use tokio_tungstenite::tungstenite::protocol::Message as WsMessage;
 #[derive(Parser)]
 #[command(name = "ferris")]
 #[command(author = "Ferris.uz Hamjamiyati")]
-#[command(version = "0.2.0")]
+#[command(version = "0.2.1")]
 #[command(about = "🦀 Ferris.uz rasmiy terminal ilovasi (CLI) — Rust Ekotizimi", long_about = None)]
 struct Cli {
     #[command(subcommand)]
@@ -110,6 +110,16 @@ enum Commands {
 
     /// ⚖️ Ochiq kodli litsenziya shartlari (Dual MIT / Apache 2.0)
     License,
+
+    /// 📚 O‘zbekcha Rasmiy Rust Hujjatlari va Kitobi (doc.ferris.uz)
+    Doc {
+        /// Bob raqami yoki mavzu (masalan: 1, 4, ownership, cargo, glossary)
+        chapter: Option<String>,
+
+        /// Brauzerda doc.ferris.uz portalini ochish
+        #[arg(short, long)]
+        web: bool,
+    },
 }
 
 #[derive(Subcommand)]
@@ -936,6 +946,136 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
         Commands::License => {
             print_license();
+        }
+
+        Commands::Doc { chapter, web } => {
+            handle_doc(chapter.as_deref(), *web).await?;
+        }
+    }
+
+    Ok(())
+}
+
+async fn handle_doc(chapter: Option<&str>, web: bool) -> Result<(), Box<dyn std::error::Error>> {
+    let base_url = "https://doc.ferris.uz";
+
+    if web {
+        let target_url = match chapter {
+            Some("1") | Some("install") | Some("start") => format!("{}/ch01-00-getting-started.html", base_url),
+            Some("4") | Some("ownership") | Some("egalik") => format!("{}/ch04-00-understanding-ownership.html", base_url),
+            Some("glossary") | Some("lugat") | Some("terms") => format!("{}/appendix-03-glossary.html", base_url),
+            _ => base_url.to_string(),
+        };
+        println!("{} {}", "🌐 Brauzerda ochilmoqda:".cyan().bold(), target_url.yellow());
+        #[cfg(target_os = "linux")]
+        let _ = std::process::Command::new("xdg-open").arg(&target_url).spawn();
+        #[cfg(target_os = "macos")]
+        let _ = std::process::Command::new("open").arg(&target_url).spawn();
+        #[cfg(target_os = "windows")]
+        let _ = std::process::Command::new("cmd").args(["/c", "start", &target_url]).spawn();
+        return Ok(());
+    }
+
+    match chapter {
+        None => {
+            println!("\n{}", "🦀 Rust Dasturlash Tili (The Rust Programming Language)".bright_red().bold());
+            println!("{}", "🇺🇿 Rasmiy O'zbekcha Ochiq Manbali Tarjima — doc.ferris.uz\n".bright_cyan());
+
+            println!("{}", "📚 MUNDARIJA:".bright_yellow().bold());
+            println!("  {} Kirish (Rust kimlar uchun va nima uchun?)", "0.".dimmed());
+            println!("  {} 1-Bob: Boshlash va O'rnatish (rustup, cargo, Salom Dunyo!)", "1.".green().bold());
+            println!("  {} 2-Bob: Taxmin Qilish O'yini (Guessing Game Tutorial)", "2.".white());
+            println!("  {} 3-Bob: Dasturlashning Umumiy Tushunchalari (mut, tiplar, funksiyalar)", "3.".white());
+            println!("  {} 4-Bob: Egalik Tizimini Tushunish (Ownership, Borrowing, Slices)", "4.".green().bold());
+            println!("  {} 5-Bob: Strukturalar (struct) va Metodlar (impl)", "5.".white());
+            println!("  {} 6-Bob: Sanamlar va Andaza Moslash (Enums & Pattern Matching)", "6.".white());
+            println!("  {} 10-Bob: Generics, Traits va Lifetimes", "10.".white());
+            println!("  {} 16-Bob: Qo'rqmas Paralellik (Fearless Concurrency)", "16.".white());
+            println!("  {} 20-Bob: Ko'p Oqimli Veb Server Qurish", "20.".white());
+            println!("  {} Ilova C: O'zbekcha-Inglizcha Rust Atamalar Lug'ati", "glossary.".cyan().bold());
+
+            println!("\n{}", "💡 BUYRUQLAR:".bright_yellow().bold());
+            println!("  {} {}", "ferris doc 1".cyan(), "-> 1-bob: O'rnatish va Cargo qo'llanmasini o'qish".dimmed());
+            println!("  {} {}", "ferris doc 4".cyan(), "-> 4-bob: Egalik Tizimi (Ownership) darsini o'qish".dimmed());
+            println!("  {} {}", "ferris doc glossary".cyan(), "-> Standartlashtirilgan terminlar lug'atini ko'rish".dimmed());
+            println!("  {} {}", "ferris doc --web".cyan(), "-> Veb brauzerda doc.ferris.uz ni ochish".dimmed());
+            println!();
+        }
+        Some("1") | Some("install") | Some("start") => {
+            println!("\n{}", "================================================================================".dimmed());
+            println!("{}", "📖 1-BOB: ISHNI BOSHLASH VA O'RNATISH (Getting Started)".bright_green().bold());
+            println!("{}\n", "================================================================================".dimmed());
+
+            println!("{}", "1. RUST NI O'RNATISH (Linux & macOS):".bright_yellow().bold());
+            println!("  Terminalda quyidagi rasmiy buyruqni kiriting:");
+            println!("  {}", "$ curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh".cyan().bold());
+            println!("  O'rnatilgach, terminalni yangilang: {}", "source $HOME/.cargo/env".dimmed());
+
+            println!("\n{}", "2. O'RNATISHNI TEKSHIRISH:".bright_yellow().bold());
+            println!("  {}", "$ rustc --version".cyan());
+            println!("  {}", "$ cargo --version".cyan());
+
+            println!("\n{}", "3. BIRINCHI DASTUR (main.rs):".bright_yellow().bold());
+            println!("  {}", "fn main() {".cyan());
+            println!("  {}", "    println!(\"Salom, Dunyo!\");".cyan());
+            println!("  {}", "}".cyan());
+            println!("  Kompilyatsiya: {}", "rustc main.rs && ./main".green());
+
+            println!("\n{}", "4. CARGO BILAN LOYIHA YARATISH:".bright_yellow().bold());
+            println!("  Yangi loyiha:  {}", "cargo new salom_cargo".cyan());
+            println!("  Kompilyatsiya: {}", "cargo build".cyan());
+            println!("  Ishga tushirish: {}", "cargo run".cyan().bold());
+            println!("  Tezkor tekshirish: {}", "cargo check".cyan());
+            println!("  Ishlab chiqarish (Release): {}", "cargo build --release".yellow().bold());
+            println!("\n{} https://doc.ferris.uz/ch01-00-getting-started.html\n", "🌐 To'liq o'qish:".dimmed());
+        }
+        Some("4") | Some("ownership") | Some("egalik") => {
+            println!("\n{}", "================================================================================".dimmed());
+            println!("{}", "🧠 4-BOB: EGALIK TIZIMINI TUSHUNISH (Understanding Ownership)".bright_red().bold());
+            println!("{}\n", "================================================================================".dimmed());
+
+            println!("{}", "Rust ning eng qudratli xususiyati — Garbage Collectorsiz (GC) xotira xavfsizligi!".white());
+
+            println!("\n{}", "🏆 EGALIKNING 3 TA OLTIN QOIDASI:".bright_yellow().bold());
+            println!("  {} Rust da har bir qiymatning o'z Egasi (Owner) bo'ladi.", "1.".green().bold());
+            println!("  {} Bir vaqtning o'zida faqat BITTA Ega bo'lishi mumkin.", "2.".green().bold());
+            println!("  {} Ega o'z ko'rinish sohasidan (scope) chiqib ketganda, xotira avtomatik DROP qilinadi.", "3.".green().bold());
+
+            println!("\n{}", "⚡ QARZ OLISH VA HAVOLALAR (References & Borrowing):".bright_yellow().bold());
+            println!("  Egalik huquqini bermasdan qiymatdan foydalanish uchun havola (&) ishlatiladi:");
+            println!("  {}", "fn hisobla(matn: &String) -> usize { matn.len() }".cyan());
+            println!("  * O'zgarmas havola: {}", "&T (cheksiz ko'p o'qish mumkin)".green());
+            println!("  * O'zgaruvchan havola: {}", "&mut T (bir vaqtda faqat 1 ta yozish mumkin — Data Race oldi olinadi!)".yellow().bold());
+
+            println!("\n{} https://doc.ferris.uz/ch04-00-understanding-ownership.html\n", "🌐 To'liq darslik:".dimmed());
+        }
+        Some("glossary") | Some("lugat") | Some("terms") => {
+            println!("\n{}", "================================================================================".dimmed());
+            println!("{}", "📖 O'ZBEKCHA-INGLIZCHA RUST ATAMALAR LUG'ATI (Glossary)".bright_cyan().bold());
+            println!("{}\n", "================================================================================".dimmed());
+
+            let terms = [
+                ("Ownership", "Egalik tizimi / Egalik huquqi", "Xotira xavfsizligining markaziy resurs qoidalari"),
+                ("Borrowing", "Qarz olish", "O'zgaruvchiga havola (&) orqali vaqtincha murojaat"),
+                ("Reference", "Havola", "Boshqa o'zgaruvchi xotira manziliga xavfsiz ko'rsatkich"),
+                ("Lifetime", "Yashash muddati", "Havolaning yaroqlilik chegarasi ('a)"),
+                ("Trait", "Xislat (Trait)", "Tip xatti-harakatini ifodalovchi interfeys"),
+                ("Pattern Matching", "Andaza moslash", "match yordamida tiplarni tahlil qilish"),
+                ("Slice", "Kesma", "To'plamning ma'lum qismiga havola (&[T], &str)"),
+                ("Smart Pointer", "Aqlli ko'rsatkich", "Qo'shimcha boshqaruvga ega tiplar (Box, Rc, Arc)"),
+                ("Zero-cost Abstraction", "Nol-xarajatli abstraksiya", "Tezlikka ta'sir qilmaydigan yuqori darajadagi sintaksis"),
+                ("Concurrency", "Paralellik / Ko'p oqimlilik", "Ko'p oqimli xavfsiz dasturlash"),
+                ("Data Race", "Ma'lumotlar poygasi", "Oqimlar to'qnashuvi (Rust da 100% oldi olingan)"),
+            ];
+
+            for (eng, uz, desc) in terms {
+                println!("  {:<24} -> {:<32} {}", eng.bright_yellow(), uz.bright_green(), desc.dimmed());
+            }
+            println!("\n{} https://doc.ferris.uz/appendix-03-glossary.html\n", "🌐 To'liq lug'at:".dimmed());
+        }
+        Some(other) => {
+            println!("{} \"{}\" bobi bo'yicha to'liq qo'llanma doc.ferris.uz da mavjud.", "ℹ️".cyan(), other);
+            println!("{} ferris doc --web yoki https://doc.ferris.uz sahifasiga kiring.\n", "👉".yellow());
         }
     }
 

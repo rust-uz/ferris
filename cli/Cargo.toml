@@ -1,12 +1,12 @@
 [package]
 name = "ferris-cli"
-version = "0.2.0"
+version = "0.2.1"
 edition = "2021"
-authors = ["iskurama <admin@ferris.uz>"]
-description = "High-performance systems engineering & developer infrastructure CLI for Ferris.uz"
+authors = ["iskurama <miraxmedovibrohim5@gmail.com>", "Rust Uzbekistan Community"]
+description = "High-performance systems engineering & developer infrastructure CLI for Ferris.uz & doc.ferris.uz"
 license = "MIT OR Apache-2.0"
 homepage = "https://ferris.uz"
-repository = "https://github.com/iskurama/ferris-uz"
+repository = "https://github.com/rust-uz/ferris"
 documentation = "https://doc.ferris.uz"
 readme = "README.md"
 keywords = ["ferris", "cli", "systems", "rust", "uzbekistan"]
