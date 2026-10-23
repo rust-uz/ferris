@@ -2115,9 +2115,9 @@ async fn profile_handler(Path(username): Path<String>) -> Json<serde_json::Value
         "interests": ["Rust", "Tokio", "Kvant Hisoblash", "Linux"],
         "projects": [
             {
-                "title": "ferris-uz",
-                "description": "O'zbekiston Rustaceanlar platformasi",
-                "github": "https://github.com/iskurama/ferris-uz"
+                "title": "ferris",
+                "description": "O'zbekiston Rustaceanlar suveren ekotizimi va ferris-cli",
+                "github": "https://github.com/rust-uz/ferris"
             }
         ]
     }))
