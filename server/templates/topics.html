@@ -41,7 +41,7 @@
             </div>
             <div class="mt-4 pt-3 border-t border-white/5 flex items-center justify-between text-xs text-zinc-500 font-mono">
                 <span>Kanal faol</span>
-                <span class="text-brand-orange font-semibold">f/{{ topic.slug }}</span>
+                <span class="text-brand-orange font-semibold">{{ topic.slug }}</span>
             </div>
         </div>
         {% endfor %}
@@ -68,7 +68,13 @@
             <article class="glass-card p-5 sm:p-7 rounded-3xl transition-all duration-200 flex flex-col gap-4">
                 <div class="flex items-center justify-between flex-wrap gap-2.5">
                     <div class="flex items-center gap-2 sm:gap-3 text-xs text-zinc-400 font-mono flex-wrap">
-                        <span class="text-amber-400 font-semibold bg-amber-400/10 px-2 py-0.5 rounded">f/rust</span>
+                        <span class="text-amber-400 font-semibold bg-amber-400/10 px-2 py-0.5 rounded">
+                            {% if let Some(slug) = item.post.topic_slug %}
+                                {{ slug }}
+                            {% else %}
+                                f/rust
+                            {% endif %}
+                        </span>
                         <span class="hidden sm:inline">&bull;</span>
                         <span class="text-zinc-200 font-sans font-medium">
                             {% if let Some(author) = item.post.author_name %}

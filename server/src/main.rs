@@ -381,7 +381,7 @@ async fn load_from_postgres(pool: &PgPool) -> Option<(
     // 4. Posts
     let mut posts = Vec::new();
     let post_rows = sqlx::query(
-        "SELECT id, author_name, author_avatar, title, content, views_count, created_at, updated_at FROM posts ORDER BY created_at DESC"
+        "SELECT id, topic_slug, author_name, author_avatar, title, content, views_count, created_at, updated_at FROM posts ORDER BY created_at DESC"
     )
     .fetch_all(pool)
     .await
@@ -389,6 +389,7 @@ async fn load_from_postgres(pool: &PgPool) -> Option<(
 
     for r in post_rows {
         let id: Uuid = r.try_get("id").unwrap_or_default();
+        let topic_slug: Option<String> = r.try_get("topic_slug").ok();
         let author_name: String = r.try_get("author_name").unwrap_or_default();
         let author_avatar: Option<String> = r.try_get("author_avatar").ok();
         let title: String = r.try_get("title").unwrap_or_default();
@@ -399,6 +400,7 @@ async fn load_from_postgres(pool: &PgPool) -> Option<(
 
         posts.push(Post {
             id,
+            topic_slug,
             topic_id: None,
             jamiyat_id: None,
             author_id: Uuid::new_v4(),
@@ -595,6 +597,7 @@ async fn main() {
     let initial_posts = vec![
         Post {
             id: sample_post_id,
+            topic_slug: Some("f/rust".to_string()),
             topic_id: None,
             jamiyat_id: None,
             author_id: Uuid::new_v4(),
@@ -608,6 +611,7 @@ async fn main() {
         },
         Post {
             id: group_post_id,
+            topic_slug: Some("f/rust".to_string()),
             topic_id: None,
             jamiyat_id: Some(rust_uz_id),
             author_id: Uuid::new_v4(),
@@ -1868,6 +1872,7 @@ async fn post_create_handler(
 
     let new_post = Post {
         id: Uuid::new_v4(),
+        topic_slug: payload.topic_slug.clone(),
         topic_id,
         jamiyat_id,
         author_id: Uuid::new_v4(),

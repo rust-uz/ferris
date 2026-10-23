@@ -91,6 +91,7 @@ pub struct Topic {
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Post {
     pub id: Uuid,
+    pub topic_slug: Option<String>,
     pub topic_id: Option<Uuid>,
     pub jamiyat_id: Option<Uuid>,
     pub author_id: Uuid,
