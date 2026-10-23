@@ -1189,14 +1189,25 @@ fn handle_run(
     command.args(args);
     command.envs(&env_vars);
 
-    let status = command.status()
-        .map_err(|e| format!("Dasturni ishga tushirib bo'lmadi ('{}'): {}", program, e))?;
-
-    if !status.success() {
-        std::process::exit(status.code().unwrap_or(1));
+    #[cfg(unix)]
+    {
+        use std::os::unix::process::CommandExt;
+        let err = command.exec();
+        eprintln!("{} {}", "❌ Dasturni ishga tushirib bo'lmadi:".red().bold(), err);
+        std::process::exit(1);
     }
 
-    Ok(())
+    #[cfg(not(unix))]
+    {
+        let status = command.status()
+            .map_err(|e| format!("Dasturni ishga tushirib bo'lmadi ('{}'): {}", program, e))?;
+
+        if !status.success() {
+            std::process::exit(status.code().unwrap_or(1));
+        }
+
+        Ok(())
+    }
 }
 
 async fn handle_doc(chapter: Option<&str>, web: bool) -> Result<(), Box<dyn std::error::Error>> {

@@ -28,10 +28,30 @@ pub fn get_or_create_master_key(password: Option<&str>) -> Result<[u8; 32], Stri
         }
     }
 
-    // Agar parol berilmagan bo'lsa, serverning o'ziga xos xavfsiz kaliti (~/.ferris/vault.key)
-    let home = std::env::var("HOME").unwrap_or_else(|_| ".".to_string());
-    let key_dir = PathBuf::from(home).join(".ferris");
-    let key_file = key_dir.join("vault.key");
+    // 1. Tizim miqyosidagi umumiy kalit (/etc/ferris/vault.key) ni tekshirish
+    let shared_system_key = PathBuf::from("/etc/ferris/vault.key");
+    if shared_system_key.exists() {
+        if let Ok(key_data) = fs::read(&shared_system_key) {
+            if key_data.len() == 32 {
+                let mut key = [0u8; 32];
+                key.copy_from_slice(&key_data);
+                return Ok(key);
+            }
+        }
+    }
+
+    // 2. Agar root bo'lsa /etc/ferris, oddiy foydalanuvchi bo'lsa ~/.ferris
+    #[cfg(unix)]
+    let is_root = unsafe { libc::geteuid() == 0 };
+    #[cfg(not(unix))]
+    let is_root = false;
+
+    let key_file = if is_root {
+        PathBuf::from("/etc/ferris/vault.key")
+    } else {
+        let home = std::env::var("HOME").unwrap_or_else(|_| ".".to_string());
+        PathBuf::from(home).join(".ferris").join("vault.key")
+    };
 
     if key_file.exists() {
         let key_data = fs::read(&key_file)
@@ -43,9 +63,17 @@ pub fn get_or_create_master_key(password: Option<&str>) -> Result<[u8; 32], Stri
         }
     }
 
-    // Yangi master kalit yaratish
-    fs::create_dir_all(&key_dir)
-        .map_err(|e| format!("~/.ferris papkasini yaratib bo'lmadi: {}", e))?;
+    // Yangi master kalit papkasini yaratish va 0700 huquqini o'rnatish
+    if let Some(parent) = key_file.parent() {
+        fs::create_dir_all(parent)
+            .map_err(|e| format!("Kalit papkasini yaratib bo'lmadi: {}", e))?;
+
+        #[cfg(unix)]
+        {
+            use std::os::unix::fs::PermissionsExt;
+            let _ = fs::set_permissions(parent, fs::Permissions::from_mode(0o700));
+        }
+    }
 
     let mut random_bytes = [0u8; 32];
     rand::rng().fill(&mut random_bytes);
@@ -264,29 +292,117 @@ pub fn inspect_vault(
     Ok(list)
 }
 
-/// Qatorlarni KEY=VALUE ko'rinishida ajratib olish
+/// Qatorlarni KEY=VALUE ko'rinishida ajratib olish (Multi-line va Qo'shtirnoqlarni to'liq qo'llab-quvvatlaydi)
 fn parse_env_string(content: &str) -> HashMap<String, String> {
     let mut map = HashMap::new();
+    let mut chars = content.chars().peekable();
 
-    for line in content.lines() {
-        let trimmed = line.trim();
-        if trimmed.is_empty() || trimmed.starts_with('#') {
+    while let Some(&c) = chars.peek() {
+        if c.is_whitespace() {
+            chars.next();
             continue;
         }
 
-        if let Some((key, val)) = trimmed.split_once('=') {
-            let k = key.trim().to_string();
-            let mut v = val.trim().to_string();
+        // Izohlarni (#) tashlab ketish
+        if c == '#' {
+            while let Some(ch) = chars.next() {
+                if ch == '\n' {
+                    break;
+                }
+            }
+            continue;
+        }
 
-            // Qo'shtirnoqlarni olib tashlash
-            if (v.starts_with('"') && v.ends_with('"')) || (v.starts_with('\'') && v.ends_with('\'')) {
-                if v.len() >= 2 {
-                    v = v[1..v.len() - 1].to_string();
+        // KEY ni o'qish (to '=' belgisigacha)
+        let mut key = String::new();
+        while let Some(&ch) = chars.peek() {
+            if ch == '=' || ch == '\n' || ch == '#' {
+                break;
+            }
+            key.push(chars.next().unwrap());
+        }
+
+        let key = key.trim().to_string();
+        if chars.peek() == Some(&'=') {
+            chars.next(); // '=' ni o'tkazib yuborish
+
+            // Tenglikdan keyingi bo'shliqlarni o'tkazish
+            while let Some(&ch) = chars.peek() {
+                if ch != ' ' && ch != '\t' {
+                    break;
+                }
+                chars.next();
+            }
+
+            let mut val = String::new();
+            if let Some(&quote) = chars.peek() {
+                if quote == '"' || quote == '\'' {
+                    chars.next(); // Ochuvchi qo'shtirnoqni o'tkazish
+                    let is_double = quote == '"';
+                    let mut escaped = false;
+
+                    while let Some(ch) = chars.next() {
+                        if escaped {
+                            if is_double {
+                                match ch {
+                                    'n' => val.push('\n'),
+                                    'r' => val.push('\r'),
+                                    't' => val.push('\t'),
+                                    '\\' => val.push('\\'),
+                                    '"' => val.push('"'),
+                                    _ => {
+                                        val.push('\\');
+                                        val.push(ch);
+                                    }
+                                }
+                            } else {
+                                val.push('\\');
+                                val.push(ch);
+                            }
+                            escaped = false;
+                        } else if ch == '\\' {
+                            escaped = true;
+                        } else if ch == quote {
+                            break; // Yopuvchi qo'shtirnoq topildi
+                        } else {
+                            val.push(ch);
+                        }
+                    }
+
+                    // Qatordagi qolgan belgilarni keyingi qatordagacha o'tkazish
+                    while let Some(ch) = chars.next() {
+                        if ch == '\n' {
+                            break;
+                        }
+                    }
+                } else {
+                    // Qo'shtirnoqsiz oddiy qiymat
+                    while let Some(ch) = chars.next() {
+                        if ch == '\n' {
+                            break;
+                        }
+                        val.push(ch);
+                    }
+                    val = val.trim().to_string();
+                }
+            } else {
+                // Bo'sh qiymat
+                while let Some(ch) = chars.next() {
+                    if ch == '\n' {
+                        break;
+                    }
                 }
             }
 
-            if !k.is_empty() {
-                map.insert(k, v);
+            if !key.is_empty() {
+                map.insert(key, val);
+            }
+        } else {
+            // Noto'g'ri qator bo'lsa, keyingi qatorga o'tish
+            while let Some(ch) = chars.next() {
+                if ch == '\n' {
+                    break;
+                }
             }
         }
     }
