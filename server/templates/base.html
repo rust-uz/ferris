@@ -94,10 +94,30 @@
         ::selection { background: #f74c00; color: #ffffff; }
         .cyber-grid {
             background-image: 
-                linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
-                linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
-            background-size: 64px 64px;
-            mask-image: radial-gradient(ellipse at 50% 15%, black 40%, transparent 80%);
+                linear-gradient(to right, rgba(255, 255, 255, 0.04) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(255, 255, 255, 0.04) 1px, transparent 1px);
+            background-size: 48px 48px;
+            mask-image: radial-gradient(ellipse at 50% 10%, black 40%, transparent 80%);
+        }
+        @media (max-width: 640px) {
+            .cyber-grid {
+                background-size: 32px 32px;
+            }
+        }
+        /* Glassmorphism Card Style */
+        .glass-card {
+            background: rgba(18, 18, 22, 0.65);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 4px 24px -1px rgba(0, 0, 0, 0.4);
+        }
+        .glass-card:hover {
+            border-color: rgba(247, 76, 0, 0.35);
+            box-shadow: 0 10px 32px -4px rgba(247, 76, 0, 0.15);
+        }
+        .glow-orange {
+            box-shadow: 0 0 40px -8px rgba(247, 76, 0, 0.35);
         }
     </style>
 </head>
@@ -108,44 +128,44 @@
     </div>
 
     <!-- Top Navigation Bar -->
-    <header class="sticky top-0 z-50 bg-black/85 backdrop-blur-xl border-b border-white/10 transition-all">
-        <div class="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-4">
-            <a href="https://ferris.uz" class="flex items-center gap-3 group shrink-0">
-                <img src="/logo.jpg" alt="Ferris" class="w-8 h-8 rounded-lg object-cover border border-white/15 shadow-sm group-hover:scale-105 transition-transform"/>
-                <span class="text-base font-bold tracking-tight text-white flex items-center">
+    <header class="sticky top-0 z-50 bg-black/80 backdrop-blur-xl border-b border-white/10 transition-all">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-3">
+            <a href="https://ferris.uz" class="flex items-center gap-2.5 sm:gap-3 group shrink-0">
+                <img src="/logo.png" alt="Ferris" class="w-8 h-8 rounded-lg object-contain border border-white/15 bg-zinc-950 p-0.5 shadow-sm group-hover:scale-105 transition-transform"/>
+                <span class="text-base sm:text-lg font-bold tracking-tight text-white flex items-center">
                     FERRIS<span class="text-brand-orange">.UZ</span>
                 </span>
             </a>
 
             <!-- Desktop Links -->
-            <nav class="hidden md:flex items-center gap-6 text-sm font-medium text-zinc-400">
-                <a href="https://topics.ferris.uz" class="hover:text-white transition-colors flex items-center gap-1.5">
+            <nav class="hidden lg:flex items-center gap-6 text-sm font-medium text-zinc-400">
+                <a href="https://topics.ferris.uz" class="hover:text-white transition-colors flex items-center gap-1.5 py-1">
                     <span class="text-brand-orange font-mono">#</span> Mavzular
                 </a>
-                <a href="https://groups.ferris.uz" class="hover:text-white transition-colors flex items-center gap-1.5">
+                <a href="https://groups.ferris.uz" class="hover:text-white transition-colors flex items-center gap-1.5 py-1">
                     <span class="text-zinc-500 font-mono">👥</span> Jamiyatlar
                 </a>
-                <a href="https://ferris.uz/profile" id="navProfileLink" class="hidden hover:text-white transition-colors flex items-center gap-1.5 text-zinc-300">
+                <a href="https://ferris.uz/profile" id="navProfileLink" class="hidden hover:text-white transition-colors flex items-center gap-1.5 text-zinc-300 py-1">
                     <span>👤</span> Profilim
                 </a>
-                <a href="https://ferris.uz#cli-download" class="hover:text-white transition-colors">
+                <a href="https://ferris.uz#cli-download" class="hover:text-white transition-colors py-1">
                     CLI Ilova
                 </a>
-                <a href="https://ferris.uz#playground" class="hover:text-white transition-colors">
+                <a href="https://ferris.uz#playground" class="hover:text-white transition-colors py-1">
                     Playground
                 </a>
-                <a href="https://api.ferris.uz/api/v1/context" target="_blank" class="hover:text-white transition-colors flex items-center gap-1">
-                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span> API
+                <a href="https://api.ferris.uz/api/v1/context" target="_blank" class="hover:text-white transition-colors flex items-center gap-1.5 py-1">
+                    <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> API
                 </a>
-                <a href="https://github.com/rust-uz/ferris" target="_blank" rel="noopener" class="hover:text-white transition-colors flex items-center gap-1.5 text-zinc-300">
+                <a href="https://github.com/rust-uz/ferris" target="_blank" rel="noopener" class="hover:text-white transition-colors flex items-center gap-1.5 text-zinc-300 py-1">
                     <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
                     <span>GitHub</span>
                 </a>
             </nav>
 
             <!-- Right Controls: CLI + Auth Block -->
-            <div class="flex items-center gap-3">
-                <a href="https://ferris.uz#cli-download" class="hidden lg:inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-zinc-900 border border-white/15 text-zinc-300 hover:text-white hover:bg-zinc-800 transition-all">
+            <div class="flex items-center gap-2 sm:gap-3">
+                <a href="https://ferris.uz#cli-download" class="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-xl bg-zinc-900 border border-white/15 text-zinc-300 hover:text-white hover:bg-zinc-800 hover:border-brand-orange/40 transition-all">
                     <span>⬇</span> ferris-cli
                 </a>
 
@@ -198,7 +218,7 @@
                 </script>
 
                 <!-- Mobile Menu Button -->
-                <button id="mobileMenuBtn" class="md:hidden p-2 rounded-lg text-zinc-400 hover:text-white hover:bg-zinc-900 focus:outline-none" aria-label="Menyu">
+                <button id="mobileMenuBtn" class="lg:hidden p-2 rounded-xl text-zinc-400 hover:text-white hover:bg-zinc-900 border border-transparent hover:border-white/10 transition-colors focus:outline-none" aria-label="Menyu">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
                     </svg>
@@ -208,34 +228,34 @@
     </header>
 
     <!-- Mobile Drawer -->
-    <div id="mobileDrawer" class="hidden md:hidden fixed inset-x-0 top-16 bg-zinc-950/95 backdrop-blur-2xl border-b border-white/10 px-6 py-6 z-40 transition-all">
-        <div class="flex flex-col gap-4 text-sm font-medium">
-            <a href="https://topics.ferris.uz" class="text-zinc-300 hover:text-white flex items-center justify-between py-1 border-b border-white/5">
-                <span>📌 topics.ferris.uz (Mavzular)</span>
-                <span class="text-xs font-mono text-brand-orange">Subdomen &rarr;</span>
+    <div id="mobileDrawer" class="hidden lg:hidden fixed inset-x-0 top-16 bg-zinc-950/98 backdrop-blur-2xl border-b border-white/10 px-5 py-6 z-40 transition-all max-h-[calc(100vh-4rem)] overflow-y-auto">
+        <div class="flex flex-col gap-3 text-sm font-medium">
+            <a href="https://topics.ferris.uz" class="text-zinc-200 hover:text-white flex items-center justify-between p-2.5 rounded-xl hover:bg-zinc-900/60 border border-transparent hover:border-white/5 transition-all">
+                <span class="flex items-center gap-2"><span>📌</span> topics.ferris.uz (Mavzular)</span>
+                <span class="text-xs font-mono text-brand-orange bg-brand-orange/10 px-2 py-0.5 rounded-md">Forum &rarr;</span>
             </a>
-            <a href="https://groups.ferris.uz" class="text-zinc-300 hover:text-white flex items-center justify-between py-1 border-b border-white/5">
-                <span>👥 groups.ferris.uz (Jamiyatlar)</span>
-                <span class="text-xs font-mono text-zinc-400">Subdomen &rarr;</span>
+            <a href="https://groups.ferris.uz" class="text-zinc-200 hover:text-white flex items-center justify-between p-2.5 rounded-xl hover:bg-zinc-900/60 border border-transparent hover:border-white/5 transition-all">
+                <span class="flex items-center gap-2"><span>👥</span> groups.ferris.uz (Jamiyatlar)</span>
+                <span class="text-xs font-mono text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-md">Katalog &rarr;</span>
             </a>
-            <button onclick="toggleDmDrawer()" class="text-left text-zinc-300 hover:text-white py-1 border-b border-white/5 flex items-center justify-between">
-                <span>✉️ Shaxsiy Xabarlar (DM)</span>
-                <span class="text-xs font-mono text-emerald-400">Jonli WS &rarr;</span>
+            <button onclick="toggleDmDrawer()" class="text-left text-zinc-200 hover:text-white p-2.5 rounded-xl hover:bg-zinc-900/60 border border-transparent hover:border-white/5 flex items-center justify-between transition-all">
+                <span class="flex items-center gap-2"><span>✉️</span> Shaxsiy Xabarlar (DM)</span>
+                <span class="text-xs font-mono text-cyan-400 bg-cyan-500/10 px-2 py-0.5 rounded-md">Jonli WS &rarr;</span>
             </button>
-            <a href="https://ferris.uz/profile" id="mobileProfileLink" class="hidden text-zinc-300 hover:text-white py-1 border-b border-white/5">
-                👤 Mening Profilim
+            <a href="https://ferris.uz/profile" id="mobileProfileLink" class="hidden text-zinc-200 hover:text-white p-2.5 rounded-xl hover:bg-zinc-900/60 border border-transparent hover:border-white/5">
+                <span class="flex items-center gap-2"><span>👤</span> Mening Profilim</span>
             </a>
-            <a href="https://ferris.uz#cli-download" class="text-zinc-300 hover:text-white py-1 border-b border-white/5">
-                💻 ferris-cli O'rnatish
+            <a href="https://ferris.uz#cli-download" class="text-zinc-200 hover:text-white p-2.5 rounded-xl hover:bg-zinc-900/60 border border-transparent hover:border-white/5">
+                <span class="flex items-center gap-2"><span>💻</span> ferris-cli O'rnatish</span>
             </a>
-            <a href="https://ferris.uz#playground" class="text-zinc-300 hover:text-white py-1 border-b border-white/5">
-                ⚡ Rust Kod Playground
+            <a href="https://ferris.uz#playground" class="text-zinc-200 hover:text-white p-2.5 rounded-xl hover:bg-zinc-900/60 border border-transparent hover:border-white/5">
+                <span class="flex items-center gap-2"><span>⚡</span> Rust Kod Playground</span>
             </a>
-            <a href="https://api.ferris.uz/api/v1/context" target="_blank" class="text-zinc-300 hover:text-white py-1 border-b border-white/5 flex items-center justify-between">
-                <span>📡 api.ferris.uz (JSON API)</span>
+            <a href="https://api.ferris.uz/api/v1/context" target="_blank" class="text-zinc-200 hover:text-white p-2.5 rounded-xl hover:bg-zinc-900/60 border border-transparent hover:border-white/5 flex items-center justify-between">
+                <span class="flex items-center gap-2"><span>📡</span> api.ferris.uz (JSON API)</span>
                 <span class="text-xs font-mono text-zinc-500">v1 &rarr;</span>
             </a>
-            <a href="https://github.com/rust-uz/ferris" target="_blank" rel="noopener" class="text-zinc-300 hover:text-white py-1 flex items-center justify-between">
+            <a href="https://github.com/rust-uz/ferris" target="_blank" rel="noopener" class="text-zinc-200 hover:text-white p-2.5 rounded-xl hover:bg-zinc-900/60 border border-transparent hover:border-white/5 flex items-center justify-between mt-2 pt-3 border-t border-white/5">
                 <span class="flex items-center gap-2">
                     <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
                     <span>GitHub: rust-uz/ferris</span>
@@ -251,26 +271,27 @@
     </main>
 
     <!-- Clean Compact Minimalist Footer -->
-    <footer class="border-t border-white/10 bg-zinc-950/60 mt-20 py-8 px-4 sm:px-6">
-        <div class="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-zinc-500 font-mono">
-            <div class="flex items-center gap-2.5">
-                <img src="/logo.jpg" alt="Ferris" class="w-5 h-5 rounded object-cover grayscale opacity-70"/>
-                <span class="text-zinc-300 font-semibold font-sans">FERRIS.UZ</span>
-                <span>&bull; Rust Uzbekistan Rasmiy Hamjamiyat Portali</span>
+    <footer class="border-t border-white/10 bg-zinc-950/80 mt-20 py-10 px-4 sm:px-6 lg:px-8">
+        <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6 text-xs text-zinc-500 font-mono">
+            <div class="flex items-center gap-3">
+                <img src="/logo.png" alt="Ferris" class="w-6 h-6 rounded-md object-contain border border-white/10 bg-zinc-900 p-0.5 opacity-80"/>
+                <span class="text-zinc-200 font-bold font-sans tracking-wide">FERRIS.UZ</span>
+                <span class="hidden sm:inline text-zinc-600">&bull;</span>
+                <span class="text-zinc-400">Rust Uzbekistan Rasmiy Ekotizimi</span>
             </div>
-            <div class="flex items-center gap-5">
+            <div class="flex flex-wrap items-center justify-center gap-x-6 gap-y-2">
                 <a href="https://topics.ferris.uz" class="hover:text-zinc-300 transition-colors">topics.ferris.uz</a>
                 <a href="https://groups.ferris.uz" class="hover:text-zinc-300 transition-colors">groups.ferris.uz</a>
                 <a href="https://ferris.uz/profile" class="hover:text-zinc-300 transition-colors">Profil</a>
                 <a href="https://ferris.uz/privacy" class="hover:text-zinc-300 transition-colors text-zinc-400 font-sans">Maxfiylik Siyosati</a>
                 <a href="https://ferris.uz/terms" class="hover:text-zinc-300 transition-colors text-zinc-400 font-sans">Foydalanish Qoidalari</a>
                 <a href="https://api.ferris.uz/api/v1/context" class="hover:text-zinc-300 transition-colors">api.ferris.uz</a>
-                <a href="https://github.com/rust-uz/ferris" target="_blank" rel="noopener" class="hover:text-amber-400 transition-colors flex items-center gap-1">
+                <a href="https://github.com/rust-uz/ferris" target="_blank" rel="noopener" class="hover:text-amber-400 transition-colors flex items-center gap-1.5 font-sans">
                     <svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
                     <span>rust-uz/ferris</span>
                 </a>
             </div>
-            <div>
+            <div class="text-zinc-600">
                 &copy; 2026 Ferris.uz &bull; Cloudflare Universal SSL
             </div>
         </div>
@@ -284,8 +305,8 @@
     </button>
 
     <!-- Direct Message (DM) Slide-over Drawer -->
-    <div id="dmDrawerOverlay" class="hidden fixed inset-0 z-50 bg-black/60 backdrop-blur-sm transition-opacity" onclick="toggleDmDrawer()"></div>
-    <div id="dmDrawer" class="fixed top-0 right-0 bottom-0 z-50 w-full max-w-md bg-zinc-950 border-l border-white/15 shadow-2xl flex flex-col transform translate-x-full transition-transform duration-300 ease-in-out">
+    <div id="dmDrawerOverlay" class="hidden fixed inset-0 z-50 bg-black/70 backdrop-blur-sm transition-opacity" onclick="toggleDmDrawer()"></div>
+    <div id="dmDrawer" class="fixed top-0 right-0 bottom-0 z-50 w-full sm:max-w-md bg-zinc-950 border-l border-white/15 shadow-2xl flex flex-col transform translate-x-full transition-transform duration-300 ease-in-out">
         <!-- Drawer Header -->
         <div class="p-4 border-b border-white/10 flex items-center justify-between bg-zinc-900/50 backdrop-blur-md">
             <div class="flex items-center gap-2.5">

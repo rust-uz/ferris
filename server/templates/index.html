@@ -1,49 +1,50 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="max-w-6xl mx-auto px-4 sm:px-6 py-12 md:py-20 flex flex-col gap-24">
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-16 md:py-24 flex flex-col gap-20 sm:gap-28">
 
     <!-- 1. HERO SECTION -->
-    <section class="text-center flex flex-col items-center max-w-3xl mx-auto">
-        <div class="inline-flex items-center gap-2.5 px-3.5 py-1.5 rounded-full bg-zinc-900 border border-white/15 text-xs font-mono text-zinc-300 mb-6 shadow-sm">
-            <span class="flex items-center gap-1.5 text-zinc-200">
+    <section class="text-center flex flex-col items-center max-w-4xl mx-auto">
+        <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-zinc-900/90 border border-white/15 text-xs font-mono text-zinc-300 mb-6 sm:mb-8 shadow-sm flex-wrap justify-center">
+            <span class="flex items-center gap-2 text-zinc-200">
                 <span class="w-2 h-2 rounded-full bg-brand-orange animate-ping"></span>
-                <span>RUST UZBEKISTAN RASMIY TASHKILOTI</span>
+                <span class="tracking-wide">RUST UZBEKISTAN RASMIY EKOTIZIMI</span>
             </span>
-            <span class="text-white/20">&bull;</span>
-            <a href="https://github.com/rust-uz/ferris" target="_blank" rel="noopener" class="text-amber-400 hover:underline flex items-center gap-1">
-                <span>⭐ GitHub: rust-uz</span> &rarr;
+            <span class="text-white/20 hidden sm:inline">&bull;</span>
+            <a href="https://github.com/rust-uz/ferris" target="_blank" rel="noopener" class="text-amber-400 hover:text-amber-300 flex items-center gap-1">
+                <span>⭐ GitHub: rust-uz/ferris</span> &rarr;
             </a>
         </div>
 
-        <h1 class="text-4xl sm:text-6xl font-extrabold tracking-tight text-white leading-[1.15] mb-6">
-            Tizimli Dasturlash.<br/>
-            <span class="bg-gradient-to-r from-brand-orange to-amber-400 bg-clip-text text-transparent">Xotira Xavfsizligi.</span> Maksimal Tezlik.
+        <h1 class="text-3xl sm:text-5xl md:text-6xl font-extrabold tracking-tight text-white leading-[1.12] mb-6 sm:mb-8">
+            Tizimli Dasturlash.<br class="hidden sm:inline"/>
+            <span class="bg-gradient-to-r from-brand-orange via-amber-400 to-orange-500 bg-clip-text text-transparent">Xotira Xavfsizligi.</span> Maksimal Tezlik.
         </h1>
 
-        <p class="text-base sm:text-lg text-zinc-400 leading-relaxed max-w-2xl mb-8">
+        <p class="text-sm sm:text-base md:text-lg text-zinc-400 leading-relaxed max-w-2xl mb-8 sm:mb-10 px-2">
             Garbage Collector kechikishlarisiz, toza xotira va yuqori RPS.
-            O'zbekiston Rust dasturchilari forumi, jamiyatlar hamda rasmiy <code class="text-brand-orange font-mono font-medium px-1.5 py-0.5 rounded bg-zinc-900 border border-white/10">ferris-cli</code> terminal vositasi.
+            O'zbekiston Rustaceanlari forumi, faol jamiyatlar va rasmiy <code class="text-brand-orange font-mono font-medium px-2 py-0.5 rounded-lg bg-zinc-900 border border-white/10">ferris-cli</code> Linux Security Enclave vositasi.
         </p>
 
-        <div class="flex flex-col sm:flex-row items-center gap-3.5 w-full justify-center mb-8">
-            <a href="#cli-download" class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-brand-orange hover:bg-orange-600 text-white font-semibold text-sm transition-all shadow-lg shadow-orange-950/40">
+        <div class="flex flex-col sm:flex-row items-center gap-3.5 w-full max-w-md sm:max-w-none justify-center mb-8 sm:mb-10">
+            <a href="#cli-download" class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-2xl bg-brand-orange hover:bg-orange-600 text-white font-semibold text-sm transition-all shadow-xl shadow-orange-950/50 hover:scale-[1.02] active:scale-[0.98]">
                 <span>⚡ ferris-cli O'rnatish</span>
+                <span class="text-xs bg-black/20 px-2 py-0.5 rounded-md font-mono">v0.2.1</span>
             </a>
-            <a href="https://github.com/rust-uz/ferris" target="_blank" rel="noopener" class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-zinc-900 hover:bg-zinc-800 border border-white/15 text-zinc-200 hover:text-white font-semibold text-sm transition-all shadow-sm">
+            <a href="https://topics.ferris.uz" class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-2xl bg-zinc-900/80 hover:bg-zinc-800 border border-white/15 hover:border-white/25 text-white font-semibold text-sm transition-all shadow-sm hover:scale-[1.02] active:scale-[0.98]">
+                <span>📌 Mavzular & Forum &rarr;</span>
+            </a>
+            <a href="https://github.com/rust-uz/ferris" target="_blank" rel="noopener" class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-2xl bg-zinc-900/40 hover:bg-zinc-900 border border-white/10 hover:border-white/20 text-zinc-300 hover:text-white font-semibold text-sm transition-all">
                 <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
-                <span>GitHub (rust-uz)</span>
-            </a>
-            <a href="https://topics.ferris.uz" class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-zinc-900/60 hover:bg-zinc-800 border border-white/10 hover:border-white/20 text-zinc-300 font-semibold text-sm transition-all shadow-sm">
-                <span>📌 Mavzular &rarr;</span>
+                <span>GitHub</span>
             </a>
         </div>
 
         <!-- 1-Line Quick Install Bar -->
-        <div class="w-full max-w-lg flex items-center justify-between gap-3 px-4 py-2.5 rounded-xl bg-zinc-950/80 border border-white/15 font-mono text-xs text-zinc-300 shadow-inner">
-            <span class="text-emerald-400 select-none">$</span>
-            <code id="quickCmd" class="flex-grow text-left select-all">curl -fsSL https://ferris.uz/install.sh | sh</code>
-            <button onclick="copyText('curl -fsSL https://ferris.uz/install.sh | sh', this)" class="px-2.5 py-1 rounded bg-zinc-800 hover:bg-zinc-700 text-zinc-200 text-xs transition-colors shrink-0">
+        <div class="w-full max-w-lg flex items-center justify-between gap-2.5 px-4 py-3 rounded-2xl bg-zinc-950/90 border border-white/15 font-mono text-xs text-zinc-300 shadow-inner group">
+            <span class="text-emerald-400 select-none font-bold">$</span>
+            <code id="quickCmd" class="flex-grow text-left select-all truncate text-zinc-200">curl -fsSL https://ferris.uz/install.sh | sh</code>
+            <button onclick="copyText('curl -fsSL https://ferris.uz/install.sh | sh', this)" class="px-3 py-1.5 rounded-xl bg-zinc-900 hover:bg-zinc-800 border border-white/10 hover:border-white/20 text-zinc-200 text-xs transition-all shrink-0 font-sans active:scale-95">
                 Nusxa
             </button>
         </div>
@@ -51,112 +52,116 @@
 
     <!-- 2. SUBDOMAINS ARCHITECTURE HUB -->
     <section>
-        <div class="flex flex-col items-center text-center mb-10">
-            <span class="text-xs font-mono font-semibold text-brand-orange tracking-wider uppercase mb-1.5">Cloud Architecture</span>
-            <h2 class="text-2xl sm:text-3xl font-bold tracking-tight text-white">Ferris.uz Subdomenlar Tizimi</h2>
-            <p class="text-sm text-zinc-400 mt-2 max-w-xl">Har bir yo'nalish o'zining mustaqil subdomeni va maxsus funksiyalariga ega</p>
+        <div class="flex flex-col items-center text-center mb-10 sm:mb-12">
+            <span class="text-xs font-mono font-semibold text-brand-orange tracking-wider uppercase mb-2">Cloud Ecosystem</span>
+            <h2 class="text-2xl sm:text-3xl md:text-4xl font-bold tracking-tight text-white">Ferris.uz Subdomenlar Tizimi</h2>
+            <p class="text-xs sm:text-sm text-zinc-400 mt-2 max-w-xl">Har bir yo'nalish alohida subdomen, yuqori RPS va mustaqil servislar orqali ta'minlangan</p>
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
             <!-- Topics Card -->
-            <a href="https://topics.ferris.uz" class="group flex flex-col p-6 rounded-2xl bg-zinc-900/40 border border-white/10 hover:border-brand-orange/40 hover:bg-zinc-900/70 transition-all duration-200">
+            <a href="https://topics.ferris.uz" class="glass-card group flex flex-col p-6 sm:p-7 rounded-3xl transition-all duration-300 hover:-translate-y-1">
                 <div class="flex items-center justify-between mb-4">
-                    <span class="text-2xl">📌</span>
-                    <span class="text-xs font-mono text-amber-400 bg-amber-400/10 border border-amber-400/20 px-2.5 py-0.5 rounded-full">topics.ferris.uz</span>
+                    <span class="text-3xl p-2.5 rounded-2xl bg-amber-500/10 border border-amber-500/20">📌</span>
+                    <span class="text-xs font-mono text-amber-400 bg-amber-400/10 border border-amber-400/20 px-2.5 py-1 rounded-full">topics.ferris.uz</span>
                 </div>
-                <h3 class="text-lg font-bold text-white group-hover:text-brand-orange transition-colors mb-2">Mavzular & Forum</h3>
-                <p class="text-sm text-zinc-400 leading-relaxed flex-grow">
-                    <code class="text-zinc-300 font-mono">f/rust</code>, <code class="text-zinc-300 font-mono">f/async</code>, <code class="text-zinc-300 font-mono">f/systems</code> va <code class="text-zinc-300 font-mono">f/quantum</code> bo'yicha texnik muhokamalar va maqolalar portali.
+                <h3 class="text-lg sm:text-xl font-bold text-white group-hover:text-brand-orange transition-colors mb-2.5">Mavzular & Forum</h3>
+                <p class="text-xs sm:text-sm text-zinc-400 leading-relaxed flex-grow">
+                    <code class="text-zinc-300 font-mono">f/rust</code>, <code class="text-zinc-300 font-mono">f/async</code>, <code class="text-zinc-300 font-mono">f/systems</code> va <code class="text-zinc-300 font-mono">f/quantum</code> yo'nalishlarida chuqur texnik maqolalar va ochiq muhokamalar.
                 </p>
-                <div class="mt-4 pt-4 border-t border-white/5 flex items-center justify-between text-xs font-semibold text-brand-orange">
-                    <span>Mavzularga kirish</span>
-                    <span class="group-hover:translate-x-1 transition-transform">&rarr;</span>
+                <div class="mt-6 pt-4 border-t border-white/5 flex items-center justify-between text-xs font-semibold text-brand-orange">
+                    <span>Mavzularga o'tish</span>
+                    <span class="group-hover:translate-x-1.5 transition-transform">&rarr;</span>
                 </div>
             </a>
 
             <!-- Groups Card -->
-            <a href="https://groups.ferris.uz" class="group flex flex-col p-6 rounded-2xl bg-zinc-900/40 border border-white/10 hover:border-emerald-500/40 hover:bg-zinc-900/70 transition-all duration-200">
+            <a href="https://groups.ferris.uz" class="glass-card group flex flex-col p-6 sm:p-7 rounded-3xl transition-all duration-300 hover:-translate-y-1">
                 <div class="flex items-center justify-between mb-4">
-                    <span class="text-2xl">👥</span>
-                    <span class="text-xs font-mono text-emerald-400 bg-emerald-400/10 border border-emerald-400/20 px-2.5 py-0.5 rounded-full">groups.ferris.uz</span>
+                    <span class="text-3xl p-2.5 rounded-2xl bg-emerald-500/10 border border-emerald-500/20">👥</span>
+                    <span class="text-xs font-mono text-emerald-400 bg-emerald-400/10 border border-emerald-400/20 px-2.5 py-1 rounded-full">groups.ferris.uz</span>
                 </div>
-                <h3 class="text-lg font-bold text-white group-hover:text-emerald-400 transition-colors mb-2">Jamiyatlar & Guruhlar</h3>
-                <p class="text-sm text-zinc-400 leading-relaxed flex-grow">
-                    Rustaceanlar to'garaklari, mahalliy meetup guruhlari va ochiq loyihalar katalogi. Yangi jamiyat ochish imkoniyati.
+                <h3 class="text-lg sm:text-xl font-bold text-white group-hover:text-emerald-400 transition-colors mb-2.5">Jamiyatlar & Guruhlar</h3>
+                <p class="text-xs sm:text-sm text-zinc-400 leading-relaxed flex-grow">
+                    Rustacean to'garaklari, hududiy meetup guruhlari va ochiq manbali loyihalar katalogi. Yangi jamiyat ochish va birlashish maydoni.
                 </p>
-                <div class="mt-4 pt-4 border-t border-white/5 flex items-center justify-between text-xs font-semibold text-emerald-400">
+                <div class="mt-6 pt-4 border-t border-white/5 flex items-center justify-between text-xs font-semibold text-emerald-400">
                     <span>Jamiyatlarni ko'rish</span>
-                    <span class="group-hover:translate-x-1 transition-transform">&rarr;</span>
+                    <span class="group-hover:translate-x-1.5 transition-transform">&rarr;</span>
                 </div>
             </a>
 
             <!-- API Card -->
-            <a href="https://api.ferris.uz/api/v1/context" target="_blank" class="group flex flex-col p-6 rounded-2xl bg-zinc-900/40 border border-white/10 hover:border-cyan-500/40 hover:bg-zinc-900/70 transition-all duration-200">
+            <a href="https://api.ferris.uz/api/v1/context" target="_blank" class="glass-card group flex flex-col p-6 sm:p-7 rounded-3xl transition-all duration-300 hover:-translate-y-1">
                 <div class="flex items-center justify-between mb-4">
-                    <span class="text-2xl">📡</span>
-                    <span class="text-xs font-mono text-cyan-400 bg-cyan-400/10 border border-cyan-400/20 px-2.5 py-0.5 rounded-full">api.ferris.uz</span>
+                    <span class="text-3xl p-2.5 rounded-2xl bg-cyan-500/10 border border-cyan-500/20">📡</span>
+                    <span class="text-xs font-mono text-cyan-400 bg-cyan-400/10 border border-cyan-400/20 px-2.5 py-1 rounded-full">api.ferris.uz</span>
                 </div>
-                <h3 class="text-lg font-bold text-white group-hover:text-cyan-400 transition-colors mb-2">REST & WebSocket API</h3>
-                <p class="text-sm text-zinc-400 leading-relaxed flex-grow">
-                    Axum va Tokio asosidagi ultra-tezkor Rust backend. Barcha subdomenlar va ferris-cli uchun yagona miya.
+                <h3 class="text-lg sm:text-xl font-bold text-white group-hover:text-cyan-400 transition-colors mb-2.5">REST & WebSocket API</h3>
+                <p class="text-xs sm:text-sm text-zinc-400 leading-relaxed flex-grow">
+                    Axum va Tokio asosidagi ultra-tezkor Rust backend. Barcha subdomenlar va rasmiy ferris-cli uchun yagona asinxron miya.
                 </p>
-                <div class="mt-4 pt-4 border-t border-white/5 flex items-center justify-between text-xs font-semibold text-cyan-400">
+                <div class="mt-6 pt-4 border-t border-white/5 flex items-center justify-between text-xs font-semibold text-cyan-400">
                     <span>API Context ko'rish</span>
-                    <span class="group-hover:translate-x-1 transition-transform">&rarr;</span>
+                    <span class="group-hover:translate-x-1.5 transition-transform">&rarr;</span>
                 </div>
             </a>
         </div>
     </section>
 
-    <!-- 3. CLI DOWNLOAD & INSTALL SECTION -->
-    <section id="cli-download" class="p-6 sm:p-10 rounded-3xl bg-zinc-900/30 border border-white/10 backdrop-blur-md">
-        <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-8">
-            <div>
-                <span class="text-xs font-mono font-semibold text-brand-orange uppercase">Developer Tool & Sovereign Infrastructure</span>
-                <h2 class="text-2xl sm:text-3xl font-bold tracking-tight text-white mt-1">💻 ferris-cli — Terminal Vositasini O'rnatish</h2>
-                <p class="text-sm text-zinc-400 mt-1">Linux, macOS va Windows tizimlari uchun universal paketlar va binar yig'ilmalar (v0.2.0)</p>
+    <!-- 3. CLI DOWNLOAD & ENCLAVE SECURITY SECTION -->
+    <section id="cli-download" class="glass-card p-6 sm:p-10 md:p-12 rounded-3xl relative overflow-hidden">
+        <div class="flex flex-col lg:flex-row lg:items-end justify-between gap-6 mb-8">
+            <div class="max-w-2xl">
+                <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-orange-500/10 border border-orange-500/20 text-xs font-mono text-brand-orange uppercase mb-3">
+                    <span>🛡️ Linux Security Enclave & Vault</span>
+                </div>
+                <h2 class="text-2xl sm:text-3xl md:text-4xl font-bold tracking-tight text-white">💻 ferris-cli — Terminal Vositasini O'rnatish</h2>
+                <p class="text-xs sm:text-sm text-zinc-400 mt-2 leading-relaxed">
+                    Linux Landlock LSM yadroviy qamali, ChaCha20-Poly1305 sirlar ombori va Zero-Trust tarmoq izolyatsiyasiga ega rasmiy terminal ilovasi (v0.2.1).
+                </p>
             </div>
-            <div class="flex flex-wrap gap-2 shrink-0">
-                <a href="/downloads/ferris-linux" download="ferris" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-brand-orange hover:bg-orange-600 text-white text-xs font-semibold shadow-md shadow-orange-500/20 transition-all">
+            <div class="flex flex-wrap gap-2.5 shrink-0">
+                <a href="/downloads/ferris-linux" download="ferris" class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-brand-orange hover:bg-orange-600 text-white text-xs font-semibold shadow-lg shadow-orange-950/40 transition-all hover:scale-105 active:scale-95">
                     <span>⬇</span> Linux x86_64
                 </a>
-                <a href="/downloads/ferris-cli_0.2.0_amd64.deb" download class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-zinc-200 text-xs font-semibold border border-white/10 transition-all">
-                    <span>📦</span> .deb (Ubuntu/Debian)
+                <a href="/downloads/ferris-cli_0.2.0_amd64.deb" download class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-zinc-900 hover:bg-zinc-800 text-zinc-200 text-xs font-semibold border border-white/10 transition-all hover:scale-105 active:scale-95">
+                    <span>📦</span> .deb Paket
                 </a>
-                <a href="https://crates.io/crates/ferris-cli" target="_blank" rel="noopener" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-zinc-200 text-xs font-semibold border border-white/10 transition-all">
-                    <span>🦀</span> Crates.io v0.2.0
+                <a href="https://crates.io/crates/ferris-cli" target="_blank" rel="noopener" class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-zinc-900 hover:bg-zinc-800 text-zinc-200 text-xs font-semibold border border-white/10 transition-all hover:scale-105 active:scale-95">
+                    <span>🦀</span> Crates.io v0.2.1
                 </a>
             </div>
         </div>
 
         <!-- OS Selector Tabs -->
-        <div class="flex border-b border-white/10 gap-1 sm:gap-2 mb-6 overflow-x-auto pb-1">
-            <button onclick="switchTab('linux')" id="tab-btn-linux" class="tab-btn px-3 sm:px-4 py-2 text-xs sm:text-sm font-semibold border-b-2 border-brand-orange text-white shrink-0">
+        <div class="flex border-b border-white/10 gap-2 mb-6 overflow-x-auto pb-1 scrollbar-none">
+            <button onclick="switchTab('linux')" id="tab-btn-linux" class="tab-btn px-4 py-2.5 text-xs sm:text-sm font-semibold border-b-2 border-brand-orange text-white shrink-0 rounded-t-lg transition-colors">
                 🐧 Linux (curl)
             </button>
-            <button onclick="switchTab('brew')" id="tab-btn-brew" class="tab-btn px-3 sm:px-4 py-2 text-xs sm:text-sm font-semibold border-b-2 border-transparent text-zinc-400 hover:text-zinc-200 shrink-0">
+            <button onclick="switchTab('brew')" id="tab-btn-brew" class="tab-btn px-4 py-2.5 text-xs sm:text-sm font-semibold border-b-2 border-transparent text-zinc-400 hover:text-zinc-200 shrink-0 rounded-t-lg transition-colors">
                 🍺 Homebrew (macOS)
             </button>
-            <button onclick="switchTab('arch')" id="tab-btn-arch" class="tab-btn px-3 sm:px-4 py-2 text-xs sm:text-sm font-semibold border-b-2 border-transparent text-zinc-400 hover:text-zinc-200 shrink-0">
+            <button onclick="switchTab('arch')" id="tab-btn-arch" class="tab-btn px-4 py-2.5 text-xs sm:text-sm font-semibold border-b-2 border-transparent text-zinc-400 hover:text-zinc-200 shrink-0 rounded-t-lg transition-colors">
                 🏹 Arch Linux (AUR)
             </button>
-            <button onclick="switchTab('debian')" id="tab-btn-debian" class="tab-btn px-3 sm:px-4 py-2 text-xs sm:text-sm font-semibold border-b-2 border-transparent text-zinc-400 hover:text-zinc-200 shrink-0">
+            <button onclick="switchTab('debian')" id="tab-btn-debian" class="tab-btn px-4 py-2.5 text-xs sm:text-sm font-semibold border-b-2 border-transparent text-zinc-400 hover:text-zinc-200 shrink-0 rounded-t-lg transition-colors">
                 📦 Debian / Ubuntu
             </button>
-            <button onclick="switchTab('windows')" id="tab-btn-windows" class="tab-btn px-3 sm:px-4 py-2 text-xs sm:text-sm font-semibold border-b-2 border-transparent text-zinc-400 hover:text-zinc-200 shrink-0">
+            <button onclick="switchTab('windows')" id="tab-btn-windows" class="tab-btn px-4 py-2.5 text-xs sm:text-sm font-semibold border-b-2 border-transparent text-zinc-400 hover:text-zinc-200 shrink-0 rounded-t-lg transition-colors">
                 🪟 Windows (PowerShell)
             </button>
-            <button onclick="switchTab('cargo')" id="tab-btn-cargo" class="tab-btn px-3 sm:px-4 py-2 text-xs sm:text-sm font-semibold border-b-2 border-transparent text-zinc-400 hover:text-zinc-200 shrink-0">
+            <button onclick="switchTab('cargo')" id="tab-btn-cargo" class="tab-btn px-4 py-2.5 text-xs sm:text-sm font-semibold border-b-2 border-transparent text-zinc-400 hover:text-zinc-200 shrink-0 rounded-t-lg transition-colors">
                 🦀 Cargo
             </button>
         </div>
 
         <!-- Tab 1: Linux Script -->
-        <div id="tab-content-linux" class="tab-pane flex flex-col gap-4">
-            <div class="flex items-center justify-between gap-3 px-4 py-3 rounded-xl bg-zinc-950 border border-white/15 font-mono text-xs sm:text-sm text-zinc-200 overflow-x-auto">
-                <span class="text-emerald-400 select-none">$</span>
+        <div id="tab-content-linux" class="tab-pane flex flex-col gap-3">
+            <div class="flex items-center justify-between gap-3 px-4 py-3.5 rounded-2xl bg-zinc-950/90 border border-white/15 font-mono text-xs sm:text-sm text-zinc-200 overflow-x-auto">
+                <span class="text-emerald-400 select-none font-bold">$</span>
                 <code class="flex-grow select-all">curl -fsSL https://ferris.uz/install.sh | sh</code>
-                <button onclick="copyText('curl -fsSL https://ferris.uz/install.sh | sh', this)" class="px-3 py-1 rounded bg-zinc-800 hover:bg-zinc-700 text-xs text-white shrink-0">
+                <button onclick="copyText('curl -fsSL https://ferris.uz/install.sh | sh', this)" class="px-3.5 py-1.5 rounded-xl bg-zinc-900 hover:bg-zinc-800 border border-white/10 text-xs text-white shrink-0 font-sans transition-colors">
                     Nusxa
                 </button>
             </div>
@@ -164,11 +169,11 @@
         </div>
 
         <!-- Tab 2: Homebrew -->
-        <div id="tab-content-brew" class="tab-pane hidden flex flex-col gap-4">
-            <div class="flex items-center justify-between gap-3 px-4 py-3 rounded-xl bg-zinc-950 border border-white/15 font-mono text-xs sm:text-sm text-zinc-200 overflow-x-auto">
-                <span class="text-amber-400 select-none">$</span>
+        <div id="tab-content-brew" class="tab-pane hidden flex flex-col gap-3">
+            <div class="flex items-center justify-between gap-3 px-4 py-3.5 rounded-2xl bg-zinc-950/90 border border-white/15 font-mono text-xs sm:text-sm text-zinc-200 overflow-x-auto">
+                <span class="text-amber-400 select-none font-bold">$</span>
                 <code class="flex-grow select-all">brew install https://ferris.uz/downloads/ferris.rb</code>
-                <button onclick="copyText('brew install https://ferris.uz/downloads/ferris.rb', this)" class="px-3 py-1 rounded bg-zinc-800 hover:bg-zinc-700 text-xs text-white shrink-0">
+                <button onclick="copyText('brew install https://ferris.uz/downloads/ferris.rb', this)" class="px-3.5 py-1.5 rounded-xl bg-zinc-900 hover:bg-zinc-800 border border-white/10 text-xs text-white shrink-0 font-sans transition-colors">
                     Nusxa
                 </button>
             </div>
@@ -176,11 +181,11 @@
         </div>
 
         <!-- Tab 3: Arch Linux (AUR) -->
-        <div id="tab-content-arch" class="tab-pane hidden flex flex-col gap-4">
-            <div class="flex items-center justify-between gap-3 px-4 py-3 rounded-xl bg-zinc-950 border border-white/15 font-mono text-xs sm:text-sm text-zinc-200 overflow-x-auto">
-                <span class="text-sky-400 select-none">$</span>
+        <div id="tab-content-arch" class="tab-pane hidden flex flex-col gap-3">
+            <div class="flex items-center justify-between gap-3 px-4 py-3.5 rounded-2xl bg-zinc-950/90 border border-white/15 font-mono text-xs sm:text-sm text-zinc-200 overflow-x-auto">
+                <span class="text-sky-400 select-none font-bold">$</span>
                 <code class="flex-grow select-all">yay -S ferris-cli-bin</code>
-                <button onclick="copyText('yay -S ferris-cli-bin', this)" class="px-3 py-1 rounded bg-zinc-800 hover:bg-zinc-700 text-xs text-white shrink-0">
+                <button onclick="copyText('yay -S ferris-cli-bin', this)" class="px-3.5 py-1.5 rounded-xl bg-zinc-900 hover:bg-zinc-800 border border-white/10 text-xs text-white shrink-0 font-sans transition-colors">
                     Nusxa
                 </button>
             </div>
@@ -188,11 +193,11 @@
         </div>
 
         <!-- Tab 4: Debian / Ubuntu -->
-        <div id="tab-content-debian" class="tab-pane hidden flex flex-col gap-4">
-            <div class="flex items-center justify-between gap-3 px-4 py-3 rounded-xl bg-zinc-950 border border-white/15 font-mono text-xs sm:text-sm text-zinc-200 overflow-x-auto">
-                <span class="text-red-400 select-none">$</span>
+        <div id="tab-content-debian" class="tab-pane hidden flex flex-col gap-3">
+            <div class="flex items-center justify-between gap-3 px-4 py-3.5 rounded-2xl bg-zinc-950/90 border border-white/15 font-mono text-xs sm:text-sm text-zinc-200 overflow-x-auto">
+                <span class="text-red-400 select-none font-bold">$</span>
                 <code class="flex-grow select-all">curl -fsSLO https://ferris.uz/downloads/ferris-cli_0.2.0_amd64.deb && sudo dpkg -i ferris-cli_0.2.0_amd64.deb</code>
-                <button onclick="copyText('curl -fsSLO https://ferris.uz/downloads/ferris-cli_0.2.0_amd64.deb && sudo dpkg -i ferris-cli_0.2.0_amd64.deb', this)" class="px-3 py-1 rounded bg-zinc-800 hover:bg-zinc-700 text-xs text-white shrink-0">
+                <button onclick="copyText('curl -fsSLO https://ferris.uz/downloads/ferris-cli_0.2.0_amd64.deb && sudo dpkg -i ferris-cli_0.2.0_amd64.deb', this)" class="px-3.5 py-1.5 rounded-xl bg-zinc-900 hover:bg-zinc-800 border border-white/10 text-xs text-white shrink-0 font-sans transition-colors">
                     Nusxa
                 </button>
             </div>
@@ -200,11 +205,11 @@
         </div>
 
         <!-- Tab 5: Windows -->
-        <div id="tab-content-windows" class="tab-pane hidden flex flex-col gap-4">
-            <div class="flex items-center justify-between gap-3 px-4 py-3 rounded-xl bg-zinc-950 border border-white/15 font-mono text-xs sm:text-sm text-zinc-200 overflow-x-auto">
-                <span class="text-cyan-400 select-none">PS&gt;</span>
+        <div id="tab-content-windows" class="tab-pane hidden flex flex-col gap-3">
+            <div class="flex items-center justify-between gap-3 px-4 py-3.5 rounded-2xl bg-zinc-950/90 border border-white/15 font-mono text-xs sm:text-sm text-zinc-200 overflow-x-auto">
+                <span class="text-cyan-400 select-none font-bold">PS&gt;</span>
                 <code class="flex-grow select-all">iwr -useb https://ferris.uz/install.ps1 | iex</code>
-                <button onclick="copyText('iwr -useb https://ferris.uz/install.ps1 | iex', this)" class="px-3 py-1 rounded bg-zinc-800 hover:bg-zinc-700 text-xs text-white shrink-0">
+                <button onclick="copyText('iwr -useb https://ferris.uz/install.ps1 | iex', this)" class="px-3.5 py-1.5 rounded-xl bg-zinc-900 hover:bg-zinc-800 border border-white/10 text-xs text-white shrink-0 font-sans transition-colors">
                     Nusxa
                 </button>
             </div>
@@ -212,57 +217,63 @@
         </div>
 
         <!-- Tab 6: Cargo -->
-        <div id="tab-content-cargo" class="tab-pane hidden flex flex-col gap-4">
-            <div class="flex items-center justify-between gap-3 px-4 py-3 rounded-xl bg-zinc-950 border border-white/15 font-mono text-xs sm:text-sm text-zinc-200 overflow-x-auto">
-                <span class="text-brand-orange select-none">$</span>
+        <div id="tab-content-cargo" class="tab-pane hidden flex flex-col gap-3">
+            <div class="flex items-center justify-between gap-3 px-4 py-3.5 rounded-2xl bg-zinc-950/90 border border-white/15 font-mono text-xs sm:text-sm text-zinc-200 overflow-x-auto">
+                <span class="text-brand-orange select-none font-bold">$</span>
                 <code class="flex-grow select-all">cargo install ferris-cli</code>
-                <button onclick="copyText('cargo install ferris-cli', this)" class="px-3 py-1 rounded bg-zinc-800 hover:bg-zinc-700 text-xs text-white shrink-0">
+                <button onclick="copyText('cargo install ferris-cli', this)" class="px-3.5 py-1.5 rounded-xl bg-zinc-900 hover:bg-zinc-800 border border-white/10 text-xs text-white shrink-0 font-sans transition-colors">
                     Nusxa
                 </button>
             </div>
             <p class="text-xs text-zinc-500 font-mono">Rust toolchain mavjud barcha operatsion tizimlarda to'g'ridan-to'g'ri Crates.io reyestridan o'rnatish.</p>
         </div>
 
-        <!-- Terminal Output Demo -->
+        <!-- Interactive Terminal Output Showcase -->
         <div class="mt-8 rounded-2xl bg-black border border-white/15 overflow-hidden shadow-2xl font-mono text-xs">
-            <div class="flex items-center justify-between px-4 py-2.5 bg-zinc-900 border-b border-white/10">
+            <div class="flex items-center justify-between px-4 py-3 bg-zinc-900/90 border-b border-white/10">
                 <div class="flex items-center gap-2">
                     <span class="w-3 h-3 rounded-full bg-red-500/80"></span>
                     <span class="w-3 h-3 rounded-full bg-amber-500/80"></span>
                     <span class="w-3 h-3 rounded-full bg-emerald-500/80"></span>
                 </div>
-                <span class="text-zinc-500 text-[11px]">bash &bull; ferris-cli v0.2.0</span>
+                <span class="text-zinc-500 text-[11px] font-mono">bash &bull; ferris-cli v0.2.1 Enclave</span>
             </div>
-            <div class="p-4 sm:p-6 text-zinc-300 leading-relaxed overflow-x-auto space-y-2">
-                <p><span class="text-emerald-400 font-bold">$</span> ferris ping</p>
+            <div class="p-4 sm:p-6 text-zinc-300 leading-relaxed overflow-x-auto space-y-2.5">
+                <p><span class="text-emerald-400 font-bold">$</span> ferris vault seal</p>
+                <p class="text-emerald-400 pl-4">🔒 [Ferris Vault] .env fayli ChaCha20-Poly1305 bilan muhrlandi (.env.ferris).</p>
+                <p class="text-zinc-500 pl-4 font-sans text-[11px]">&bull; Asl ochiq fayl diskdan izsiz tozalandi (Zero-Disk Footprint).</p>
+
+                <p class="pt-2"><span class="text-emerald-400 font-bold">$</span> ferris run --allow-write ./logs -- python3 bot.py</p>
+                <p class="text-cyan-400 pl-4">🛡️  [Ferris Enclave] Universal xavfsiz qobiq ishga tushirildi.</p>
+                <p class="text-zinc-400 pl-6">&bull; Sirlar RAM xotiraga ochildi (boshqa jarayonlar /proc/pid/mem o'qiy olmaydi).</p>
+                <p class="text-zinc-400 pl-6">&bull; Yadroviy qamal (Landlock LSM) faol: Kod papkasi FAQAT O'QISH (Read-Only).</p>
+                <p class="text-emerald-400 pl-4">🚀 [Boshlandi]: python3 bot.py (Crash Memory Leak & Self-Modification Bloklangan)</p>
+
+                <p class="pt-2"><span class="text-emerald-400 font-bold">$</span> ferris ping</p>
                 <p class="text-emerald-400 pl-4">✅ API aloqada: https://api.ferris.uz (Cloudflare Universal SSL)</p>
-                <p class="pt-2"><span class="text-emerald-400 font-bold">$</span> ferris topic list</p>
-                <p class="text-amber-400 pl-4 font-semibold">📌 Ferris.uz Mavzulari (topics.ferris.uz):</p>
-                <p class="text-zinc-400 pl-6">🦀 f/rust       - Rust Core & Ekotizim</p>
-                <p class="text-zinc-400 pl-6">⚡ f/async      - Asinxron Dasturlash & Tokio</p>
-                <p class="text-zinc-400 pl-6">🐧 f/systems    - Tizimli Dasturlash & Linux</p>
-                <p class="text-zinc-400 pl-6">🔮 f/quantum    - Kvant Hisoblash & AI</p>
             </div>
         </div>
     </section>
 
     <!-- 4. INTERACTIVE RUST PLAYGROUND -->
-    <section id="playground" class="p-6 sm:p-10 rounded-3xl bg-zinc-900/30 border border-white/10 backdrop-blur-md">
+    <section id="playground" class="glass-card p-6 sm:p-10 md:p-12 rounded-3xl relative overflow-hidden">
         <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-6">
             <div>
                 <span class="text-xs font-mono font-semibold text-brand-orange uppercase">Interactive Lab</span>
-                <h2 class="text-2xl sm:text-3xl font-bold tracking-tight text-white mt-1">⚡ Rust Kod Laboratoriyasi</h2>
-                <p class="text-sm text-zinc-400 mt-1">Brauzerda Rust sintaksisi, xotira xavfsizligi va Tokio asinxronligini sinang</p>
+                <h2 class="text-2xl sm:text-3xl md:text-4xl font-bold tracking-tight text-white mt-1">⚡ Rust Kod Laboratoriyasi</h2>
+                <p class="text-xs sm:text-sm text-zinc-400 mt-2">Brauzerda Rust sintaksisi, xotira xavfsizligi va Tokio asinxronligini sinang</p>
             </div>
-            <button id="runPlaygroundBtn" class="px-5 py-2.5 rounded-xl bg-brand-orange hover:bg-orange-600 text-white font-semibold text-xs transition-all shadow-md self-start sm:self-auto">
-                ▶ Kodni Sinash
+            <button id="runPlaygroundBtn" class="px-5 py-2.5 rounded-2xl bg-brand-orange hover:bg-orange-600 text-white font-semibold text-xs transition-all shadow-lg shadow-orange-950/40 hover:scale-105 active:scale-95 self-start sm:self-auto flex items-center gap-2">
+                <span>▶ Kodni Sinash</span>
             </button>
         </div>
 
-        <div class="rounded-2xl bg-black border border-white/15 overflow-hidden font-mono text-xs shadow-xl">
-            <div class="flex items-center justify-between px-4 py-2 bg-zinc-900 border-b border-white/10">
-                <span class="text-zinc-400 font-semibold">async_tokio.rs</span>
-                <span class="text-zinc-600">Rust 2021 Edition</span>
+        <div class="rounded-2xl bg-black border border-white/15 overflow-hidden font-mono text-xs shadow-2xl">
+            <div class="flex items-center justify-between px-4 py-2.5 bg-zinc-900/90 border-b border-white/10">
+                <span class="text-zinc-300 font-semibold flex items-center gap-2">
+                    <span class="w-2 h-2 rounded-full bg-brand-orange"></span> async_tokio.rs
+                </span>
+                <span class="text-zinc-500 font-mono text-[11px]">Rust 2021 Edition</span>
             </div>
             <pre class="p-4 sm:p-6 text-zinc-200 overflow-x-auto leading-relaxed"><code id="codeText">// 🚀 Tokio Asinxron Vazifa Namunasi
 use tokio::time::{sleep, Duration};
@@ -279,7 +290,7 @@ async fn main() {
     let result = handle.await.unwrap();
     println!("{}", result);
 }</code></pre>
-            <div class="px-4 py-3 bg-zinc-950 border-t border-white/10 text-xs">
+            <div class="px-4 py-3.5 bg-zinc-950/95 border-t border-white/10 text-xs">
                 <span class="text-zinc-500 font-bold block mb-1">Konsol Chiqishi:</span>
                 <div id="consoleOut" class="text-emerald-400 font-mono">[INFO] Kod tayyor. "Kodni Sinash" tugmasini bosing...</div>
             </div>
