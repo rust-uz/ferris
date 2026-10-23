@@ -122,9 +122,13 @@
         <div class="flex flex-col lg:flex-row lg:items-end justify-between gap-6 mb-8">
             <div class="max-w-2xl">
                 <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-orange-500/10 border border-orange-500/20 text-xs font-mono text-brand-orange uppercase mb-3">
-                    <span>🛡️ Linux Security Enclave & Vault</span>
+                    <i data-lucide="shield" class="w-3.5 h-3.5"></i>
+                    <span>Linux Security Enclave & Vault</span>
                 </div>
-                <h2 class="text-2xl sm:text-3xl md:text-4xl font-bold tracking-tight text-white">💻 ferris-cli — Terminal Vositasini O'rnatish</h2>
+                <h2 class="text-2xl sm:text-3xl md:text-4xl font-bold tracking-tight text-white flex items-center gap-3">
+                    <i data-lucide="terminal" class="w-8 h-8 text-brand-orange shrink-0"></i>
+                    <span>ferris-cli — Terminal Vositasini O'rnatish</span>
+                </h2>
                 <p class="text-xs sm:text-sm text-zinc-400 mt-2 leading-relaxed">
                     Linux Landlock LSM yadroviy qamali, ChaCha20-Poly1305 sirlar ombori va Zero-Trust tarmoq izolyatsiyasiga ega rasmiy terminal ilovasi (v0.2.1).
                 </p>
@@ -284,16 +288,16 @@
                 </span>
                 <span class="text-zinc-500 font-mono text-[11px]">Rust 2021 Edition</span>
             </div>
-            <pre class="p-4 sm:p-6 text-zinc-200 overflow-x-auto leading-relaxed"><code id="codeText">// 🚀 Tokio Asinxron Vazifa Namunasi
+            <pre class="p-4 sm:p-6 text-zinc-200 overflow-x-auto leading-relaxed"><code id="codeText">// Tokio Asinxron Vazifa Namunasi
 use tokio::time::{sleep, Duration};
 
 #[tokio::main]
 async fn main() {
-    println!("🦀 Ferris: Tokio dvigateli ishga tushdi...");
+    println!("Ferris: Tokio dvigateli ishga tushdi...");
     
     let handle = tokio::spawn(async {
         sleep(Duration::from_millis(50)).await;
-        "⚡ 10,000+ so'rovlar nol GC pauzalarisiz bajarildi!"
+        "10,000+ so'rovlar nol GC pauzalarisiz bajarildi!"
     });
 
     let result = handle.await.unwrap();
@@ -313,9 +317,13 @@ async fn main() {
 <script>
     function copyText(text, btn) {
         navigator.clipboard.writeText(text);
-        const old = btn.innerText;
-        btn.innerText = '✅';
-        setTimeout(() => btn.innerText = old, 1500);
+        const old = btn.innerHTML;
+        btn.innerHTML = '<i data-lucide="check" class="w-3.5 h-3.5 text-emerald-400"></i>';
+        if (window.lucide) lucide.createIcons();
+        setTimeout(() => {
+            btn.innerHTML = old;
+            if (window.lucide) lucide.createIcons();
+        }, 1500);
     }
 
     function switchTab(os) {
@@ -334,7 +342,7 @@ async fn main() {
         const out = document.getElementById('consoleOut');
         out.innerHTML = '<span class="text-zinc-400">Compiling (rustc --release)...</span>';
         setTimeout(() => {
-            out.innerHTML = '<span class="text-zinc-200">[ferris-engine] Tokio async runtime online...</span><br/><span class="text-emerald-400">✓ 10,000+ requests executed with 0ms GC pauses.</span>';
+            out.innerHTML = '<span class="text-zinc-200">[ferris-engine] Tokio async runtime online...</span><br/><span class="text-emerald-400">[OK] 10,000+ requests executed with 0ms GC pauses.</span>';
         }, 300);
     });
 </script>

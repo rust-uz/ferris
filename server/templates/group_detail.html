@@ -39,10 +39,12 @@
             <!-- Join / Post Action Buttons -->
             <div class="flex items-center gap-3 shrink-0 self-start sm:self-center">
                 <button onclick="toggleJoin('{{ group.slug }}', this)" id="groupDetailJoinBtn" class="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs transition-all shadow-md flex items-center gap-1.5">
-                    <span>👥 A'zo bo'lish</span>
+                    <i data-lucide="user-plus" class="w-4 h-4"></i>
+                    <span>A'zo bo'lish</span>
                 </button>
                 <button onclick="handleNewPostClick()" class="px-4 py-2.5 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-zinc-200 border border-white/15 text-xs font-semibold transition-all flex items-center gap-1.5">
-                    <span>+ Yangi Mavzu</span>
+                    <i data-lucide="plus" class="w-4 h-4"></i>
+                    <span>Yangi Mavzu</span>
                 </button>
             </div>
         </div>
@@ -56,7 +58,7 @@
                     <span class="text-zinc-500">haqiqiy a'zo</span>
                 </div>
                 <div class="flex items-center gap-2">
-                    <span class="text-brand-orange">💬</span>
+                    <i data-lucide="message-square" class="w-3.5 h-3.5 text-brand-orange"></i>
                     <span class="text-zinc-300 font-bold">{{ posts.len() }}</span>
                     <span class="text-zinc-500">mavzu</span>
                 </div>
@@ -78,18 +80,21 @@
     <div class="flex flex-col gap-6">
         <div class="flex items-center justify-between pb-3 border-b border-white/10">
             <h2 class="text-lg font-bold text-white flex items-center gap-2">
-                <span>💬</span> Jamiyat Muhokamalari
+                <i data-lucide="messages-square" class="w-5 h-5 text-emerald-400"></i>
+                <span>Jamiyat Muhokamalari</span>
             </h2>
             <span class="text-xs font-mono text-zinc-500">{{ posts.len() }} ta post</span>
         </div>
 
         {% if posts.is_empty() %}
         <div class="p-12 rounded-3xl bg-zinc-900/20 border border-dashed border-white/10 text-center flex flex-col items-center">
-            <span class="text-4xl mb-3">🦀</span>
+            <div class="w-12 h-12 rounded-2xl bg-zinc-900 border border-white/5 flex items-center justify-center mb-3 text-zinc-500">
+                <i data-lucide="inbox" class="w-6 h-6"></i>
+            </div>
             <h3 class="text-base font-semibold text-white mb-1">Ushbu jamiyatda hozircha mavzular ochilmagan</h3>
             <p class="text-xs text-zinc-400 max-w-sm mb-5">Savolingizni bering, loyihangizni baham ko'ring yoki boshqa a'zolar bilan fikr almashing!</p>
-            <button onclick="handleNewPostClick()" class="px-5 py-2.5 rounded-xl bg-brand-orange hover:bg-orange-600 text-white font-semibold text-xs transition-colors shadow-md">
-                + Birinchi Mavzuni Yozish
+            <button onclick="handleNewPostClick()" class="px-5 py-2.5 rounded-xl bg-brand-orange hover:bg-orange-600 text-white font-semibold text-xs transition-colors shadow-md flex items-center gap-1.5">
+                <i data-lucide="plus" class="w-4 h-4"></i> Birinchi Mavzuni Yozish
             </button>
         </div>
         {% else %}
@@ -110,20 +115,20 @@
                         <span>&bull;</span>
                         <span class="text-zinc-500">{{ item.post.created_at.format("%Y-%m-%d %H:%M") }}</span>
                         <span>&bull;</span>
-                        <span class="text-emerald-400 font-semibold flex items-center gap-1">
-                            <span>👁</span> {{ item.post.views_count }} ta ko'rildi
+                        <span class="text-emerald-400 font-semibold flex items-center gap-1.5">
+                            <i data-lucide="eye" class="w-3.5 h-3.5"></i> {{ item.post.views_count }} ta ko'rildi
                         </span>
                         <span>&bull;</span>
                         <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-mono font-medium bg-zinc-900 border border-cyan-500/30 text-cyan-400" title="Post-Quantum Cryptography: BLAKE3 Integrity Chain Verified">
-                            <span>🔒</span> PQC Verified
+                            <i data-lucide="shield-check" class="w-3 h-3"></i> PQC Verified
                         </span>
                     </div>
                     <div class="post-owner-actions hidden flex items-center gap-2" data-author="{{ item.post.author_name.as_deref().unwrap_or("") }}">
-                        <button onclick="editPostPrompt('{{ item.post.id }}', this)" class="text-xs text-zinc-400 hover:text-emerald-400 transition-colors flex items-center gap-1 font-mono">
-                            <span>✏️</span> Tahrirlash
+                        <button onclick="editPostPrompt('{{ item.post.id }}', this)" class="text-xs text-zinc-400 hover:text-emerald-400 transition-colors flex items-center gap-1.5 font-mono px-2 py-1 rounded bg-zinc-900 border border-white/5">
+                            <i data-lucide="pen-line" class="w-3 h-3"></i> Tahrirlash
                         </button>
-                        <button onclick="deletePostPrompt('{{ item.post.id }}')" class="text-xs text-zinc-400 hover:text-rose-400 transition-colors flex items-center gap-1 font-mono">
-                            <span>🗑️</span> O'chirish
+                        <button onclick="deletePostPrompt('{{ item.post.id }}')" class="text-xs text-zinc-400 hover:text-rose-400 transition-colors flex items-center gap-1.5 font-mono px-2 py-1 rounded bg-zinc-900 border border-white/5">
+                            <i data-lucide="trash-2" class="w-3 h-3"></i> O'chirish
                         </button>
                     </div>
                 </div>
@@ -140,7 +145,7 @@
                 <div class="mt-4 pt-4 border-t border-white/5 flex flex-col gap-3">
                     <div class="flex items-center justify-between text-xs text-zinc-400 font-mono">
                         <span class="font-semibold text-zinc-300 flex items-center gap-1.5">
-                            <span>💬</span> Javoblar ({% if item.comments.is_empty() %}0{% else %}{{ item.comments.len() }}{% endif %})
+                            <i data-lucide="message-circle" class="w-3.5 h-3.5 text-zinc-400"></i> Javoblar ({% if item.comments.is_empty() %}0{% else %}{{ item.comments.len() }}{% endif %})
                         </span>
                     </div>
 
@@ -152,7 +157,7 @@
                                 <span class="font-semibold text-emerald-400">@{{ comment.author_name }}</span>
                                 <div class="flex items-center gap-2">
                                     <span class="text-zinc-600">{{ comment.created_at.format("%H:%M") }}</span>
-                                    <button class="comment-owner-action hidden text-zinc-600 hover:text-rose-400 transition-colors cursor-pointer" data-author="{{ comment.author_name }}" onclick="deleteCommentPrompt('{{ comment.id }}')" title="Izohni o'chirish">🗑️</button>
+                                    <button class="comment-owner-action hidden text-zinc-600 hover:text-rose-400 transition-colors cursor-pointer flex items-center" data-author="{{ comment.author_name }}" onclick="deleteCommentPrompt('{{ comment.id }}')" title="Izohni o'chirish"><i data-lucide="trash-2" class="w-3 h-3"></i></button>
                                 </div>
                             </div>
                             <p class="text-zinc-200 font-sans leading-relaxed">{{ comment.content }}</p>
@@ -210,12 +215,13 @@
         const btn = document.getElementById('groupDetailJoinBtn');
         if (!btn || !user) return;
         if (currentGroupMembers.includes(user.username)) {
-            btn.innerHTML = "<span>✓ A'zodan chiqish</span>";
+            btn.innerHTML = '<i data-lucide="user-minus" class="w-4 h-4"></i><span>A\'zodan chiqish</span>';
             btn.className = "px-4 py-2.5 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 font-semibold text-xs border border-rose-500/30 transition-all shadow-md flex items-center gap-1.5";
         } else {
-            btn.innerHTML = "<span>👥 A'zo bo'lish</span>";
+            btn.innerHTML = '<i data-lucide="user-plus" class="w-4 h-4"></i><span>A\'zo bo\'lish</span>';
             btn.className = "px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs transition-all shadow-md flex items-center gap-1.5";
         }
+        if (window.lucide) lucide.createIcons();
     }
 
     // Hook called when currentUser is loaded by base.html
@@ -252,7 +258,7 @@
                     const username = data.username;
 
                     if (data.is_member) {
-                        btn.innerHTML = "<span>✓ A'zodan chiqish</span>";
+                        btn.innerHTML = '<i data-lucide="user-minus" class="w-4 h-4"></i><span>A\'zodan chiqish</span>';
                         btn.className = "px-4 py-2.5 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 font-semibold text-xs border border-rose-500/30 transition-all shadow-md flex items-center gap-1.5";
                         
                         if (!currentGroupMembers.includes(username)) {
@@ -266,9 +272,10 @@
                             newSpan.innerText = `@${username}`;
                             membersWrap.appendChild(newSpan);
                         }
-                        alert(`Tabriklaymiz! Siz f/${slug} jamiyatiga muvaffaqiyatli a'zo bo'ldingiz! 🎉`);
+                        if (window.lucide) lucide.createIcons();
+                        alert(`Tabriklaymiz! Siz f/${slug} jamiyatiga muvaffaqiyatli a'zo bo'ldingiz!`);
                     } else {
-                        btn.innerHTML = "<span>👥 A'zo bo'lish</span>";
+                        btn.innerHTML = '<i data-lucide="user-plus" class="w-4 h-4"></i><span>A\'zo bo\'lish</span>';
                         btn.className = "px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs transition-all shadow-md flex items-center gap-1.5";
 
                         const idx = currentGroupMembers.indexOf(username);
@@ -276,6 +283,7 @@
 
                         const tag = document.getElementById(`memberTag-${username}`);
                         if (tag) tag.remove();
+                        if (window.lucide) lucide.createIcons();
                         alert(`Siz f/${slug} jamiyati a'zoligidan chiqdingiz.`);
                     }
                 } else {
