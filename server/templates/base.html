@@ -556,9 +556,15 @@
         // Telegram Widget Auth Callback (runs on ferris.uz)
         window.onTelegramAuth = async function(user) {
             try {
+                const token = (typeof window.getAuthToken === 'function') ? window.getAuthToken() : null;
+                const reqHeaders = { 'Content-Type': 'application/json' };
+                if (token) {
+                    reqHeaders['Authorization'] = 'Bearer ' + token;
+                }
                 const res = await fetch('https://ferris.uz/api/auth/telegram', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: reqHeaders,
+                    credentials: 'include',
                     body: JSON.stringify(user)
                 });
                 const data = await res.json();

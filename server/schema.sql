@@ -164,7 +164,23 @@ CREATE INDEX IF NOT EXISTS idx_chat_messages_jamiyat_id ON chat_messages(jamiyat
 CREATE INDEX IF NOT EXISTS idx_jamiyatlar_empty_cleanup ON jamiyatlar(members_count, empty_since) WHERE members_count = 0;
 
 -- =============================================================================
--- 10. UNIVERSAL SSO & DEVICE FLOW (RFC 8628) & PAT
+-- 10. MULTI-PROVIDER USER IDENTITIES (Yagona Shaxs / Unified Identity)
+-- =============================================================================
+CREATE TABLE IF NOT EXISTS user_identities (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    user_id VARCHAR(64) NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    provider VARCHAR(30) NOT NULL,
+    provider_id VARCHAR(100) NOT NULL,
+    provider_username VARCHAR(100),
+    avatar_url TEXT,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    UNIQUE(provider, provider_id)
+);
+CREATE INDEX IF NOT EXISTS idx_user_identities_lookup ON user_identities(provider, provider_id);
+CREATE INDEX IF NOT EXISTS idx_user_identities_user_id ON user_identities(user_id);
+
+-- =============================================================================
+-- 11. UNIVERSAL SSO & DEVICE FLOW (RFC 8628) & PAT
 -- =============================================================================
 CREATE TABLE IF NOT EXISTS oauth_clients (
     client_id VARCHAR(50) PRIMARY KEY,

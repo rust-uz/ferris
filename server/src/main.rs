@@ -75,12 +75,26 @@ pub struct DeviceTemplate {
     pub initial_code: String,
 }
 
+#[derive(Clone, Serialize, Deserialize, Debug)]
+pub struct UserIdentity {
+    pub provider: String,
+    pub provider_id: String,
+    pub provider_username: Option<String>,
+    pub avatar_url: Option<String>,
+}
+
 #[derive(Template)]
 #[template(path = "profile.html")]
 pub struct ProfileTemplate {
     pub user: UserProfile,
     pub joined_groups: Vec<Jamiyat>,
     pub user_posts: Vec<Post>,
+    pub identities: Vec<UserIdentity>,
+    pub is_own_profile: bool,
+    pub has_github: bool,
+    pub has_telegram: bool,
+    pub github_username: Option<String>,
+    pub telegram_username: Option<String>,
 }
 
 #[derive(Template)]
@@ -1176,65 +1190,150 @@ async fn my_profile_page_handler(
         None => return Redirect::to("/login?return_to=https://ferris.uz/profile").into_response(),
     };
 
-    render_profile_view(&auth_user, &state).into_response()
+    render_profile_view(&auth_user, &state, true).await
 }
 
 async fn user_profile_page_handler(
     State(state): State<AppState>,
+    headers: HeaderMap,
     Path(username): Path<String>,
 ) -> impl IntoResponse {
     let clean_user = username.trim_start_matches('@').to_string();
+    let current_auth = get_authenticated_user(&headers, &state);
 
-    let sessions = state.sessions.read().unwrap();
-    let matched_user = sessions
-        .values()
-        .find(|u| u.username == clean_user)
-        .cloned()
-        .unwrap_or_else(|| {
-            let now = SystemTime::now().duration_since(UNIX_EPOCH).unwrap_or_default().as_secs();
-            UserProfile {
-                id: format!("usr:{}", clean_user),
-                provider: "community".to_string(),
-                username: clean_user.clone(),
-                display_name: clean_user.clone(),
-                avatar_url: Some("/logo.jpg".to_string()),
-                created_at: now,
+    let mut matched_user = None;
+
+    if let Some(ref pool) = state.db {
+        if let Ok(Some(row)) = sqlx::query(
+            "SELECT id, username, display_name, provider, avatar_url, created_at 
+             FROM users WHERE LOWER(username) = LOWER($1)"
+        )
+        .bind(&clean_user)
+        .fetch_optional(pool)
+        .await {
+            let uid: String = row.try_get("id").unwrap_or_default();
+            let uname: String = row.try_get("username").unwrap_or_default();
+            let dname: String = row.try_get("display_name").unwrap_or_default();
+            let prov: String = row.try_get("provider").unwrap_or_default();
+            let aurl: Option<String> = row.try_get("avatar_url").ok();
+            let cat: i64 = row.try_get("created_at").unwrap_or(0);
+            matched_user = Some(UserProfile {
+                id: uid,
+                provider: prov,
+                username: uname,
+                display_name: dname,
+                avatar_url: aurl,
+                created_at: cat as u64,
                 expires_at: None,
-            }
-        });
+            });
+        }
+    }
 
-    render_profile_view(&matched_user, &state).into_response()
+    let user = matched_user.unwrap_or_else(|| {
+        let sessions = state.sessions.read().unwrap();
+        sessions
+            .values()
+            .find(|u| u.username.eq_ignore_ascii_case(&clean_user))
+            .cloned()
+            .unwrap_or_else(|| {
+                let now = SystemTime::now().duration_since(UNIX_EPOCH).unwrap_or_default().as_secs();
+                UserProfile {
+                    id: format!("usr:{}", clean_user),
+                    provider: "community".to_string(),
+                    username: clean_user.clone(),
+                    display_name: clean_user.clone(),
+                    avatar_url: Some("/logo.jpg".to_string()),
+                    created_at: now,
+                    expires_at: None,
+                }
+            })
+    });
+
+    let is_own = current_auth
+        .as_ref()
+        .map(|u| u.id == user.id || u.username.eq_ignore_ascii_case(&user.username))
+        .unwrap_or(false);
+
+    render_profile_view(&user, &state, is_own).await
 }
 
-fn render_profile_view(user: &UserProfile, state: &AppState) -> impl IntoResponse {
-    let groups = state.groups.read().unwrap();
-    let members_map = state.group_members.read().unwrap();
+async fn render_profile_view(
+    user: &UserProfile,
+    state: &AppState,
+    is_own_profile: bool,
+) -> axum::response::Response {
+    let (joined_groups, user_posts) = {
+        let groups = state.groups.read().unwrap();
+        let members_map = state.group_members.read().unwrap();
 
-    let joined_groups: Vec<Jamiyat> = groups
-        .iter()
-        .filter(|g| {
-            members_map
-                .get(&g.slug)
-                .map(|m| m.contains(&user.username))
-                .unwrap_or(false)
-        })
-        .cloned()
-        .collect();
+        let joined: Vec<Jamiyat> = groups
+            .iter()
+            .filter(|g| {
+                members_map
+                    .get(&g.slug)
+                    .map(|m| m.contains(&user.username))
+                    .unwrap_or(false)
+            })
+            .cloned()
+            .collect();
 
-    let all_posts = state.posts.read().unwrap();
-    let user_posts: Vec<Post> = all_posts
+        let all_posts = state.posts.read().unwrap();
+        let posts: Vec<Post> = all_posts
+            .iter()
+            .filter(|p| {
+                p.author_name.as_deref() == Some(&user.username)
+                    || p.author_name.as_deref() == Some(&user.display_name)
+            })
+            .cloned()
+            .collect();
+
+        (joined, posts)
+    };
+
+    let mut identities = Vec::new();
+    if let Some(ref pool) = state.db {
+        if let Ok(rows) = sqlx::query(
+            "SELECT provider, provider_id, provider_username, avatar_url FROM user_identities WHERE user_id = $1"
+        )
+        .bind(&user.id)
+        .fetch_all(pool)
+        .await {
+            for r in rows {
+                let prov: String = r.try_get("provider").unwrap_or_default();
+                let pid: String = r.try_get("provider_id").unwrap_or_default();
+                let puname: Option<String> = r.try_get("provider_username").ok();
+                let aurl: Option<String> = r.try_get("avatar_url").ok();
+                identities.push(UserIdentity {
+                    provider: prov,
+                    provider_id: pid,
+                    provider_username: puname,
+                    avatar_url: aurl,
+                });
+            }
+        }
+    }
+
+    let has_github = identities.iter().any(|i| i.provider == "github");
+    let has_telegram = identities.iter().any(|i| i.provider == "telegram");
+    let github_username = identities
         .iter()
-        .filter(|p| {
-            p.author_name.as_deref() == Some(&user.username)
-                || p.author_name.as_deref() == Some(&user.display_name)
-        })
-        .cloned()
-        .collect();
+        .find(|i| i.provider == "github")
+        .and_then(|i| i.provider_username.clone());
+    let telegram_username = identities
+        .iter()
+        .find(|i| i.provider == "telegram")
+        .and_then(|i| i.provider_username.clone());
 
     let template = ProfileTemplate {
         user: user.clone(),
         joined_groups,
         user_posts,
+        identities,
+        is_own_profile,
+        has_github,
+        has_telegram,
+        github_username,
+        telegram_username,
     };
 
     match template.render() {
@@ -2279,6 +2378,7 @@ struct GitHubUserResponse {
 
 async fn github_callback_handler(
     State(state): State<AppState>,
+    headers: HeaderMap,
     Query(query): Query<GitHubCallbackQuery>,
 ) -> impl IntoResponse {
     let code = match query.code {
@@ -2326,41 +2426,133 @@ async fn github_callback_handler(
         Err(_) => return Redirect::to("/?error=github_profile_failed").into_response(),
     };
 
+    let gh_id_str = gh_user.id.to_string();
+    let gh_username = gh_user.login.clone();
+    let gh_display_name = gh_user.name.clone().unwrap_or_else(|| gh_username.clone());
+    let gh_avatar = gh_user.avatar_url.clone();
     let now = SystemTime::now().duration_since(UNIX_EPOCH).unwrap_or_default().as_secs();
-    let display_name = gh_user.name.unwrap_or_else(|| gh_user.login.clone());
 
-    let profile = UserProfile {
-        id: format!("gh:{}", gh_user.id),
-        provider: "github".to_string(),
-        username: gh_user.login.clone(),
-        display_name,
-        avatar_url: gh_user.avatar_url,
-        created_at: now,
-        expires_at: Some(Utc::now() + chrono::Duration::days(30)),
+    let mut final_profile: Option<UserProfile> = None;
+
+    if let Some(ref pool) = state.db {
+        // 1. Check if this GitHub account is already linked to a user via user_identities
+        let linked_user_id = sqlx::query(
+            "SELECT user_id FROM user_identities WHERE provider = 'github' AND provider_id = $1"
+        )
+        .bind(&gh_id_str)
+        .fetch_optional(pool)
+        .await
+        .ok()
+        .flatten()
+        .and_then(|r| r.try_get::<String, _>("user_id").ok());
+
+        if let Some(uid) = linked_user_id {
+            // Found existing user!
+            if let Ok(Some(row)) = sqlx::query(
+                "SELECT id, username, display_name, provider, avatar_url, created_at FROM users WHERE id = $1"
+            )
+            .bind(&uid)
+            .fetch_optional(pool)
+            .await {
+                let uname: String = row.try_get("username").unwrap_or_default();
+                let dname: String = row.try_get("display_name").unwrap_or_default();
+                let prov: String = row.try_get("provider").unwrap_or_default();
+                let aurl: Option<String> = row.try_get("avatar_url").ok();
+                let cat: i64 = row.try_get("created_at").unwrap_or(0);
+                final_profile = Some(UserProfile {
+                    id: uid,
+                    provider: prov,
+                    username: uname,
+                    display_name: dname,
+                    avatar_url: aurl,
+                    created_at: cat as u64,
+                    expires_at: Some(Utc::now() + chrono::Duration::days(30)),
+                });
+            }
+        } else {
+            // Not linked yet. Is the user currently logged in on the browser? (Account linking action)
+            let current_auth = get_authenticated_user(&headers, &state);
+            if let Some(cur) = current_auth {
+                // Link this GitHub account to the currently logged in user!
+                let _ = sqlx::query(
+                    "INSERT INTO user_identities (user_id, provider, provider_id, provider_username, avatar_url)
+                     VALUES ($1, 'github', $2, $3, $4)
+                     ON CONFLICT (provider, provider_id) DO UPDATE SET user_id = EXCLUDED.user_id, provider_username = EXCLUDED.provider_username"
+                )
+                .bind(&cur.id)
+                .bind(&gh_id_str)
+                .bind(&gh_username)
+                .bind(&gh_avatar)
+                .execute(pool)
+                .await;
+
+                info!("🔗 GitHub account @{} successfully linked to user @{}", gh_username, cur.username);
+                final_profile = Some(cur);
+            } else {
+                // Brand new user login via GitHub
+                let user_id = format!("gh:{}", gh_user.id);
+
+                let _ = sqlx::query(
+                    r#"
+                    INSERT INTO users (id, provider, username, display_name, avatar_url, created_at)
+                    VALUES ($1, 'github', $2, $3, $4, $5)
+                    ON CONFLICT (id) DO UPDATE SET
+                        username = EXCLUDED.username,
+                        display_name = EXCLUDED.display_name,
+                        avatar_url = EXCLUDED.avatar_url
+                    "#
+                )
+                .bind(&user_id)
+                .bind(&gh_username)
+                .bind(&gh_display_name)
+                .bind(&gh_avatar)
+                .bind(now as i64)
+                .execute(pool)
+                .await;
+
+                let _ = sqlx::query(
+                    "INSERT INTO user_identities (user_id, provider, provider_id, provider_username, avatar_url)
+                     VALUES ($1, 'github', $2, $3, $4)
+                     ON CONFLICT (provider, provider_id) DO UPDATE SET user_id = EXCLUDED.user_id"
+                )
+                .bind(&user_id)
+                .bind(&gh_id_str)
+                .bind(&gh_username)
+                .bind(&gh_avatar)
+                .execute(pool)
+                .await;
+
+                final_profile = Some(UserProfile {
+                    id: user_id,
+                    provider: "github".to_string(),
+                    username: gh_username.clone(),
+                    display_name: gh_display_name.clone(),
+                    avatar_url: gh_avatar.clone(),
+                    created_at: now,
+                    expires_at: Some(Utc::now() + chrono::Duration::days(30)),
+                });
+            }
+        }
+    }
+
+    let profile = match final_profile {
+        Some(p) => p,
+        None => {
+            UserProfile {
+                id: format!("gh:{}", gh_user.id),
+                provider: "github".to_string(),
+                username: gh_username,
+                display_name: gh_display_name,
+                avatar_url: gh_avatar,
+                created_at: now,
+                expires_at: Some(Utc::now() + chrono::Duration::days(30)),
+            }
+        }
     };
 
     let session_token = uuid::Uuid::new_v4().to_string();
 
     if let Some(ref pool) = state.db {
-        let _ = sqlx::query(
-            r#"
-            INSERT INTO users (id, provider, username, display_name, avatar_url, created_at)
-            VALUES ($1, $2, $3, $4, $5, $6)
-            ON CONFLICT (id) DO UPDATE SET
-                username = EXCLUDED.username,
-                display_name = EXCLUDED.display_name,
-                avatar_url = EXCLUDED.avatar_url
-            "#
-        )
-        .bind(&profile.id)
-        .bind(&profile.provider)
-        .bind(&profile.username)
-        .bind(&profile.display_name)
-        .bind(&profile.avatar_url)
-        .bind(profile.created_at as i64)
-        .execute(pool)
-        .await;
-
         let _ = sqlx::query(
             "INSERT INTO sessions (token, user_id, created_at) VALUES ($1, $2, $3) ON CONFLICT (token) DO NOTHING"
         )
@@ -2377,7 +2569,7 @@ async fn github_callback_handler(
     }
     save_db(&state);
 
-    info!("✅ GitHub user authenticated: @{}", gh_user.login);
+    info!("✅ GitHub user authenticated/linked: @{} (user: @{})", gh_user.login, profile.username);
 
     let return_to = query
         .state
@@ -2457,6 +2649,7 @@ fn verify_telegram_hash(payload: &TelegramAuthPayload, bot_token: &str) -> bool 
 
 async fn telegram_auth_handler(
     State(state): State<AppState>,
+    headers: HeaderMap,
     Json(payload): Json<TelegramAuthPayload>,
 ) -> Result<impl IntoResponse, (StatusCode, Json<serde_json::Value>)> {
     if !verify_telegram_hash(&payload, &state.bot_token) {
@@ -2467,42 +2660,123 @@ async fn telegram_auth_handler(
         ));
     }
 
+    let tg_id_str = payload.id.to_string();
     let now = SystemTime::now().duration_since(UNIX_EPOCH).unwrap_or_default().as_secs();
     let username = payload.username.clone().unwrap_or_else(|| format!("tg_{}", payload.id));
     let display_name = payload.first_name.clone().unwrap_or_else(|| username.clone());
 
-    let profile = UserProfile {
+    let mut final_profile: Option<UserProfile> = None;
+
+    if let Some(ref pool) = state.db {
+        // 1. Check if Telegram account is already linked via user_identities
+        let linked_user_id = sqlx::query(
+            "SELECT user_id FROM user_identities WHERE provider = 'telegram' AND provider_id = $1"
+        )
+        .bind(&tg_id_str)
+        .fetch_optional(pool)
+        .await
+        .ok()
+        .flatten()
+        .and_then(|r| r.try_get::<String, _>("user_id").ok());
+
+        if let Some(uid) = linked_user_id {
+            if let Ok(Some(row)) = sqlx::query(
+                "SELECT id, username, display_name, provider, avatar_url, created_at FROM users WHERE id = $1"
+            )
+            .bind(&uid)
+            .fetch_optional(pool)
+            .await {
+                let uname: String = row.try_get("username").unwrap_or_default();
+                let dname: String = row.try_get("display_name").unwrap_or_default();
+                let prov: String = row.try_get("provider").unwrap_or_default();
+                let aurl: Option<String> = row.try_get("avatar_url").ok();
+                let cat: i64 = row.try_get("created_at").unwrap_or(0);
+                final_profile = Some(UserProfile {
+                    id: uid,
+                    provider: prov,
+                    username: uname,
+                    display_name: dname,
+                    avatar_url: aurl,
+                    created_at: cat as u64,
+                    expires_at: Some(Utc::now() + chrono::Duration::days(30)),
+                });
+            }
+        } else {
+            // Check if user is currently logged in (linking account)
+            let current_auth = get_authenticated_user(&headers, &state);
+            if let Some(cur) = current_auth {
+                let _ = sqlx::query(
+                    "INSERT INTO user_identities (user_id, provider, provider_id, provider_username, avatar_url)
+                     VALUES ($1, 'telegram', $2, $3, $4)
+                     ON CONFLICT (provider, provider_id) DO UPDATE SET user_id = EXCLUDED.user_id, provider_username = EXCLUDED.provider_username"
+                )
+                .bind(&cur.id)
+                .bind(&tg_id_str)
+                .bind(&username)
+                .bind(&payload.photo_url)
+                .execute(pool)
+                .await;
+
+                info!("🔗 Telegram account @{} linked to user @{}", username, cur.username);
+                final_profile = Some(cur);
+            } else {
+                let user_id = format!("tg:{}", payload.id);
+                let _ = sqlx::query(
+                    r#"
+                    INSERT INTO users (id, provider, username, display_name, avatar_url, created_at)
+                    VALUES ($1, 'telegram', $2, $3, $4, $5)
+                    ON CONFLICT (id) DO UPDATE SET
+                        username = EXCLUDED.username,
+                        display_name = EXCLUDED.display_name,
+                        avatar_url = EXCLUDED.avatar_url
+                    "#
+                )
+                .bind(&user_id)
+                .bind(&username)
+                .bind(&display_name)
+                .bind(&payload.photo_url)
+                .bind(now as i64)
+                .execute(pool)
+                .await;
+
+                let _ = sqlx::query(
+                    "INSERT INTO user_identities (user_id, provider, provider_id, provider_username, avatar_url)
+                     VALUES ($1, 'telegram', $2, $3, $4)
+                     ON CONFLICT (provider, provider_id) DO UPDATE SET user_id = EXCLUDED.user_id"
+                )
+                .bind(&user_id)
+                .bind(&tg_id_str)
+                .bind(&username)
+                .bind(&payload.photo_url)
+                .execute(pool)
+                .await;
+
+                final_profile = Some(UserProfile {
+                    id: user_id,
+                    provider: "telegram".to_string(),
+                    username: username.clone(),
+                    display_name: display_name.clone(),
+                    avatar_url: payload.photo_url.clone(),
+                    created_at: now,
+                    expires_at: Some(Utc::now() + chrono::Duration::days(30)),
+                });
+            }
+        }
+    }
+
+    let profile = final_profile.unwrap_or_else(|| UserProfile {
         id: format!("tg:{}", payload.id),
         provider: "telegram".to_string(),
         username: username.clone(),
-        display_name,
+        display_name: display_name.clone(),
         avatar_url: payload.photo_url.clone(),
         created_at: now,
         expires_at: Some(Utc::now() + chrono::Duration::days(30)),
-    };
+    });
 
     let session_token = uuid::Uuid::new_v4().to_string();
 
     if let Some(ref pool) = state.db {
-        let _ = sqlx::query(
-            r#"
-            INSERT INTO users (id, provider, username, display_name, avatar_url, created_at)
-            VALUES ($1, $2, $3, $4, $5, $6)
-            ON CONFLICT (id) DO UPDATE SET
-                username = EXCLUDED.username,
-                display_name = EXCLUDED.display_name,
-                avatar_url = EXCLUDED.avatar_url
-            "#
-        )
-        .bind(&profile.id)
-        .bind(&profile.provider)
-        .bind(&profile.username)
-        .bind(&profile.display_name)
-        .bind(&profile.avatar_url)
-        .bind(profile.created_at as i64)
-        .execute(pool)
-        .await;
-
         let _ = sqlx::query(
             "INSERT INTO sessions (token, user_id, created_at) VALUES ($1, $2, $3) ON CONFLICT (token) DO NOTHING"
         )
@@ -2519,7 +2793,7 @@ async fn telegram_auth_handler(
     }
     save_db(&state);
 
-    info!("✅ Telegram user authenticated: @{}", username);
+    info!("✅ Telegram user authenticated/linked: @{} (user: @{})", username, profile.username);
 
     let cookie_val = format!(
         "ferris_session={}; Domain=.ferris.uz; Path=/; Max-Age=2592000; SameSite=Lax; Secure",
