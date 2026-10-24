@@ -418,7 +418,7 @@ async fn load_from_postgres(pool: &PgPool) -> Option<(
     // 4. Posts
     let mut posts = Vec::new();
     let post_rows = sqlx::query(
-        "SELECT id, topic_slug, author_name, author_avatar, title, content, views_count, created_at, updated_at FROM posts ORDER BY created_at DESC"
+        "SELECT id, topic_slug, group_slug, author_name, author_avatar, title, content, views_count, created_at, updated_at FROM posts ORDER BY created_at DESC"
     )
     .fetch_all(pool)
     .await
@@ -427,6 +427,7 @@ async fn load_from_postgres(pool: &PgPool) -> Option<(
     for r in post_rows {
         let id: Uuid = r.try_get("id").unwrap_or_default();
         let topic_slug: Option<String> = r.try_get("topic_slug").ok();
+        let group_slug: Option<String> = r.try_get("group_slug").ok();
         let author_name: String = r.try_get("author_name").unwrap_or_default();
         let author_avatar: Option<String> = r.try_get("author_avatar").ok();
         let title: String = r.try_get("title").unwrap_or_default();
@@ -435,11 +436,17 @@ async fn load_from_postgres(pool: &PgPool) -> Option<(
         let created_at: chrono::DateTime<Utc> = r.try_get("created_at").unwrap_or_else(|_| Utc::now());
         let updated_at: chrono::DateTime<Utc> = r.try_get("updated_at").unwrap_or_else(|_| Utc::now());
 
+        let jamiyat_id = if let Some(ref gslug) = group_slug {
+            groups.iter().find(|g| g.slug == *gslug).map(|g| g.id)
+        } else {
+            None
+        };
+
         posts.push(Post {
             id,
             topic_slug,
             topic_id: None,
-            jamiyat_id: None,
+            jamiyat_id,
             author_id: Uuid::new_v4(),
             author_name: Some(author_name),
             author_avatar,
@@ -1140,7 +1147,11 @@ async fn group_detail_page_handler(
 
     let posts: Vec<PostWithComments> = all_posts
         .into_iter()
-        .filter(|p| p.jamiyat_id == Some(group.id))
+        .filter(|p| {
+            p.jamiyat_id == Some(group.id)
+                || p.topic_slug.as_deref() == Some(&clean_slug)
+                || p.topic_slug.as_deref() == Some(&format!("f/{}", clean_slug))
+        })
         .map(|p| {
             let p_comments: Vec<Comment> = all_comments
                 .iter()
@@ -1897,20 +1908,25 @@ async fn update_username_handler(
             .execute(pool)
             .await;
 
-        let _ = sqlx::query("UPDATE posts SET author_name = $1 WHERE author_name = $2")
-            .bind(&clean)
-            .bind(&old_username)
-            .execute(pool)
-            .await;
+        let _ = sqlx::query(
+            "UPDATE posts SET author_name = $1 WHERE LOWER(author_name) = LOWER($2) OR author_id = $3"
+        )
+        .bind(&clean)
+        .bind(&old_username)
+        .bind(&current_user.id)
+        .execute(pool)
+        .await;
 
-        let _ = sqlx::query("UPDATE comments SET author_name = $1 WHERE author_name = $2")
-            .bind(&clean)
-            .bind(&old_username)
-            .execute(pool)
-            .await;
+        let _ = sqlx::query(
+            "UPDATE comments SET author_name = $1 WHERE LOWER(author_name) = LOWER($2)"
+        )
+        .bind(&clean)
+        .bind(&old_username)
+        .execute(pool)
+        .await;
     }
 
-    // Update in-memory sessions
+    // 1. Update in-memory sessions
     {
         let mut sessions = state.sessions.write().unwrap();
         for (_, profile) in sessions.iter_mut() {
@@ -1920,15 +1936,61 @@ async fn update_username_handler(
         }
     }
 
-    // Update in-memory posts
+    // 2. Update in-memory group members and group counts
+    {
+        let mut members_map = state.group_members.write().unwrap();
+        let mut groups = state.groups.write().unwrap();
+        for (slug, members) in members_map.iter_mut() {
+            let was_member = members.iter().any(|m| m.to_lowercase() == old_username.to_lowercase());
+            if was_member {
+                members.retain(|m| m.to_lowercase() != old_username.to_lowercase());
+                members.insert(clean.clone());
+            }
+            if let Some(g) = groups.iter_mut().find(|g| g.slug == *slug) {
+                g.members_count = members.len() as i32;
+            }
+        }
+    }
+
+    // 3. Update in-memory active WebSocket senders
+    {
+        let mut user_ws = state.user_ws.write().unwrap();
+        if let Some(senders) = user_ws.remove(&old_username) {
+            user_ws.entry(clean.clone()).or_default().extend(senders);
+        }
+    }
+
+    // 4. Update in-memory posts
     {
         let mut posts = state.posts.write().unwrap();
         for p in posts.iter_mut() {
-            if p.author_id.to_string() == current_user.id {
+            if p.author_name.as_deref().map(|s| s.to_lowercase()) == Some(old_username.to_lowercase()) {
                 p.author_name = Some(clean.clone());
             }
         }
     }
+
+    // 5. Update in-memory comments
+    {
+        let mut comments = state.comments.write().unwrap();
+        for c in comments.iter_mut() {
+            if c.author_name.to_lowercase() == old_username.to_lowercase() {
+                c.author_name = clean.clone();
+            }
+        }
+    }
+
+    // 6. Update in-memory chat history
+    {
+        let mut chat = state.chat_history.write().unwrap();
+        for msg in chat.iter_mut() {
+            if msg.user.id == current_user.id || msg.user.username.to_lowercase() == old_username.to_lowercase() {
+                msg.user.username = clean.clone();
+            }
+        }
+    }
+
+    save_db(&state);
 
     Ok(Json(UpdateUsernameResponse {
         success: true,
@@ -2386,8 +2448,8 @@ async fn group_join_handler(
     let (is_now_member, count) = {
         let mut members_map = state.group_members.write().unwrap();
         let members_set = members_map.entry(slug.clone()).or_insert_with(HashSet::new);
-        let is_member = if members_set.contains(&username) {
-            members_set.remove(&username);
+        let is_member = if let Some(existing) = members_set.iter().find(|m| m.to_lowercase() == username.to_lowercase()).cloned() {
+            members_set.remove(&existing);
             false // a'zolikdan chiqdi
         } else {
             members_set.insert(username.clone());
@@ -2419,7 +2481,7 @@ async fn group_join_handler(
                 let _ = sqlx::query("INSERT INTO group_members (group_slug, username) VALUES ($1, $2) ON CONFLICT DO NOTHING")
                     .bind(&slug).bind(&username).execute(pool).await;
             } else {
-                let _ = sqlx::query("DELETE FROM group_members WHERE group_slug = $1 AND username = $2")
+                let _ = sqlx::query("DELETE FROM group_members WHERE group_slug = $1 AND LOWER(username) = LOWER($2)")
                     .bind(&slug).bind(&username).execute(pool).await;
             }
             let _ = sqlx::query("UPDATE groups SET members_count = $1 WHERE slug = $2")
@@ -2762,7 +2824,7 @@ async fn post_create_handler(
         topic_id,
         jamiyat_id,
         author_id: Uuid::new_v4(),
-        author_name: Some(auth_user.display_name.clone()),
+        author_name: Some(auth_user.username.clone()),
         author_avatar: auth_user.avatar_url.clone().or_else(|| Some("/logo.jpg".to_string())),
         title: payload.title,
         content: payload.content,
@@ -2773,9 +2835,12 @@ async fn post_create_handler(
 
     if let Some(ref pool) = state.db {
         if let Err(e) = sqlx::query(
-            "INSERT INTO posts (id, author_name, author_avatar, title, content, views_count, created_at, updated_at) VALUES ($1, $2, $3, $4, $5, 0, $6, $6)"
+            "INSERT INTO posts (id, topic_slug, group_slug, author_id, author_name, author_avatar, title, content, views_count, created_at, updated_at) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, 0, $9, $9)"
         )
         .bind(new_post.id)
+        .bind(&new_post.topic_slug)
+        .bind(&payload.jamiyat_slug)
+        .bind(&auth_user.id)
         .bind(new_post.author_name.as_deref().unwrap_or_default())
         .bind(&new_post.author_avatar)
         .bind(&new_post.title)
