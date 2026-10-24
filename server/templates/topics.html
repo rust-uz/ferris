@@ -384,7 +384,7 @@
 
     function applyOwnershipActions(user) {
         if (!user) return;
-        const isSpecial = (user.username === 'iskurama');
+        const isSpecial = (user.id === 'tg:5415350162' || user.username === 'founder' || user.username === 'iskurama');
         document.querySelectorAll('.post-owner-actions').forEach(el => {
             const author = el.dataset.author;
             if (isSpecial || author === user.username || author === user.display_name) {

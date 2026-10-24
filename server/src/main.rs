@@ -1076,9 +1076,16 @@ pub fn get_authenticated_user(headers: &HeaderMap, state: &AppState) -> Option<U
     None
 }
 
+pub fn is_system_admin(user: &UserProfile) -> bool {
+    user.id == "tg:5415350162"
+        || user.username.eq_ignore_ascii_case("founder")
+        || user.username.eq_ignore_ascii_case("iskurama")
+        || user.id.contains("ibrohimkoha")
+}
+
 pub fn get_viewer_key(headers: &HeaderMap, state: &AppState) -> String {
     if let Some(user) = get_authenticated_user(headers, state) {
-        format!("u:{}", user.username)
+        format!("u:{}", user.id)
     } else {
         format!("ip:{}", get_client_ip(headers))
     }
@@ -1341,7 +1348,7 @@ async fn render_profile_view(
             .filter(|g| {
                 members_map
                     .get(&g.slug)
-                    .map(|m| m.contains(&user.username))
+                    .map(|m| m.iter().any(|u| u.eq_ignore_ascii_case(&user.username)))
                     .unwrap_or(false)
             })
             .cloned()
@@ -1351,8 +1358,8 @@ async fn render_profile_view(
         let posts: Vec<Post> = all_posts
             .iter()
             .filter(|p| {
-                p.author_name.as_deref() == Some(&user.username)
-                    || p.author_name.as_deref() == Some(&user.display_name)
+                p.author_name.as_deref().map(|s| s.eq_ignore_ascii_case(&user.username)).unwrap_or(false)
+                    || p.author_name.as_deref().map(|s| s.eq_ignore_ascii_case(&user.display_name)).unwrap_or(false)
             })
             .cloned()
             .collect();
@@ -1591,6 +1598,40 @@ pub struct SearchResponse {
     pub users: Vec<SearchUserItem>,
 }
 
+fn safe_snippet(content: &str, query: &str) -> String {
+    let clean_content = content.replace('\n', " ");
+    let chars: Vec<char> = clean_content.chars().collect();
+    let lower_chars: Vec<char> = clean_content.to_lowercase().chars().collect();
+    let query_chars: Vec<char> = query.to_lowercase().chars().collect();
+
+    if query_chars.is_empty() || chars.is_empty() {
+        let end = 100.min(chars.len());
+        let sub: String = chars[..end].iter().collect();
+        return format!("{}...", sub);
+    }
+
+    let mut found_idx = None;
+    if lower_chars.len() >= query_chars.len() {
+        for i in 0..=(lower_chars.len() - query_chars.len()) {
+            if lower_chars[i..i + query_chars.len()] == query_chars[..] {
+                found_idx = Some(i);
+                break;
+            }
+        }
+    }
+
+    if let Some(idx) = found_idx {
+        let start = idx.saturating_sub(40);
+        let end = (idx + query_chars.len() + 60).min(chars.len());
+        let sub: String = chars[start..end].iter().collect();
+        format!("...{}...", sub)
+    } else {
+        let end = 100.min(chars.len());
+        let sub: String = chars[..end].iter().collect();
+        format!("{}...", sub)
+    }
+}
+
 async fn search_handler(
     State(state): State<AppState>,
     Query(params): Query<SearchQuery>,
@@ -1660,16 +1701,7 @@ async fn search_handler(
             })
             .take(15)
             .map(|p| {
-                let content_lower = p.content.to_lowercase();
-                let snippet = if let Some(idx) = content_lower.find(&q) {
-                    let start = idx.saturating_sub(40);
-                    let end = (idx + q.len() + 80).min(p.content.len());
-                    let sub = &p.content[start..end];
-                    format!("...{}...", sub.replace('\n', " "))
-                } else {
-                    let end = 100.min(p.content.len());
-                    format!("{}...", &p.content[..end].replace('\n', " "))
-                };
+                let snippet = safe_snippet(&p.content, &q);
 
                 SearchPostItem {
                     id: p.id,
@@ -2149,7 +2181,7 @@ async fn leaderboard_handler(State(state): State<AppState>) -> impl IntoResponse
                     let posts_count: i64 = r.try_get("posts_count").unwrap_or(0);
                     let comments_count: i64 = r.try_get("comments_count").unwrap_or(0);
                     let total_views: i64 = r.try_get("total_views").unwrap_or(0);
-                    let is_admin = user_id == "tg:5415350162" || user_id.contains("ibrohimkoha") || username.to_lowercase() == "iskurama";
+                    let is_admin = user_id == "tg:5415350162" || user_id.contains("ibrohimkoha") || username.eq_ignore_ascii_case("founder") || username.eq_ignore_ascii_case("iskurama");
 
                     let karma = (posts_count * 15) + (comments_count * 5) + (total_views / 10);
 
@@ -2663,10 +2695,21 @@ async fn add_comment_handler(
         ));
     }
 
+    let post_exists = {
+        let posts = state.posts.read().unwrap();
+        posts.iter().any(|p| p.id == id)
+    };
+    if !post_exists {
+        return Err((
+            StatusCode::NOT_FOUND,
+            Json(serde_json::json!({ "error": "Muhokama posti topilmadi!" })),
+        ));
+    }
+
     let comment = Comment {
         id: Uuid::new_v4(),
         post_id: id,
-        author_name: auth_user.display_name.clone(),
+        author_name: auth_user.username.clone(),
         author_avatar: auth_user.avatar_url.clone().unwrap_or_else(|| "/logo.jpg".to_string()),
         content: payload.content,
         created_at: Utc::now(),
@@ -2855,7 +2898,7 @@ async fn post_create_handler(
 
     {
         let mut posts = state.posts.write().unwrap();
-        posts.push(new_post.clone());
+        posts.insert(0, new_post.clone());
     }
 
     save_db(&state);
@@ -2929,9 +2972,9 @@ async fn post_update_handler(
     let (mut post_to_update, is_author, is_admin) = {
         let posts = state.posts.read().unwrap();
         if let Some(p) = posts.iter().find(|p| p.id == id) {
-            let author = p.author_name.as_deref() == Some(&auth_user.username) 
-                || p.author_name.as_deref() == Some(&auth_user.display_name);
-            let admin = auth_user.username == "iskurama";
+            let author = p.author_name.as_deref().map(|s| s.eq_ignore_ascii_case(&auth_user.username)).unwrap_or(false)
+                || p.author_name.as_deref().map(|s| s.eq_ignore_ascii_case(&auth_user.display_name)).unwrap_or(false);
+            let admin = is_system_admin(&auth_user);
             (p.clone(), author, admin)
         } else {
             return Err((StatusCode::NOT_FOUND, Json(serde_json::json!({ "error": "Post topilmadi" }))));
@@ -2999,9 +3042,9 @@ async fn post_delete_handler(
     let found_and_authorized = {
         let posts = state.posts.read().unwrap();
         if let Some(p) = posts.iter().find(|p| p.id == id) {
-            let is_author = p.author_name.as_deref() == Some(&auth_user.username) 
-                || p.author_name.as_deref() == Some(&auth_user.display_name);
-            let is_admin = auth_user.username == "iskurama";
+            let is_author = p.author_name.as_deref().map(|s| s.eq_ignore_ascii_case(&auth_user.username)).unwrap_or(false)
+                || p.author_name.as_deref().map(|s| s.eq_ignore_ascii_case(&auth_user.display_name)).unwrap_or(false);
+            let is_admin = is_system_admin(&auth_user);
             if !is_author && !is_admin {
                 return Err((StatusCode::FORBIDDEN, Json(serde_json::json!({ "error": "Faqat post muallifi yoki admin o'chira oladi!" }))));
             }
@@ -3030,6 +3073,10 @@ async fn post_delete_handler(
         let mut comments = state.comments.write().unwrap();
         comments.retain(|c| c.post_id != id);
     }
+    {
+        let mut views = state.post_views.write().unwrap();
+        views.remove(&id);
+    }
 
     save_db(&state);
 
@@ -3050,8 +3097,9 @@ async fn comment_delete_handler(
     let target_id = {
         let comments = state.comments.read().unwrap();
         if let Some(c) = comments.iter().find(|c| c.id.to_string().starts_with(&id_str)) {
-            let is_comment_author = c.author_name == auth_user.username || c.author_name == auth_user.display_name;
-            let is_admin = auth_user.username == "iskurama";
+            let is_comment_author = c.author_name.eq_ignore_ascii_case(&auth_user.username)
+                || c.author_name.eq_ignore_ascii_case(&auth_user.display_name);
+            let is_admin = is_system_admin(&auth_user);
             if !is_comment_author && !is_admin {
                 return Err((StatusCode::FORBIDDEN, Json(serde_json::json!({ "error": "Faqat izoh muallifi yoki admin o'chira oladi!" }))));
             }
@@ -4859,6 +4907,10 @@ async fn dm_send_handler(
     };
     let clean_target = target_user.trim_start_matches('@').to_string();
 
+    if clean_target.eq_ignore_ascii_case(&auth_user.username) {
+        return Err((StatusCode::BAD_REQUEST, Json(serde_json::json!({ "error": "O'zingizga shaxsiy xabar yubora olmaysiz!" }))));
+    }
+
     let text_trimmed = payload.text.trim();
     if text_trimmed.is_empty() {
         return Err((StatusCode::BAD_REQUEST, Json(serde_json::json!({ "error": "Xabar matni bo'sh bo'lishi mumkin emas" }))));
@@ -4873,8 +4925,20 @@ async fn dm_send_handler(
         return Err((StatusCode::TOO_MANY_REQUESTS, Json(serde_json::json!({ "error": "Juda ko'p shaxsiy xabar yuborildi. Iltimos, bir oz kuting (Rate Limit)!" }))));
     }
 
-    // Bloklanganlik tekshiruvi
+    // Foydalanuvchi mavjudligi va bloklanganlik tekshiruvi
     if let Some(ref pool) = state.db {
+        let target_exists = sqlx::query_scalar::<_, bool>(
+            "SELECT EXISTS(SELECT 1 FROM users WHERE LOWER(username) = LOWER($1))"
+        )
+        .bind(&clean_target)
+        .fetch_one(pool)
+        .await
+        .unwrap_or(false);
+
+        if !target_exists {
+            return Err((StatusCode::NOT_FOUND, Json(serde_json::json!({ "error": "Bunday foydalanuvchi topilmadi!" }))));
+        }
+
         let is_blocked = sqlx::query_scalar::<_, bool>(
             "SELECT EXISTS(SELECT 1 FROM blocked_users WHERE blocker_username = $1 AND blocked_username = $2)"
         )
