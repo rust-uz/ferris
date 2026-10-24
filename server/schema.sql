@@ -154,6 +154,7 @@ FOR EACH ROW EXECUTE FUNCTION update_jamiyat_members_stats();
 -- =============================================================================
 -- INDEXLAR (Tezkor qidiruv va routing uchun)
 -- =============================================================================
+CREATE UNIQUE INDEX IF NOT EXISTS idx_users_username_lower ON users (LOWER(username));
 CREATE INDEX IF NOT EXISTS idx_users_username ON users(username);
 CREATE INDEX IF NOT EXISTS idx_jamiyatlar_slug ON jamiyatlar(slug);
 CREATE INDEX IF NOT EXISTS idx_topics_slug ON topics(slug);
