@@ -215,78 +215,88 @@
 
     <!-- Top Navigation Bar -->
     <header class="sticky top-0 z-50 bg-black/80 backdrop-blur-xl border-b border-white/10 transition-all">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-3">
-            <a href="https://ferris.uz" class="flex items-center gap-2.5 sm:gap-3 group shrink-0">
-                <img src="/logo.png" alt="Ferris" class="w-8 h-8 rounded-lg object-contain border border-white/15 bg-zinc-950 p-0.5 shadow-sm group-hover:scale-105 transition-transform"/>
-                <span class="text-base sm:text-lg font-bold tracking-tight text-white flex items-center">
-                    FERRIS<span class="text-brand-orange">.UZ</span>
-                </span>
-            </a>
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-2 sm:gap-4">
+            <!-- Left: Brand Logo & Primary Nav -->
+            <div class="flex items-center gap-5 lg:gap-7 shrink-0">
+                <a href="https://ferris.uz" class="flex items-center gap-2.5 sm:gap-3 group shrink-0">
+                    <img src="/logo.png" alt="Ferris" class="w-8 h-8 rounded-lg object-contain border border-white/15 bg-zinc-950 p-0.5 shadow-sm group-hover:scale-105 transition-transform"/>
+                    <span class="text-base sm:text-lg font-bold tracking-tight text-white flex items-center">
+                        FERRIS<span class="text-brand-orange">.UZ</span>
+                    </span>
+                </a>
 
-            <!-- Desktop Links -->
-            <nav class="hidden lg:flex items-center gap-6 text-sm font-medium text-zinc-400">
-                <a href="https://topics.ferris.uz" class="hover:text-white transition-colors flex items-center gap-2 py-1">
-                    <i data-lucide="layers" class="w-4 h-4 text-brand-orange"></i> <span>Mavzular</span>
-                </a>
-                <a href="https://groups.ferris.uz" class="hover:text-white transition-colors flex items-center gap-2 py-1">
-                    <i data-lucide="users" class="w-4 h-4 text-emerald-400"></i> <span>Jamiyatlar</span>
-                </a>
-                <a href="https://ferris.uz/profile" id="navProfileLink" class="hidden hover:text-white transition-colors flex items-center gap-2 text-zinc-300 py-1">
-                    <i data-lucide="user" class="w-4 h-4 text-zinc-300"></i> <span>Profilim</span>
-                </a>
-                <a href="https://ferris.uz#cli-download" class="hover:text-white transition-colors flex items-center gap-2 py-1">
-                    <i data-lucide="terminal" class="w-4 h-4 text-zinc-400"></i> <span>CLI Ilova</span>
-                </a>
-                <a href="https://ferris.uz#playground" class="hover:text-white transition-colors flex items-center gap-2 py-1">
-                    <i data-lucide="play" class="w-4 h-4 text-zinc-400"></i> <span>Playground</span>
-                </a>
-                <a href="https://api.ferris.uz/api/v1/context" target="_blank" class="hover:text-white transition-colors flex items-center gap-2 py-1">
-                    <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                    <i data-lucide="cpu" class="w-4 h-4 text-cyan-400"></i> <span>API</span>
-                </a>
-                <a href="https://github.com/rust-uz/ferris" target="_blank" rel="noopener" class="hover:text-white transition-colors flex items-center gap-1.5 text-zinc-300 py-1">
-                    <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
-                    <span>GitHub</span>
-                </a>
-            </nav>
+                <!-- Core Navigation Links -->
+                <nav class="hidden md:flex items-center gap-5 text-sm font-medium text-zinc-400">
+                    <a href="https://topics.ferris.uz" class="hover:text-white transition-colors flex items-center gap-1.5 py-1 whitespace-nowrap">
+                        <i data-lucide="layers" class="w-4 h-4 text-brand-orange"></i> <span>Mavzular</span>
+                    </a>
+                    <a href="https://groups.ferris.uz" class="hover:text-white transition-colors flex items-center gap-1.5 py-1 whitespace-nowrap">
+                        <i data-lucide="users" class="w-4 h-4 text-emerald-400"></i> <span>Jamiyatlar</span>
+                    </a>
+                    <a href="https://doc.ferris.uz" target="_blank" rel="noopener" class="hover:text-white transition-colors flex items-center gap-1.5 py-1 whitespace-nowrap">
+                        <i data-lucide="book-open" class="w-4 h-4 text-cyan-400"></i> <span>Rust Kitobi</span>
+                    </a>
+                </nav>
+            </div>
 
-            <!-- Right Controls: Search + CLI + Auth Block -->
-            <div class="flex items-center gap-2 sm:gap-3">
-                <!-- Global Instant Search Button (Ctrl+K) -->
-                <button onclick="openSearchModal()" class="flex items-center gap-2 px-3 py-1.5 text-xs rounded-xl bg-zinc-900/90 hover:bg-zinc-800 border border-white/10 hover:border-brand-orange/40 text-zinc-400 hover:text-white transition-all shadow-sm group cursor-pointer" title="Tezkor Qidiruv (Ctrl+K)">
-                    <i data-lucide="search" class="w-3.5 h-3.5 text-zinc-400 group-hover:text-brand-orange transition-colors"></i>
-                    <span class="hidden md:inline font-medium">Qidiruv</span>
-                    <kbd class="hidden sm:inline-block px-1.5 py-0.5 text-[10px] font-mono text-zinc-500 bg-black/60 border border-white/10 rounded">Ctrl+K</kbd>
+            <!-- Center: Sleek Quick Search Bar -->
+            <div class="flex-grow max-w-md mx-2 lg:mx-4 hidden sm:block">
+                <button onclick="openSearchModal()" class="w-full flex items-center justify-between px-3.5 py-2 text-xs rounded-xl bg-zinc-900/80 hover:bg-zinc-800 border border-white/10 hover:border-brand-orange/40 text-zinc-400 hover:text-white transition-all shadow-sm group cursor-pointer text-left">
+                    <span class="flex items-center gap-2.5 truncate">
+                        <i data-lucide="search" class="w-4 h-4 text-zinc-400 group-hover:text-brand-orange transition-colors shrink-0"></i>
+                        <span class="truncate">Mavzular, jamiyatlar, kodlar...</span>
+                    </span>
+                    <kbd class="hidden md:inline-block px-1.5 py-0.5 text-[10px] font-mono text-zinc-500 bg-black/60 border border-white/10 rounded shrink-0">Ctrl+K</kbd>
+                </button>
+            </div>
+
+            <!-- Right: Tools + Direct Messages + Profile -->
+            <div class="flex items-center gap-2 sm:gap-2.5 shrink-0">
+                <!-- Mobile Search Trigger Button -->
+                <button onclick="openSearchModal()" class="sm:hidden p-2 rounded-xl text-zinc-400 hover:text-white hover:bg-zinc-900 border border-white/10 transition-colors" title="Qidiruv">
+                    <i data-lucide="search" class="w-4 h-4 text-brand-orange"></i>
                 </button>
 
-                <a href="https://ferris.uz#cli-download" class="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-xl bg-zinc-900 border border-white/15 text-zinc-300 hover:text-white hover:bg-zinc-800 hover:border-brand-orange/40 transition-all">
-                    <span>⬇</span> ferris-cli
+                <!-- ferris-cli Download Badge -->
+                <a href="https://ferris.uz#cli-download" class="hidden lg:inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-xl bg-zinc-900 border border-white/15 text-zinc-300 hover:text-white hover:bg-zinc-800 hover:border-brand-orange/40 transition-all whitespace-nowrap">
+                    <i data-lucide="terminal" class="w-3.5 h-3.5 text-zinc-400"></i>
+                    <span>ferris-cli</span>
+                </a>
+
+                <!-- GitHub Icon Button -->
+                <a href="https://github.com/rust-uz/ferris" target="_blank" rel="noopener" class="p-2 rounded-xl text-zinc-400 hover:text-white hover:bg-zinc-900 border border-white/10 transition-colors hidden sm:inline-flex items-center" title="GitHub (rust-uz/ferris)">
+                    <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
                 </a>
 
                 <!-- Auth Navigation Element -->
                 <div id="authNavWrapper" class="flex items-center gap-2">
                     <!-- State: Logged Out -->
-                    <button id="navLoginBtn" onclick="openAuthModal()" class="inline-flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-semibold rounded-lg bg-brand-orange hover:bg-orange-600 text-white transition-all shadow-sm">
+                    <button id="navLoginBtn" onclick="openAuthModal()" class="inline-flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-semibold rounded-xl bg-brand-orange hover:bg-orange-600 text-white transition-all shadow-sm whitespace-nowrap cursor-pointer">
                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"></path></svg>
                         <span>Kirish</span>
                     </button>
 
                     <!-- State: Logged In -->
                     <div id="navUserBlock" class="hidden items-center gap-2">
-                        <button id="navDmBtn" onclick="toggleDmDrawer()" class="relative p-1.5 px-2.5 rounded-xl bg-zinc-900/80 hover:bg-zinc-800 border border-white/10 text-xs font-semibold text-zinc-200 hover:text-white transition-colors flex items-center gap-1.5 shadow-sm" title="Shaxsiy Xabarlar (DM)">
-                            <i data-lucide="mail" class="w-3.5 h-3.5"></i>
-                            <span class="hidden sm:inline font-mono">DM</span>
-                            <span id="navDmBadge" class="hidden w-2 h-2 rounded-full bg-brand-orange animate-ping"></span>
+                        <!-- DM Button with ping badge -->
+                        <button id="navDmBtn" onclick="toggleDmDrawer()" class="relative p-2 rounded-xl bg-zinc-900/80 hover:bg-zinc-800 border border-white/10 text-xs font-semibold text-zinc-300 hover:text-white transition-colors flex items-center cursor-pointer" title="Shaxsiy Xabarlar (DM)">
+                            <i data-lucide="mail" class="w-4 h-4"></i>
+                            <span id="navDmBadge" class="hidden absolute top-1 right-1 w-2 h-2 rounded-full bg-brand-orange animate-ping"></span>
                         </button>
-                        <a href="https://ferris.uz/profile" class="flex items-center gap-2 p-1 px-2.5 rounded-xl bg-zinc-900/80 hover:bg-zinc-800 border border-white/10 transition-colors" title="Mening Profilim">
+
+                        <!-- Profile Chip (Avatar + @username) -->
+                        <a href="https://ferris.uz/profile" class="flex items-center gap-2 p-1.5 px-3 rounded-xl bg-zinc-900/80 hover:bg-zinc-800 border border-white/10 hover:border-brand-orange/40 transition-all cursor-pointer whitespace-nowrap" title="Mening Profilim">
                             <img id="navUserAvatar" src="/logo.jpg" alt="Avatar" class="w-6 h-6 rounded-full object-cover border border-white/20"/>
-                            <span id="navUserName" class="text-xs font-semibold text-zinc-200 hidden sm:inline max-w-[120px] truncate"></span>
+                            <span id="navUserName" class="text-xs font-semibold text-zinc-200 max-w-[110px] truncate"></span>
                         </a>
-                        <button onclick="logoutUser()" class="p-1.5 text-zinc-400 hover:text-rose-400 rounded-lg hover:bg-zinc-800 transition-colors" title="Chiqish">
-                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
+
+                        <!-- Logout Button -->
+                        <button onclick="logoutUser()" class="p-2 text-zinc-400 hover:text-rose-400 rounded-xl hover:bg-zinc-900 border border-transparent hover:border-white/10 transition-colors cursor-pointer" title="Chiqish">
+                            <i data-lucide="log-out" class="w-4 h-4"></i>
                         </button>
                     </div>
                 </div>
+
                 <script>
                     (function() {
                         try {
@@ -295,13 +305,11 @@
                             if (token && token.trim().length > 0) {
                                 const lBtn = document.getElementById('navLoginBtn');
                                 const uBlock = document.getElementById('navUserBlock');
-                                const pLink = document.getElementById('navProfileLink');
                                 const mProfile = document.getElementById('mobileProfileLink');
                                 const avatar = document.getElementById('navUserAvatar');
                                 const name = document.getElementById('navUserName');
                                 if (lBtn) lBtn.classList.add('hidden');
                                 if (uBlock) { uBlock.classList.remove('hidden'); uBlock.classList.add('flex'); }
-                                if (pLink) { pLink.classList.remove('hidden'); pLink.classList.add('flex'); }
                                 if (mProfile) mProfile.classList.remove('hidden');
                                 const cached = JSON.parse(localStorage.getItem('ferris_user_cache') || '{}');
                                 if (cached.avatar_url && avatar) avatar.src = cached.avatar_url;
@@ -312,7 +320,7 @@
                 </script>
 
                 <!-- Mobile Menu Button -->
-                <button id="mobileMenuBtn" class="lg:hidden p-2 rounded-xl text-zinc-400 hover:text-white hover:bg-zinc-900 border border-transparent hover:border-white/10 transition-colors focus:outline-none" aria-label="Menyu">
+                <button id="mobileMenuBtn" class="md:hidden p-2 rounded-xl text-zinc-400 hover:text-white hover:bg-zinc-900 border border-white/10 transition-colors focus:outline-none" aria-label="Menyu">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
                     </svg>
@@ -335,6 +343,10 @@
             <a href="https://groups.ferris.uz" class="text-zinc-200 hover:text-white flex items-center justify-between p-2.5 rounded-xl hover:bg-zinc-900/60 border border-transparent hover:border-white/5 transition-all">
                 <span class="flex items-center gap-2.5"><i data-lucide="users" class="w-4 h-4 text-emerald-400"></i> groups.ferris.uz (Jamiyatlar)</span>
                 <span class="text-xs font-mono text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-md">Katalog &rarr;</span>
+            </a>
+            <a href="https://doc.ferris.uz" target="_blank" rel="noopener" class="text-zinc-200 hover:text-white flex items-center justify-between p-2.5 rounded-xl hover:bg-zinc-900/60 border border-transparent hover:border-white/5 transition-all">
+                <span class="flex items-center gap-2.5"><i data-lucide="book-open" class="w-4 h-4 text-cyan-400"></i> doc.ferris.uz (Rust Kitobi)</span>
+                <span class="text-xs font-mono text-cyan-400 bg-cyan-500/10 px-2 py-0.5 rounded-md">O'zbekcha &rarr;</span>
             </a>
             <button onclick="toggleDmDrawer()" class="text-left text-zinc-200 hover:text-white p-2.5 rounded-xl hover:bg-zinc-900/60 border border-transparent hover:border-white/5 flex items-center justify-between transition-all">
                 <span class="flex items-center gap-2.5"><i data-lucide="mail" class="w-4 h-4 text-cyan-400"></i> Shaxsiy Xabarlar (DM)</span>
