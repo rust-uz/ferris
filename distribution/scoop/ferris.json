@@ -10,7 +10,7 @@
     "architecture": {
         "64bit": {
             "url": "https://github.com/rust-uz/ferris/releases/download/v0.3.0/ferris-windows-x64.exe#/ferris.exe",
-            "hash": ""
+            "hash": "224af16218704598f4a9bc3321ca26e22036efbca99a2fcb5b8b9966666d27b5"
         }
     },
     "bin": "ferris.exe",
