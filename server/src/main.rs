@@ -732,11 +732,11 @@ async fn main() {
     }
 
     let bot_token = std::env::var("TELEGRAM_BOT_TOKEN")
-        .unwrap_or_else(|_| "8928247696:AAF_82P6DUzUQwAwqB5hJ_5RZW-PvkF0xig".to_string());
+        .unwrap_or_default();
     let github_client_id = std::env::var("GITHUB_CLIENT_ID")
-        .unwrap_or_else(|_| "Ov23lilJD2yyUUmIL6aZ".to_string());
+        .unwrap_or_default();
     let github_client_secret = std::env::var("GITHUB_CLIENT_SECRET")
-        .unwrap_or_else(|_| "1ab8683885a6cc0428c846cd7d56559e61473224".to_string());
+        .unwrap_or_default();
 
     let state = AppState {
         db: db_pool,

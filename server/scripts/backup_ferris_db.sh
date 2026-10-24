@@ -22,15 +22,18 @@ if [ -f "${ENV_FILE}" ]; then
 fi
 
 DB_NAME="${DB_NAME:-ferris_db}"
-DB_USER="${DB_USER:-ferris_user}"
-DB_PASS="${DB_PASS:-ferris_secure_2026_pw}"
-TG_TOKEN="${TELEGRAM_BOT_TOKEN:-8928247696:AAF_82P6DUzUQwAwqB5hJ_5RZW-PvkF0xig}"
+
+if [ -z "${TELEGRAM_BOT_TOKEN:-}" ]; then
+    log "❌ Xatolik: TELEGRAM_BOT_TOKEN muhit o'zgaruvchisi o'rnatilmagan! /opt/ferris/.env faylini tekshiring."
+    exit 1
+fi
+TG_TOKEN="${TELEGRAM_BOT_TOKEN}"
 TG_CHAT_ID="${TELEGRAM_ADMIN_CHAT_ID:-5415350162}"
 
 log "🚀 PostgreSQL zaxira jarayoni boshlandi: ${DB_NAME}"
 
 # 2. pg_dump va gzip -9 orqali arxivlash
-if PGPASSWORD="${DB_PASS}" pg_dump -h 127.0.0.1 -U "${DB_USER}" "${DB_NAME}" | gzip -9 > "${BACKUP_FILE}"; then
+if sudo -u postgres pg_dump "${DB_NAME}" | gzip -9 > "${BACKUP_FILE}"; then
     if gzip -t "${BACKUP_FILE}"; then
         SIZE=$(du -h "${BACKUP_FILE}" | cut -f1)
         log "✅ Zaxira fayli yaratildi va butunligi tekshirildi: ${BACKUP_FILE} (Hajmi: ${SIZE})"
