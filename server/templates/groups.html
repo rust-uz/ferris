@@ -19,13 +19,13 @@
             </div>
             <h1 class="text-2xl sm:text-3xl md:text-4xl font-extrabold tracking-tight text-white flex items-center gap-2.5">
                 <i data-lucide="users" class="w-8 h-8 text-emerald-400"></i>
-                <span>Faol Jamiyatlar va Klublar</span>
+                <span data-i18n="groups_header_title">Faol Jamiyatlar va Klublar</span>
             </h1>
-            <p class="text-xs sm:text-sm text-zinc-400 mt-1">Rust dasturchilari va tizim muhandislari birlashgan rasmiy jamoalar</p>
+            <p class="text-xs sm:text-sm text-zinc-400 mt-1" data-i18n="groups_header_desc">Rust dasturchilari va tizim muhandislari birlashgan rasmiy jamoalar</p>
         </div>
         <button onclick="handleNewGroupClick()" class="px-5 py-2.5 rounded-2xl bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs sm:text-sm transition-all shadow-lg shadow-emerald-950/40 hover:scale-105 active:scale-95 self-start sm:self-auto shrink-0 flex items-center gap-2">
             <i data-lucide="plus" class="w-4 h-4"></i>
-            <span>Yangi Jamiyat Ochish</span>
+            <span data-i18n="groups_btn_new">Yangi Jamiyat Ochish</span>
         </button>
     </div>
 
@@ -55,7 +55,7 @@
 
             <div class="pt-4 border-t border-white/5 flex items-center justify-between gap-2 flex-wrap sm:flex-nowrap">
                 <span id="memberCount-{{ group.slug }}" class="text-xs font-mono text-zinc-300 font-semibold flex items-center gap-2">
-                    <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span> <span>{{ group.members_count }}</span> a'zo
+                    <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span> <span>{{ group.members_count }}</span> <span data-i18n="groups_member_label">a'zo</span>
                 </span>
                 
                 <div class="flex items-center gap-2">

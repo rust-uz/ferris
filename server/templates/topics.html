@@ -44,18 +44,18 @@
             </div>
             <h1 class="text-2xl sm:text-3xl md:text-4xl font-extrabold tracking-tight text-white flex items-center gap-2.5">
                 <i data-lucide="layers" class="w-8 h-8 text-brand-orange"></i>
-                <span>Mavzular va Kategoriyalar</span>
+                <span data-i18n="topics_header_title">Mavzular va Kategoriyalar</span>
             </h1>
-            <p class="text-xs sm:text-sm text-zinc-400 mt-1">Rasmiy Rust texnik yo'nalishlari va hamjamiyat ochiq muhokamalari</p>
+            <p class="text-xs sm:text-sm text-zinc-400 mt-1" data-i18n="topics_header_desc">Rasmiy Rust texnik yo'nalishlari va hamjamiyat ochiq muhokamalari</p>
         </div>
         <div class="flex items-center gap-2.5 self-start sm:self-auto shrink-0 flex-wrap">
             <button onclick="openLeaderboardModal()" class="px-4 py-2.5 rounded-2xl bg-zinc-900 hover:bg-zinc-800 text-zinc-300 hover:text-white border border-white/10 hover:border-amber-400/40 text-xs sm:text-sm font-semibold transition-all shadow-sm flex items-center gap-2 cursor-pointer">
                 <i data-lucide="trophy" class="w-4 h-4 text-amber-400"></i>
-                <span>Top Rustaceanlar (Leaderboard)</span>
+                <span data-i18n="topics_btn_leaderboard">Top Rustaceanlar (Leaderboard)</span>
             </button>
             <button onclick="handleNewPostClick()" class="px-5 py-2.5 rounded-2xl bg-brand-orange hover:bg-orange-600 text-white font-semibold text-xs sm:text-sm transition-all shadow-lg shadow-orange-950/40 hover:scale-105 active:scale-95 flex items-center gap-2 cursor-pointer">
                 <i data-lucide="plus" class="w-4 h-4"></i>
-                <span>Yangi Muhokama</span>
+                <span data-i18n="topics_btn_new">Yangi Muhokama</span>
             </button>
         </div>
     </div>
@@ -91,7 +91,7 @@
                 </p>
             </div>
             <div class="mt-4 pt-3 border-t border-white/5 flex items-center justify-between text-xs text-zinc-500 font-mono">
-                <span>Kanal faol</span>
+                <span data-i18n="topics_channel_active">Kanal faol</span>
                 <span class="text-brand-orange font-semibold">{{ topic.slug }}</span>
             </div>
         </div>
@@ -102,7 +102,7 @@
     <div class="mt-4">
         <h2 class="text-xl sm:text-2xl font-bold tracking-tight text-white mb-6 flex items-center gap-2.5">
             <i data-lucide="message-square" class="w-6 h-6 text-brand-orange"></i>
-            <span>Barcha Muhokamalar</span>
+            <span data-i18n="topics_all_discussions">Barcha Muhokamalar</span>
         </h2>
 
         <div class="flex flex-col gap-4 sm:gap-5">

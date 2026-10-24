@@ -314,7 +314,7 @@
                     <i data-lucide="download" class="w-3.5 h-3.5"></i> Linux x86_64
                 </a>
                 <a href="/downloads/ferris-cli_0.3.0_amd64.deb" download class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-zinc-900 hover:bg-zinc-800 text-zinc-200 text-xs font-semibold border border-white/10 transition-all hover:scale-105 active:scale-95">
-                    <i data-lucide="package" class="w-3.5 h-3.5"></i> .deb Paket
+                    <i data-lucide="package" class="w-3.5 h-3.5"></i> <span data-i18n="cli_deb_pkg">.deb Paket</span>
                 </a>
                 <a href="https://crates.io/crates/ferris-cli" target="_blank" rel="noopener" class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-zinc-900 hover:bg-zinc-800 text-zinc-200 text-xs font-semibold border border-white/10 transition-all hover:scale-105 active:scale-95">
                     <i data-lucide="box" class="w-3.5 h-3.5 text-brand-orange"></i> Crates.io v0.3.0
@@ -353,7 +353,7 @@
                     <span data-i18n="btn_copy">Nusxa</span>
                 </button>
             </div>
-            <p class="text-xs text-zinc-500 font-mono">Binar SHA-256 xesh tekshiruvi bilan avtomatik <code class="text-zinc-400">/usr/local/bin/ferris</code> (yoki <code class="text-zinc-400">~/.local/bin/ferris</code>) ga xavfsiz o'rnatiladi.</p>
+            <p class="text-xs text-zinc-500 font-mono" data-i18n="cli_tab_linux_note">Binar SHA-256 xesh tekshiruvi bilan avtomatik <code class="text-zinc-400">/usr/local/bin/ferris</code> (yoki <code class="text-zinc-400">~/.local/bin/ferris</code>) ga xavfsiz o'rnatiladi.</p>
         </div>
 
         <!-- Tab 2: Homebrew -->
@@ -365,7 +365,7 @@
                     <span data-i18n="btn_copy">Nusxa</span>
                 </button>
             </div>
-            <p class="text-xs text-zinc-500 font-mono">macOS (Apple Silicon M1-M4 & Intel) va Linuxbrew uchun to'liq avtomatik formula.</p>
+            <p class="text-xs text-zinc-500 font-mono" data-i18n="cli_tab_brew_note">macOS (Apple Silicon M1-M4 & Intel) va Linuxbrew uchun to'liq avtomatik formula.</p>
         </div>
 
         <!-- Tab 3: Arch Linux (AUR) -->
@@ -377,7 +377,7 @@
                     <span data-i18n="btn_copy">Nusxa</span>
                 </button>
             </div>
-            <p class="text-xs text-zinc-500 font-mono">Yoki manbadan yig'ish uchun: <code class="text-zinc-400">paru -S ferris-cli</code></p>
+            <p class="text-xs text-zinc-500 font-mono" data-i18n="cli_tab_arch_note">Yoki manbadan yig'ish uchun: <code class="text-zinc-400">paru -S ferris-cli</code></p>
         </div>
 
         <!-- Tab 4: Debian / Ubuntu -->
@@ -389,7 +389,7 @@
                     <span data-i18n="btn_copy">Nusxa</span>
                 </button>
             </div>
-            <p class="text-xs text-zinc-500 font-mono">Debian, Ubuntu, Linux Mint va Pop!_OS tizimlariga rasmiy paket boshqaruvi bilan o'rnatish.</p>
+            <p class="text-xs text-zinc-500 font-mono" data-i18n="cli_tab_debian_note">Debian, Ubuntu, Linux Mint va Pop!_OS tizimlariga rasmiy paket boshqaruvi bilan o'rnatish.</p>
         </div>
 
         <!-- Tab 5: Windows -->
@@ -401,7 +401,7 @@
                     <span data-i18n="btn_copy">Nusxa</span>
                 </button>
             </div>
-            <p class="text-xs text-zinc-500 font-mono">PowerShell orqali avtomatik foydalanuvchi PATH muhitiga qo'shiladi.</p>
+            <p class="text-xs text-zinc-500 font-mono" data-i18n="cli_tab_windows_note">PowerShell orqali avtomatik foydalanuvchi PATH muhitiga qo'shiladi.</p>
         </div>
 
         <!-- Tab 6: Cargo -->
@@ -413,7 +413,7 @@
                     <span data-i18n="btn_copy">Nusxa</span>
                 </button>
             </div>
-            <p class="text-xs text-zinc-500 font-mono">Rust toolchain mavjud barcha operatsion tizimlarda to'g'ridan-to'g'ri Crates.io reyestridan o'rnatish.</p>
+            <p class="text-xs text-zinc-500 font-mono" data-i18n="cli_tab_cargo_note">Rust toolchain mavjud barcha operatsion tizimlarda to'g'ridan-to'g'ri Crates.io reyestridan o'rnatish.</p>
         </div>
 
         <!-- Interactive Terminal Output Showcase -->
@@ -428,20 +428,20 @@
             </div>
             <div class="p-4 sm:p-6 text-zinc-300 leading-relaxed overflow-x-auto space-y-2.5">
                 <p><span class="text-emerald-400 font-bold">$</span> ferris scan --staged</p>
-                <p class="text-cyan-400 pl-4 flex items-center gap-1.5"><i data-lucide="shield-alert" class="w-3.5 h-3.5"></i> [Ferris Guardian] Git staged fayllar tahlil qilindi. Maxfiy tokenlar bloklandi (Exit 1).</p>
+                <p class="text-cyan-400 pl-4 flex items-center gap-1.5"><i data-lucide="shield-alert" class="w-3.5 h-3.5"></i> <span data-lang-uz="[Ferris Guardian] Git staged fayllar tahlil qilindi. Maxfiy tokenlar bloklandi (Exit 1)." data-lang-en="[Ferris Guardian] Git staged files scanned. Secrets blocked (Exit 1).">[Ferris Guardian] Git staged fayllar tahlil qilindi. Maxfiy tokenlar bloklandi (Exit 1).</span></p>
 
                 <p class="pt-2"><span class="text-emerald-400 font-bold">$</span> ferris vault seal</p>
-                <p class="text-emerald-400 pl-4 flex items-center gap-1.5"><i data-lucide="shield" class="w-3.5 h-3.5"></i> [Ferris Vault] .env fayli ChaCha20-Poly1305 bilan muhrlandi (.env.ferris).</p>
-                <p class="text-zinc-500 pl-4 font-sans text-[11px]">&bull; Asl ochiq fayl diskdan izsiz tozalandi (Zero-Disk Footprint).</p>
+                <p class="text-emerald-400 pl-4 flex items-center gap-1.5"><i data-lucide="shield" class="w-3.5 h-3.5"></i> <span data-lang-uz="[Ferris Vault] .env fayli ChaCha20-Poly1305 bilan muhrlandi (.env.ferris)." data-lang-en="[Ferris Vault] Sealed .env with ChaCha20-Poly1305 (.env.ferris).">[Ferris Vault] .env fayli ChaCha20-Poly1305 bilan muhrlandi (.env.ferris).</span></p>
+                <p class="text-zinc-500 pl-4 font-sans text-[11px]">&bull; <span data-lang-uz="Asl ochiq fayl diskdan izsiz tozalandi (Zero-Disk Footprint)." data-lang-en="Plaintext safely erased from disk (Zero-Disk Footprint).">Asl ochiq fayl diskdan izsiz tozalandi (Zero-Disk Footprint).</span></p>
 
                 <p class="pt-2"><span class="text-emerald-400 font-bold">$</span> ferris run --allow-write ./logs -- python3 bot.py</p>
-                <p class="text-cyan-400 pl-4 flex items-center gap-1.5"><i data-lucide="shield-check" class="w-3.5 h-3.5"></i> [Ferris Enclave] Universal xavfsiz qobiq ishga tushirildi.</p>
-                <p class="text-zinc-400 pl-6">&bull; Sirlar RAM xotiraga ochildi (boshqa jarayonlar /proc/pid/mem o'qiy olmaydi).</p>
-                <p class="text-zinc-400 pl-6">&bull; Yadroviy qamal (Landlock LSM) faol: Kod papkasi FAQAT O'QISH (Read-Only).</p>
-                <p class="text-emerald-400 pl-4 flex items-center gap-1.5"><i data-lucide="zap" class="w-3.5 h-3.5"></i> [Boshlandi]: python3 bot.py (Crash Memory Leak & Self-Modification Bloklangan)</p>
+                <p class="text-cyan-400 pl-4 flex items-center gap-1.5"><i data-lucide="shield-check" class="w-3.5 h-3.5"></i> <span data-lang-uz="[Ferris Enclave] Universal xavfsiz qobiq ishga tushirildi." data-lang-en="[Ferris Enclave] Universal security sandbox started.">[Ferris Enclave] Universal xavfsiz qobiq ishga tushirildi.</span></p>
+                <p class="text-zinc-400 pl-6">&bull; <span data-lang-uz="Sirlar RAM xotiraga ochildi (boshqa jarayonlar /proc/pid/mem o'qiy olmaydi)." data-lang-en="Secrets decrypted strictly in RAM (/proc/pid/mem scraping blocked).">Sirlar RAM xotiraga ochildi (boshqa jarayonlar /proc/pid/mem o'qiy olmaydi).</span></p>
+                <p class="text-zinc-400 pl-6">&bull; <span data-lang-uz="Yadroviy qamal (Landlock LSM) faol: Kod papkasi FAQAT O'QISH (Read-Only)." data-lang-en="Kernel sandboxing (Landlock LSM) active: Project directory strictly Read-Only.">Yadroviy qamal (Landlock LSM) faol: Kod papkasi FAQAT O'QISH (Read-Only).</span></p>
+                <p class="text-emerald-400 pl-4 flex items-center gap-1.5"><i data-lucide="zap" class="w-3.5 h-3.5"></i> <span data-lang-uz="[Boshlandi]: python3 bot.py (Crash Memory Leak & Self-Modification Bloklangan)" data-lang-en="[Started]: python3 bot.py (Crash Memory Leak & Self-Modification Blocked)">[Boshlandi]: python3 bot.py (Crash Memory Leak & Self-Modification Bloklangan)</span></p>
 
                 <p class="pt-2"><span class="text-emerald-400 font-bold">$</span> ferris ping</p>
-                <p class="text-emerald-400 pl-4 flex items-center gap-1.5"><i data-lucide="check-circle-2" class="w-3.5 h-3.5"></i> API aloqada: https://api.ferris.uz (Cloudflare Universal SSL)</p>
+                <p class="text-emerald-400 pl-4 flex items-center gap-1.5"><i data-lucide="check-circle-2" class="w-3.5 h-3.5"></i> <span data-lang-uz="API aloqada: https://api.ferris.uz (Cloudflare Universal SSL)" data-lang-en="API reachable: https://api.ferris.uz (Cloudflare Universal SSL)">API aloqada: https://api.ferris.uz (Cloudflare Universal SSL)</span></p>
             </div>
         </div>
     </section>
@@ -490,9 +490,9 @@
             <div class="px-4 sm:px-6 py-4 bg-black border-t border-white/10 text-xs">
                 <div class="flex items-center justify-between mb-2">
                     <span class="text-zinc-400 font-mono font-bold flex items-center gap-1.5 uppercase text-[11px] tracking-wider">
-                        <i data-lucide="terminal" class="w-3.5 h-3.5 text-brand-orange"></i> Konsol Chiqishi:
+                        <i data-lucide="terminal" class="w-3.5 h-3.5 text-brand-orange"></i> <span data-i18n="playground_console_title">Konsol Chiqishi:</span>
                     </span>
-                    <span id="consoleStatusBadge" class="text-[10px] font-mono text-zinc-500">Kutish rejimida</span>
+                    <span id="consoleStatusBadge" class="text-[10px] font-mono text-zinc-500" data-i18n="playground_status_idle">Kutish rejimida</span>
                 </div>
                 <div id="consoleOut" class="font-mono text-xs leading-relaxed max-h-60 overflow-y-auto whitespace-pre-wrap text-zinc-400">
 [INFO] Kod laboratoriyasi tayyor. O'zgartirish kiriting yoki "Kodni Sinash" tugmasini bosing...
@@ -517,15 +517,31 @@
         } else {
             navigator.clipboard.writeText(text);
         }
-        const currentLang = localStorage.getItem('ferris_lang') || (navigator.language && navigator.language.toLowerCase().startsWith('uz') ? 'uz' : 'en');
+        if (!btn.dataset.origHtml) {
+            btn.dataset.origHtml = btn.innerHTML;
+        }
+        if (btn._copyTimeout) {
+            clearTimeout(btn._copyTimeout);
+        }
+        const currentLang = typeof getPreferredLanguage === 'function' ? getPreferredLanguage() : (localStorage.getItem('ferris_lang') || 'uz');
         const copiedText = currentLang === 'uz' ? 'Nusxalandi!' : 'Copied!';
-        const origHtml = btn.innerHTML;
         btn.innerHTML = `<i data-lucide="check" class="w-3.5 h-3.5 text-emerald-400"></i><span class="text-emerald-400 font-semibold font-sans text-xs">${copiedText}</span>`;
         btn.classList.add('border-emerald-500/50', 'bg-emerald-500/10');
         if (window.lucide) lucide.createIcons();
-        setTimeout(() => {
-            btn.innerHTML = origHtml;
+        btn._copyTimeout = setTimeout(() => {
+            if (btn.dataset.origHtml) {
+                btn.innerHTML = btn.dataset.origHtml;
+                delete btn.dataset.origHtml;
+            }
             btn.classList.remove('border-emerald-500/50', 'bg-emerald-500/10');
+            if (typeof setLanguage === 'function' && typeof FERRIS_I18N !== 'undefined') {
+                const lang = typeof getPreferredLanguage === 'function' ? getPreferredLanguage() : 'uz';
+                const dict = FERRIS_I18N[lang] || FERRIS_I18N.uz;
+                btn.querySelectorAll('[data-i18n]').forEach(el => {
+                    const k = el.getAttribute('data-i18n');
+                    if (dict[k]) el.textContent = dict[k];
+                });
+            }
             if (window.lucide) lucide.createIcons();
         }, 1800);
     }
@@ -585,7 +601,7 @@ async fn main() {
         hello: `// 👋 Salom Dunyo va Ferris ID
 fn main() {
     let community = "O'zbekiston Rustaceanlar Hamjamiyati";
-    let version = "v0.2.1";
+    let version = "v0.3.0";
     println!("Salom, {}! 🦀", community);
     println!("Ferris.uz va ferris-cli ({}) 100% toza Rust tilida ishlaydi.", version);
 

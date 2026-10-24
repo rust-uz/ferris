@@ -15,7 +15,7 @@
     <meta property="og:type" content="{% block og_type %}website{% endblock %}">
     <meta property="og:url" content="{% block og_url %}https://ferris.uz/{% endblock %}">
     <meta property="og:title" content="{% block og_title %}Ferris.uz — O'zbekiston Rust Tizim Dasturlash Ekotizimi{% endblock %}">
-    <meta property="og:description" content="{% block og_desc %}O'zbekiston Rustaceanlar rasmiy portali. ferris-cli (v0.2.1), Post-Quantum BLAKE3 kriptografiyasi va o'zbekcha Rust kitobi (doc.ferris.uz).{% endblock %}">
+    <meta property="og:description" content="{% block og_desc %}O'zbekiston Rustaceanlar rasmiy portali. ferris-cli (v0.3.0), Post-Quantum BLAKE3 kriptografiyasi va o'zbekcha Rust kitobi (doc.ferris.uz).{% endblock %}">
     <meta property="og:image" content="{% block og_image %}https://ferris.uz/logo.png{% endblock %}">
     <meta property="og:site_name" content="Ferris.uz">
     <meta property="og:locale" content="uz_UZ">
@@ -242,6 +242,12 @@
                 search_cat_posts: "Muhokamalar va Postlar",
                 search_cat_groups: "Jamiyatlar (Communities)",
                 search_cat_users: "Dasturchilar",
+                search_shortcut_select: "Tanlash",
+                search_shortcut_open: "Ochish",
+                search_shortcut_close: "Yopish",
+                search_not_found: "bo'yicha natija topilmadi",
+                search_not_found_hint: "Boshqa so'z bilan qidirib ko'ring yoki yangi mavzu oching",
+                members_label: "a'zo",
 
                 // Index Hero & Badges
                 hero_badge_tag: "RUST UZBEKISTAN RASMIY EKOTIZIMI",
@@ -249,7 +255,7 @@
                 hero_h1_systems: "Tizimli Dasturlash.",
                 hero_h1_memory: "Xotira Xavfsizligi.",
                 hero_h1_speed: "Maksimal Tezlik.",
-                hero_subtitle: "Garbage Collector kechikishlarisiz, toza xotira va yuqori RPS. O'zbekiston Rustaceanlari forumi, faol jamiyatlar va rasmiy ferris-cli Linux Security Enclave vositasi.",
+                hero_subtitle: 'Garbage Collector kechikishlarisiz, toza xotira va yuqori RPS. O\'zbekiston Rustaceanlari forumi, faol jamiyatlar va rasmiy <code class="text-brand-orange font-mono font-medium px-2 py-0.5 rounded-lg bg-zinc-900 border border-white/10">ferris-cli</code> Linux Security Enclave vositasi.',
                 hero_btn_install: "ferris-cli O'rnatish",
                 hero_btn_forum: "Mavzular & Forum →",
                 btn_copy: "Nusxa",
@@ -267,7 +273,7 @@
                 subdomain_title: "Ferris.uz Subdomenlar Tizimi",
                 subdomain_desc: "Har bir yo'nalish alohida subdomen, yuqori RPS va mustaqil servislar orqali ta'minlangan",
                 card_topics_title: "Mavzular & Forum",
-                card_topics_desc: "f/rust, f/async, f/systems va f/quantum yo'nalishlarida chuqur texnik maqolalar va ochiq muhokamalar.",
+                card_topics_desc: '<code class="text-zinc-300 font-mono">f/rust</code>, <code class="text-zinc-300 font-mono">f/async</code>, <code class="text-zinc-300 font-mono">f/systems</code> va <code class="text-zinc-300 font-mono">f/quantum</code> yo\'nalishlarida chuqur texnik maqolalar va ochiq muhokamalar.',
                 card_topics_action: "Mavzularga o'tish",
                 card_groups_title: "Jamiyatlar & Guruhlar",
                 card_groups_desc: "Rustacean to'garaklari, hududiy meetup guruhlari va ochiq manbali loyihalar katalogi. Yangi jamiyat ochish va birlashish maydoni.",
@@ -280,12 +286,42 @@
                 cli_section_tag: "Linux Security Enclave & Vault",
                 cli_section_title: "ferris-cli — Terminal Vositasini O'rnatish",
                 cli_section_desc: "Linux Landlock LSM yadroviy qamali, ChaCha20-Poly1305 sirlar ombori va Zero-Trust tarmoq izolyatsiyasiga ega rasmiy terminal ilovasi (v0.3.0).",
+                cli_deb_pkg: ".deb Paket",
+                cli_tab_linux_note: 'Binar SHA-256 xesh tekshiruvi bilan avtomatik <code class="text-zinc-400">/usr/local/bin/ferris</code> (yoki <code class="text-zinc-400">~/.local/bin/ferris</code>) ga xavfsiz o\'rnatiladi.',
+                cli_tab_brew_note: 'macOS (Apple Silicon M1-M4 & Intel) va Linuxbrew uchun to\'liq avtomatik formula.',
+                cli_tab_arch_note: 'Yoki manbadan yig\'ish uchun: <code class="text-zinc-400">paru -S ferris-cli</code>',
+                cli_tab_debian_note: 'Debian, Ubuntu, Linux Mint va Pop!_OS tizimlariga rasmiy paket boshqaruvi bilan o\'rnatish.',
+                cli_tab_windows_note: 'PowerShell orqali avtomatik foydalanuvchi PATH muhitiga qo\'shiladi.',
+                cli_tab_cargo_note: 'Rust toolchain mavjud barcha operatsion tizimlarda to\'g\'ridan-to\'g\'ri Crates.io reyestridan o\'rnatish.',
 
                 // Playground
                 playground_tag: "Interactive Lab",
                 playground_title: "Rust Kod Laboratoriyasi",
-                playground_desc: "Brauzeringizda real rustc kompilyatorida kod yozing va ishga tushiring",
-                playground_run_btn: "Kodni Sinash"
+                playground_desc: 'Brauzeringizda real <code class="text-amber-400 font-mono">rustc</code> kompilyatorida kod yozing va ishga tushiring',
+                playground_run_btn: "Kodni Sinash",
+                playground_console_title: "Konsol Chiqishi:",
+                playground_status_idle: "Kutish rejimida",
+
+                // Topics Page
+                topics_header_title: "Mavzular va Kategoriyalar",
+                topics_header_desc: "Rasmiy Rust texnik yo'nalishlari va hamjamiyat ochiq muhokamalari",
+                topics_btn_leaderboard: "Top Rustaceanlar (Leaderboard)",
+                topics_btn_new: "Yangi Muhokama",
+                topics_all_discussions: "Barcha Muhokamalar",
+                topics_channel_active: "Kanal faol",
+
+                // Groups Page
+                groups_header_title: "Faol Jamiyatlar va Klublar",
+                groups_header_desc: "Rust dasturchilari va tizim muhandislari birlashgan rasmiy jamoalar",
+                groups_btn_new: "Yangi Jamiyat Ochish",
+
+                // Login Page
+                login_title: "Ferris.uz ga Kirish",
+                login_desc: "Mavzular (topics) va Jamiyatlar (groups) uchun yagona xavfsiz autentifikatsiya",
+                login_gh_btn: "GitHub orqali davom etish",
+                login_or: "yoki",
+                login_tg_btn: "Telegram orqali kirish",
+                login_session_note: "Sessiya barcha *.ferris.uz subdomenlari uchun saqlanadi"
             },
             en: {
                 nav_topics: "Topics",
@@ -318,6 +354,12 @@
                 search_cat_posts: "Discussions & Posts",
                 search_cat_groups: "Communities",
                 search_cat_users: "Developers",
+                search_shortcut_select: "Select",
+                search_shortcut_open: "Open",
+                search_shortcut_close: "Close",
+                search_not_found: "no results found",
+                search_not_found_hint: "Try another search term or start a new topic",
+                members_label: "members",
 
                 // Index Hero & Badges
                 hero_badge_tag: "OFFICIAL RUST UZBEKISTAN ECOSYSTEM",
@@ -325,7 +367,7 @@
                 hero_h1_systems: "Systems Programming.",
                 hero_h1_memory: "Memory Safety.",
                 hero_h1_speed: "Maximum Speed.",
-                hero_subtitle: "Zero Garbage Collector pauses, guaranteed memory safety, and maximum RPS. The official community forum for Uzbek Rustaceans, active hubs, and the official ferris-cli Linux Security Enclave.",
+                hero_subtitle: 'Zero Garbage Collector pauses, guaranteed memory safety, and maximum RPS. The official community forum for Uzbek Rustaceans, active hubs, and the official <code class="text-brand-orange font-mono font-medium px-2 py-0.5 rounded-lg bg-zinc-900 border border-white/10">ferris-cli</code> Linux Security Enclave.',
                 hero_btn_install: "Install ferris-cli",
                 hero_btn_forum: "Topics & Forum →",
                 btn_copy: "Copy",
@@ -343,7 +385,7 @@
                 subdomain_title: "Ferris.uz Subdomain Architecture",
                 subdomain_desc: "Every domain powered by dedicated microservices, ultra-low latency, and high RPS",
                 card_topics_title: "Topics & Forum",
-                card_topics_desc: "In-depth technical articles and open discussions across f/rust, f/async, f/systems, and f/quantum.",
+                card_topics_desc: 'In-depth technical articles and open discussions across <code class="text-zinc-300 font-mono">f/rust</code>, <code class="text-zinc-300 font-mono">f/async</code>, <code class="text-zinc-300 font-mono">f/systems</code>, and <code class="text-zinc-300 font-mono">f/quantum</code>.',
                 card_topics_action: "Explore Topics",
                 card_groups_title: "Communities & Groups",
                 card_groups_desc: "Rustacean student clubs, regional meetup groups, and open-source directory. Launch your community.",
@@ -356,12 +398,42 @@
                 cli_section_tag: "Linux Security Enclave & Vault",
                 cli_section_title: "ferris-cli — Developer Security Terminal",
                 cli_section_desc: "Official developer CLI featuring Linux Landlock LSM kernel sandbox, ChaCha20-Poly1305 vault, and Zero-Trust network isolation (v0.3.0).",
+                cli_deb_pkg: ".deb Package",
+                cli_tab_linux_note: 'Securely installed to <code class="text-zinc-400">/usr/local/bin/ferris</code> (or <code class="text-zinc-400">~/.local/bin/ferris</code>) with automatic SHA-256 hash verification.',
+                cli_tab_brew_note: 'Fully automated formula for macOS (Apple Silicon M1-M4 & Intel) and Linuxbrew.',
+                cli_tab_arch_note: 'Or build from source via: <code class="text-zinc-400">paru -S ferris-cli</code>',
+                cli_tab_debian_note: 'Install via official package manager on Debian, Ubuntu, Linux Mint, and Pop!_OS.',
+                cli_tab_windows_note: 'Automatically appended to user PATH environment via PowerShell.',
+                cli_tab_cargo_note: 'Direct installation from Crates.io registry across all operating systems with a Rust toolchain.',
 
                 // Playground
                 playground_tag: "Interactive Lab",
                 playground_title: "Rust Code Playground",
-                playground_desc: "Write, compile, and run real Rust code in your browser with real rustc",
-                playground_run_btn: "Run Code"
+                playground_desc: 'Write, compile, and run real Rust code in your browser with real <code class="text-amber-400 font-mono">rustc</code>',
+                playground_run_btn: "Run Code",
+                playground_console_title: "Console Output:",
+                playground_status_idle: "Idle",
+
+                // Topics Page
+                topics_header_title: "Topics & Categories",
+                topics_header_desc: "Official Rust technical tracks and open community discussions",
+                topics_btn_leaderboard: "Top Rustaceans (Leaderboard)",
+                topics_btn_new: "New Discussion",
+                topics_all_discussions: "All Discussions",
+                topics_channel_active: "Active Channel",
+
+                // Groups Page
+                groups_header_title: "Active Communities & Clubs",
+                groups_header_desc: "Official hubs uniting Rust developers and systems engineers",
+                groups_btn_new: "Create Community",
+
+                // Login Page
+                login_title: "Sign in to Ferris.uz",
+                login_desc: "Unified secure authentication for topics and communities",
+                login_gh_btn: "Continue with GitHub",
+                login_or: "or",
+                login_tg_btn: "Sign in with Telegram",
+                login_session_note: "Session is preserved across all *.ferris.uz subdomains"
             }
         };
 
@@ -408,7 +480,11 @@
             document.querySelectorAll('[data-i18n]').forEach(el => {
                 const key = el.getAttribute('data-i18n');
                 if (dict[key] !== undefined) {
-                    el.textContent = dict[key];
+                    if (el.hasAttribute('data-i18n-html') || /<[a-z][\s\S]*>/i.test(dict[key])) {
+                        el.innerHTML = dict[key];
+                    } else {
+                        el.textContent = dict[key];
+                    }
                 }
             });
 
@@ -1582,10 +1658,10 @@
             <!-- Footer Shortcuts -->
             <div class="px-4 py-2.5 bg-zinc-900/40 border-t border-white/10 flex items-center justify-between text-[11px] font-mono text-zinc-500">
                 <div class="flex items-center gap-3">
-                    <span><kbd class="px-1.5 py-0.5 bg-zinc-800 border border-white/10 rounded text-zinc-400">↑↓</kbd> Tanlash</span>
-                    <span><kbd class="px-1.5 py-0.5 bg-zinc-800 border border-white/10 rounded text-zinc-400">↵</kbd> Ochish</span>
+                    <span><kbd class="px-1.5 py-0.5 bg-zinc-800 border border-white/10 rounded text-zinc-400">↑↓</kbd> <span data-i18n="search_shortcut_select">Tanlash</span></span>
+                    <span><kbd class="px-1.5 py-0.5 bg-zinc-800 border border-white/10 rounded text-zinc-400">↵</kbd> <span data-i18n="search_shortcut_open">Ochish</span></span>
                 </div>
-                <span><kbd class="px-1.5 py-0.5 bg-zinc-800 border border-white/10 rounded text-zinc-400">ESC</kbd> Yopish</span>
+                <span><kbd class="px-1.5 py-0.5 bg-zinc-800 border border-white/10 rounded text-zinc-400">ESC</kbd> <span data-i18n="search_shortcut_close">Yopish</span></span>
             </div>
         </div>
     </div>
@@ -1606,10 +1682,12 @@
             const empty = document.getElementById('searchEmptyState');
             if (empty) {
                 empty.classList.remove('hidden');
+                const currLang = typeof getPreferredLanguage === 'function' ? getPreferredLanguage() : 'uz';
+                const d = FERRIS_I18N[currLang] || FERRIS_I18N.uz;
                 empty.innerHTML = `
                     <i data-lucide="compass" class="w-8 h-8 text-zinc-600 mx-auto mb-2 opacity-60"></i>
-                    <p class="text-zinc-400 font-medium text-sm">Platforma bo'ylab tezkor qidiruv</p>
-                    <p class="text-zinc-500 mt-1">Kamida 2 ta belgi kiriting yoki toifalardan birini tanlang</p>
+                    <p class="text-zinc-400 font-medium text-sm" data-i18n="search_modal_title">${d.search_modal_title}</p>
+                    <p class="text-zinc-500 mt-1" data-i18n="search_modal_hint">${d.search_modal_hint}</p>
                     <div class="flex items-center justify-center gap-2 mt-4 text-[11px] font-mono">
                         <span class="px-2 py-0.5 rounded bg-zinc-900 border border-white/10 text-zinc-400">f/rust</span>
                         <span class="px-2 py-0.5 rounded bg-zinc-900 border border-white/10 text-zinc-400">async</span>
@@ -1712,14 +1790,16 @@
             oldItems.forEach(el => el.remove());
 
             const totalResults = (data.topics?.length || 0) + (data.posts?.length || 0) + (data.groups?.length || 0) + (data.users?.length || 0);
+            const currLang = typeof getPreferredLanguage === 'function' ? getPreferredLanguage() : 'uz';
+            const d = FERRIS_I18N[currLang] || FERRIS_I18N.uz;
 
             if (totalResults === 0) {
                 if (emptyState) {
                     emptyState.classList.remove('hidden');
                     emptyState.innerHTML = `
                         <i data-lucide="alert-circle" class="w-8 h-8 text-amber-500 mx-auto mb-2 opacity-70"></i>
-                        <p class="text-zinc-300 font-medium text-sm">"${escapeHtml(q)}" bo'yicha natija topilmadi</p>
-                        <p class="text-zinc-500 text-xs mt-1">Boshqa so'z bilan qidirib ko'ring yoki yangi mavzu oching</p>
+                        <p class="text-zinc-300 font-medium text-sm">"${escapeHtml(q)}" ${d.search_not_found || "bo'yicha natija topilmadi"}</p>
+                        <p class="text-zinc-500 text-xs mt-1">${d.search_not_found_hint || "Boshqa so'z bilan qidirib ko'ring yoki yangi mavzu oching"}</p>
                     `;
                     if (window.lucide) lucide.createIcons();
                 }
@@ -1739,7 +1819,7 @@
 
             // 1. Mavzular
             if (data.topics && data.topics.length > 0) {
-                addHeader('Mavzular', 'layers');
+                addHeader(d.search_cat_topics || 'Mavzular', 'layers');
                 data.topics.forEach(t => {
                     const a = document.createElement('a');
                     a.href = `https://topics.ferris.uz#${t.slug}`;
@@ -1761,7 +1841,7 @@
 
             // 2. Muhokamalar (Posts)
             if (data.posts && data.posts.length > 0) {
-                addHeader('Muhokamalar va Postlar', 'message-square');
+                addHeader(d.search_cat_posts || 'Muhokamalar va Postlar', 'message-square');
                 data.posts.forEach(p => {
                     const a = document.createElement('a');
                     a.href = `https://topics.ferris.uz#post-${p.id}`;
@@ -1784,7 +1864,7 @@
 
             // 3. Jamiyatlar (Groups)
             if (data.groups && data.groups.length > 0) {
-                addHeader('Jamiyatlar (Communities)', 'users');
+                addHeader(d.search_cat_groups || 'Jamiyatlar (Communities)', 'users');
                 data.groups.forEach(g => {
                     const a = document.createElement('a');
                     a.href = `https://groups.ferris.uz/f/${g.slug}`;
@@ -1801,7 +1881,7 @@
                                 <div class="text-xs text-zinc-400 line-clamp-1">${escapeHtml(g.description || '')}</div>
                             </div>
                         </div>
-                        <span class="text-xs font-mono text-zinc-500">${g.members_count} a'zo</span>
+                        <span class="text-xs font-mono text-zinc-500">${g.members_count} ${d.members_label || "a'zo"}</span>
                     `;
                     list.appendChild(a);
                 });
@@ -1809,7 +1889,7 @@
 
             // 4. Dasturchilar (Users)
             if (data.users && data.users.length > 0) {
-                addHeader('Dasturchilar', 'user');
+                addHeader(d.search_cat_users || 'Dasturchilar', 'user');
                 data.users.forEach(u => {
                     const a = document.createElement('a');
                     a.href = `https://ferris.uz/@${u.username}`;
