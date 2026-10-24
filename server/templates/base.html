@@ -205,6 +205,252 @@
             margin: 1rem 0;
         }
     </style>
+    <script>
+        // ==============================================================================
+        // FERRIS CLIENT-SIDE TRANSLATION SYSTEM (UZ / EN)
+        // Auto-detect browser language, persist in localStorage ('ferris_lang')
+        // ==============================================================================
+        const FERRIS_I18N = {
+            uz: {
+                nav_topics: "Mavzular",
+                nav_groups: "Jamiyatlar",
+                nav_book: "Rust Kitobi",
+                nav_search_placeholder: "Mavzular, jamiyatlar, kodlar...",
+                nav_login: "Kirish",
+                nav_dm_title: "Shaxsiy Xabarlar (DM)",
+                nav_profile: "Mening Profilim",
+                nav_logout: "Chiqish",
+                drawer_search: "Tezkor Qidiruv",
+                drawer_lang_label: "Til / Language",
+                drawer_topics: "topics.ferris.uz (Mavzular)",
+                drawer_groups: "groups.ferris.uz (Jamiyatlar)",
+                drawer_book: "doc.ferris.uz (Rust Kitobi)",
+                drawer_dm: "Shaxsiy Xabarlar (DM)",
+                drawer_profile: "Mening Profilim",
+                drawer_install: "ferris-cli O'rnatish",
+                drawer_playground: "Rust Kod Playground",
+                drawer_api: "api.ferris.uz (JSON API)",
+                footer_ecosystem: "Rust Uzbekistan Rasmiy Ekotizimi",
+                footer_profile: "Profil",
+                footer_privacy: "Maxfiylik Siyosati",
+                footer_terms: "Foydalanish Qoidalari",
+                floating_dm_text: "Shaxsiy Chat",
+                search_modal_placeholder: "Mavzular, muhokamalar, jamiyatlar yoki dasturchilarni qidiring...",
+                search_modal_title: "Platforma bo'ylab tezkor qidiruv",
+                search_modal_hint: "Kamida 2 ta belgi kiriting yoki toifalardan birini tanlang",
+                search_cat_topics: "Mavzular",
+                search_cat_posts: "Muhokamalar va Postlar",
+                search_cat_groups: "Jamiyatlar (Communities)",
+                search_cat_users: "Dasturchilar",
+
+                // Index Hero & Badges
+                hero_badge_tag: "RUST UZBEKISTAN RASMIY EKOTIZIMI",
+                hero_badge_v030: "v0.3.0 — Pre-Commit Secret Guardian & Landlock Enclave",
+                hero_h1_systems: "Tizimli Dasturlash.",
+                hero_h1_memory: "Xotira Xavfsizligi.",
+                hero_h1_speed: "Maksimal Tezlik.",
+                hero_subtitle: "Garbage Collector kechikishlarisiz, toza xotira va yuqori RPS. O'zbekiston Rustaceanlari forumi, faol jamiyatlar va rasmiy ferris-cli Linux Security Enclave vositasi.",
+                hero_btn_install: "ferris-cli O'rnatish",
+                hero_btn_forum: "Mavzular & Forum →",
+                btn_copy: "Nusxa",
+                btn_copied: "Nusxalandi!",
+                btn_copy_cmd: "Nusxa olish",
+
+                // Terminal
+                terminal_badge: "v0.3.0 — Pre-Commit Secret Guardian & Landlock Enclave",
+                terminal_scan_btn: "ferris scan",
+                terminal_vault_btn: "ferris vault",
+                terminal_run_btn: "ferris run",
+
+                // Subdomains Hub
+                subdomain_tag: "Cloud Ecosystem",
+                subdomain_title: "Ferris.uz Subdomenlar Tizimi",
+                subdomain_desc: "Har bir yo'nalish alohida subdomen, yuqori RPS va mustaqil servislar orqali ta'minlangan",
+                card_topics_title: "Mavzular & Forum",
+                card_topics_desc: "f/rust, f/async, f/systems va f/quantum yo'nalishlarida chuqur texnik maqolalar va ochiq muhokamalar.",
+                card_topics_action: "Mavzularga o'tish",
+                card_groups_title: "Jamiyatlar & Guruhlar",
+                card_groups_desc: "Rustacean to'garaklari, hududiy meetup guruhlari va ochiq manbali loyihalar katalogi. Yangi jamiyat ochish va birlashish maydoni.",
+                card_groups_action: "Jamiyatlarni ko'rish",
+                card_api_title: "REST & WebSocket API",
+                card_api_desc: "Axum va Tokio asosidagi ultra-tezkor Rust backend. Barcha subdomenlar va rasmiy ferris-cli uchun yagona asinxron miya.",
+                card_api_action: "API Context ko'rish",
+
+                // CLI Section
+                cli_section_tag: "Linux Security Enclave & Vault",
+                cli_section_title: "ferris-cli — Terminal Vositasini O'rnatish",
+                cli_section_desc: "Linux Landlock LSM yadroviy qamali, ChaCha20-Poly1305 sirlar ombori va Zero-Trust tarmoq izolyatsiyasiga ega rasmiy terminal ilovasi (v0.3.0).",
+
+                // Playground
+                playground_tag: "Interactive Lab",
+                playground_title: "Rust Kod Laboratoriyasi",
+                playground_desc: "Brauzeringizda real rustc kompilyatorida kod yozing va ishga tushiring",
+                playground_run_btn: "Kodni Sinash"
+            },
+            en: {
+                nav_topics: "Topics",
+                nav_groups: "Communities",
+                nav_book: "Rust Book",
+                nav_search_placeholder: "Topics, communities, code...",
+                nav_login: "Sign In",
+                nav_dm_title: "Direct Messages (DM)",
+                nav_profile: "My Profile",
+                nav_logout: "Sign Out",
+                drawer_search: "Quick Search",
+                drawer_lang_label: "Language / Til",
+                drawer_topics: "topics.ferris.uz (Topics)",
+                drawer_groups: "groups.ferris.uz (Communities)",
+                drawer_book: "doc.ferris.uz (Rust Book)",
+                drawer_dm: "Direct Messages (DM)",
+                drawer_profile: "My Profile",
+                drawer_install: "Install ferris-cli",
+                drawer_playground: "Rust Code Playground",
+                drawer_api: "api.ferris.uz (JSON API)",
+                footer_ecosystem: "Official Rust Uzbekistan Ecosystem",
+                footer_profile: "Profile",
+                footer_privacy: "Privacy Policy",
+                footer_terms: "Terms of Service",
+                floating_dm_text: "Direct Chat",
+                search_modal_placeholder: "Search topics, discussions, communities or developers...",
+                search_modal_title: "Instant search across platform",
+                search_modal_hint: "Type at least 2 characters or pick a topic",
+                search_cat_topics: "Topics",
+                search_cat_posts: "Discussions & Posts",
+                search_cat_groups: "Communities",
+                search_cat_users: "Developers",
+
+                // Index Hero & Badges
+                hero_badge_tag: "OFFICIAL RUST UZBEKISTAN ECOSYSTEM",
+                hero_badge_v030: "v0.3.0 — Pre-Commit Secret Guardian & Landlock Enclave",
+                hero_h1_systems: "Systems Programming.",
+                hero_h1_memory: "Memory Safety.",
+                hero_h1_speed: "Maximum Speed.",
+                hero_subtitle: "Zero Garbage Collector pauses, guaranteed memory safety, and maximum RPS. The official community forum for Uzbek Rustaceans, active hubs, and the official ferris-cli Linux Security Enclave.",
+                hero_btn_install: "Install ferris-cli",
+                hero_btn_forum: "Topics & Forum →",
+                btn_copy: "Copy",
+                btn_copied: "Copied!",
+                btn_copy_cmd: "Copy command",
+
+                // Terminal
+                terminal_badge: "v0.3.0 — Pre-Commit Secret Guardian & Landlock Enclave",
+                terminal_scan_btn: "ferris scan",
+                terminal_vault_btn: "ferris vault",
+                terminal_run_btn: "ferris run",
+
+                // Subdomains Hub
+                subdomain_tag: "Cloud Ecosystem",
+                subdomain_title: "Ferris.uz Subdomain Architecture",
+                subdomain_desc: "Every domain powered by dedicated microservices, ultra-low latency, and high RPS",
+                card_topics_title: "Topics & Forum",
+                card_topics_desc: "In-depth technical articles and open discussions across f/rust, f/async, f/systems, and f/quantum.",
+                card_topics_action: "Explore Topics",
+                card_groups_title: "Communities & Groups",
+                card_groups_desc: "Rustacean student clubs, regional meetup groups, and open-source directory. Launch your community.",
+                card_groups_action: "Explore Communities",
+                card_api_title: "REST & WebSocket API",
+                card_api_desc: "Ultra-fast Rust backend built on Axum & Tokio. The unified asynchronous core for all subdomains and ferris-cli.",
+                card_api_action: "View API Context",
+
+                // CLI Section
+                cli_section_tag: "Linux Security Enclave & Vault",
+                cli_section_title: "ferris-cli — Developer Security Terminal",
+                cli_section_desc: "Official developer CLI featuring Linux Landlock LSM kernel sandbox, ChaCha20-Poly1305 vault, and Zero-Trust network isolation (v0.3.0).",
+
+                // Playground
+                playground_tag: "Interactive Lab",
+                playground_title: "Rust Code Playground",
+                playground_desc: "Write, compile, and run real Rust code in your browser with real rustc",
+                playground_run_btn: "Run Code"
+            }
+        };
+
+        function getPreferredLanguage() {
+            const saved = localStorage.getItem('ferris_lang');
+            if (saved === 'uz' || saved === 'en') return saved;
+            const navLang = (navigator.languages && navigator.languages.length ? navigator.languages[0] : (navigator.language || '')).toLowerCase();
+            return navLang.startsWith('uz') ? 'uz' : 'en';
+        }
+
+        function setLanguage(lang) {
+            if (lang !== 'uz' && lang !== 'en') lang = 'uz';
+            localStorage.setItem('ferris_lang', lang);
+            document.documentElement.lang = lang;
+
+            // Update Navbar Toggle Button
+            const uzLabel = document.getElementById('langUzLabel');
+            const enLabel = document.getElementById('langEnLabel');
+            if (uzLabel && enLabel) {
+                if (lang === 'uz') {
+                    uzLabel.className = 'font-bold text-brand-orange transition-colors';
+                    enLabel.className = 'text-zinc-400 hover:text-white transition-colors';
+                } else {
+                    uzLabel.className = 'text-zinc-400 hover:text-white transition-colors';
+                    enLabel.className = 'font-bold text-brand-orange transition-colors';
+                }
+            }
+
+            // Update Drawer Switcher
+            const dUz = document.getElementById('drawerLangUz');
+            const dEn = document.getElementById('drawerLangEn');
+            if (dUz && dEn) {
+                if (lang === 'uz') {
+                    dUz.className = 'px-2.5 py-1 rounded-lg bg-brand-orange text-white font-bold transition-all cursor-pointer';
+                    dEn.className = 'px-2.5 py-1 rounded-lg bg-zinc-800 text-zinc-400 hover:text-white transition-all cursor-pointer';
+                } else {
+                    dUz.className = 'px-2.5 py-1 rounded-lg bg-zinc-800 text-zinc-400 hover:text-white transition-all cursor-pointer';
+                    dEn.className = 'px-2.5 py-1 rounded-lg bg-brand-orange text-white font-bold transition-all cursor-pointer';
+                }
+            }
+
+            // Apply to all [data-i18n]
+            const dict = FERRIS_I18N[lang] || FERRIS_I18N.uz;
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                const key = el.getAttribute('data-i18n');
+                if (dict[key] !== undefined) {
+                    el.textContent = dict[key];
+                }
+            });
+
+            // Apply to [data-i18n-placeholder]
+            document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+                const key = el.getAttribute('data-i18n-placeholder');
+                if (dict[key] !== undefined) {
+                    el.placeholder = dict[key];
+                }
+            });
+
+            // Apply to [data-i18n-title]
+            document.querySelectorAll('[data-i18n-title]').forEach(el => {
+                const key = el.getAttribute('data-i18n-title');
+                if (dict[key] !== undefined) {
+                    el.title = dict[key];
+                }
+            });
+
+            // Apply bilingual terminal text
+            document.querySelectorAll('[data-lang-uz]').forEach(el => {
+                const text = lang === 'uz' ? el.getAttribute('data-lang-uz') : el.getAttribute('data-lang-en');
+                if (text) el.textContent = text;
+            });
+
+            window.dispatchEvent(new CustomEvent('ferris:lang-changed', { detail: { lang } }));
+        }
+
+        function toggleLanguage() {
+            const current = localStorage.getItem('ferris_lang') || getPreferredLanguage();
+            const next = current === 'uz' ? 'en' : 'uz';
+            setLanguage(next);
+        }
+
+        // Initialize immediately
+        try {
+            document.documentElement.lang = getPreferredLanguage();
+        } catch(e) {}
+        window.addEventListener('DOMContentLoaded', () => {
+            setLanguage(getPreferredLanguage());
+        });
+    </script>
     {% block extra_head %}{% endblock %}
 </head>
 <body class="bg-black text-zinc-100 font-sans antialiased min-h-screen flex flex-col relative selection:bg-brand-orange selection:text-white">
@@ -228,13 +474,13 @@
                 <!-- Core Navigation Links -->
                 <nav class="hidden md:flex items-center gap-5 text-sm font-medium text-zinc-400">
                     <a href="https://topics.ferris.uz" class="hover:text-white transition-colors flex items-center gap-1.5 py-1 whitespace-nowrap">
-                        <i data-lucide="layers" class="w-4 h-4 text-brand-orange"></i> <span>Mavzular</span>
+                        <i data-lucide="layers" class="w-4 h-4 text-brand-orange"></i> <span data-i18n="nav_topics">Mavzular</span>
                     </a>
                     <a href="https://groups.ferris.uz" class="hover:text-white transition-colors flex items-center gap-1.5 py-1 whitespace-nowrap">
-                        <i data-lucide="users" class="w-4 h-4 text-emerald-400"></i> <span>Jamiyatlar</span>
+                        <i data-lucide="users" class="w-4 h-4 text-emerald-400"></i> <span data-i18n="nav_groups">Jamiyatlar</span>
                     </a>
                     <a href="https://doc.ferris.uz" target="_blank" rel="noopener" class="hover:text-white transition-colors flex items-center gap-1.5 py-1 whitespace-nowrap">
-                        <i data-lucide="book-open" class="w-4 h-4 text-cyan-400"></i> <span>Rust Kitobi</span>
+                        <i data-lucide="book-open" class="w-4 h-4 text-cyan-400"></i> <span data-i18n="nav_book">Rust Kitobi</span>
                     </a>
                 </nav>
             </div>
@@ -244,7 +490,7 @@
                 <button onclick="openSearchModal()" class="w-full flex items-center justify-between px-3.5 py-2 text-xs rounded-xl bg-zinc-900/80 hover:bg-zinc-800 border border-white/10 hover:border-brand-orange/40 text-zinc-400 hover:text-white transition-all shadow-sm group cursor-pointer text-left">
                     <span class="flex items-center gap-2.5 truncate">
                         <i data-lucide="search" class="w-4 h-4 text-zinc-400 group-hover:text-brand-orange transition-colors shrink-0"></i>
-                        <span class="truncate">Mavzular, jamiyatlar, kodlar...</span>
+                        <span class="truncate" data-i18n="nav_search_placeholder">Mavzular, jamiyatlar, kodlar...</span>
                     </span>
                     <kbd class="hidden md:inline-block px-1.5 py-0.5 text-[10px] font-mono text-zinc-500 bg-black/60 border border-white/10 rounded shrink-0">Ctrl+K</kbd>
                 </button>
@@ -255,6 +501,14 @@
                 <!-- Mobile Search Trigger Button -->
                 <button onclick="openSearchModal()" class="sm:hidden p-2 rounded-xl text-zinc-400 hover:text-white hover:bg-zinc-900 border border-white/10 transition-colors" title="Qidiruv">
                     <i data-lucide="search" class="w-4 h-4 text-brand-orange"></i>
+                </button>
+
+                <!-- Modern UZ / EN Language Switcher Toggle Button -->
+                <button id="langToggleBtn" onclick="toggleLanguage()" class="px-2.5 py-1.5 rounded-xl bg-zinc-900/90 hover:bg-zinc-800 border border-white/15 hover:border-brand-orange/40 text-xs font-mono transition-all flex items-center gap-1.5 cursor-pointer select-none group shadow-sm" title="Tilni almashtirish / Switch language (UZ / EN)" aria-label="Switch Language">
+                    <i data-lucide="globe" class="w-3.5 h-3.5 text-zinc-400 group-hover:text-brand-orange transition-colors"></i>
+                    <span id="langUzLabel" class="text-brand-orange font-bold transition-colors">UZ</span>
+                    <span class="text-zinc-600 font-sans text-[11px]">|</span>
+                    <span id="langEnLabel" class="text-zinc-400 hover:text-white transition-colors">EN</span>
                 </button>
 
                 <!-- ferris-cli Download Badge -->
@@ -273,7 +527,7 @@
                     <!-- State: Logged Out -->
                     <button id="navLoginBtn" onclick="openAuthModal()" class="inline-flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-semibold rounded-xl bg-brand-orange hover:bg-orange-600 text-white transition-all shadow-sm whitespace-nowrap cursor-pointer">
                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"></path></svg>
-                        <span>Kirish</span>
+                        <span data-i18n="nav_login">Kirish</span>
                     </button>
 
                     <!-- State: Logged In -->
@@ -332,37 +586,49 @@
     <!-- Mobile Drawer -->
     <div id="mobileDrawer" class="hidden lg:hidden fixed inset-x-0 top-16 bg-zinc-950/98 backdrop-blur-2xl border-b border-white/10 px-5 py-6 z-40 transition-all max-h-[calc(100vh-4rem)] overflow-y-auto">
         <div class="flex flex-col gap-3 text-sm font-medium">
+            <!-- Mobile Language Switcher -->
+            <div class="flex items-center justify-between p-2.5 rounded-xl bg-zinc-900/80 border border-white/10">
+                <span class="flex items-center gap-2.5 text-zinc-300">
+                    <i data-lucide="globe" class="w-4 h-4 text-brand-orange"></i>
+                    <span data-i18n="drawer_lang_label">Til / Language</span>
+                </span>
+                <div class="flex items-center gap-1 font-mono text-xs">
+                    <button onclick="setLanguage('uz')" id="drawerLangUz" class="px-2.5 py-1 rounded-lg bg-brand-orange text-white font-bold transition-all cursor-pointer">UZ</button>
+                    <button onclick="setLanguage('en')" id="drawerLangEn" class="px-2.5 py-1 rounded-lg bg-zinc-800 text-zinc-400 hover:text-white transition-all cursor-pointer">EN</button>
+                </div>
+            </div>
+
             <button onclick="openSearchModal(); document.getElementById('mobileDrawer').classList.add('hidden');" class="text-zinc-200 hover:text-white flex items-center justify-between p-2.5 rounded-xl bg-zinc-900/80 border border-white/10 hover:border-brand-orange/40 transition-all text-left">
-                <span class="flex items-center gap-2.5"><i data-lucide="search" class="w-4 h-4 text-brand-orange"></i> Tezkor Qidiruv</span>
+                <span class="flex items-center gap-2.5"><i data-lucide="search" class="w-4 h-4 text-brand-orange"></i> <span data-i18n="drawer_search">Tezkor Qidiruv</span></span>
                 <span class="text-xs font-mono text-zinc-400 bg-black/60 px-2 py-0.5 rounded border border-white/10">Ctrl+K</span>
             </button>
             <a href="https://topics.ferris.uz" class="text-zinc-200 hover:text-white flex items-center justify-between p-2.5 rounded-xl hover:bg-zinc-900/60 border border-transparent hover:border-white/5 transition-all">
-                <span class="flex items-center gap-2.5"><i data-lucide="layers" class="w-4 h-4 text-brand-orange"></i> topics.ferris.uz (Mavzular)</span>
+                <span class="flex items-center gap-2.5"><i data-lucide="layers" class="w-4 h-4 text-brand-orange"></i> <span data-i18n="drawer_topics">topics.ferris.uz (Mavzular)</span></span>
                 <span class="text-xs font-mono text-brand-orange bg-brand-orange/10 px-2 py-0.5 rounded-md">Forum &rarr;</span>
             </a>
             <a href="https://groups.ferris.uz" class="text-zinc-200 hover:text-white flex items-center justify-between p-2.5 rounded-xl hover:bg-zinc-900/60 border border-transparent hover:border-white/5 transition-all">
-                <span class="flex items-center gap-2.5"><i data-lucide="users" class="w-4 h-4 text-emerald-400"></i> groups.ferris.uz (Jamiyatlar)</span>
+                <span class="flex items-center gap-2.5"><i data-lucide="users" class="w-4 h-4 text-emerald-400"></i> <span data-i18n="drawer_groups">groups.ferris.uz (Jamiyatlar)</span></span>
                 <span class="text-xs font-mono text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-md">Katalog &rarr;</span>
             </a>
             <a href="https://doc.ferris.uz" target="_blank" rel="noopener" class="text-zinc-200 hover:text-white flex items-center justify-between p-2.5 rounded-xl hover:bg-zinc-900/60 border border-transparent hover:border-white/5 transition-all">
-                <span class="flex items-center gap-2.5"><i data-lucide="book-open" class="w-4 h-4 text-cyan-400"></i> doc.ferris.uz (Rust Kitobi)</span>
+                <span class="flex items-center gap-2.5"><i data-lucide="book-open" class="w-4 h-4 text-cyan-400"></i> <span data-i18n="drawer_book">doc.ferris.uz (Rust Kitobi)</span></span>
                 <span class="text-xs font-mono text-cyan-400 bg-cyan-500/10 px-2 py-0.5 rounded-md">O'zbekcha &rarr;</span>
             </a>
             <button onclick="toggleDmDrawer()" class="text-left text-zinc-200 hover:text-white p-2.5 rounded-xl hover:bg-zinc-900/60 border border-transparent hover:border-white/5 flex items-center justify-between transition-all">
-                <span class="flex items-center gap-2.5"><i data-lucide="mail" class="w-4 h-4 text-cyan-400"></i> Shaxsiy Xabarlar (DM)</span>
+                <span class="flex items-center gap-2.5"><i data-lucide="mail" class="w-4 h-4 text-cyan-400"></i> <span data-i18n="drawer_dm">Shaxsiy Xabarlar (DM)</span></span>
                 <span class="text-xs font-mono text-cyan-400 bg-cyan-500/10 px-2 py-0.5 rounded-md">Jonli WS &rarr;</span>
             </button>
             <a href="https://ferris.uz/profile" id="mobileProfileLink" class="hidden text-zinc-200 hover:text-white p-2.5 rounded-xl hover:bg-zinc-900/60 border border-transparent hover:border-white/5">
-                <span class="flex items-center gap-2.5"><i data-lucide="user" class="w-4 h-4 text-zinc-400"></i> Mening Profilim</span>
+                <span class="flex items-center gap-2.5"><i data-lucide="user" class="w-4 h-4 text-zinc-400"></i> <span data-i18n="drawer_profile">Mening Profilim</span></span>
             </a>
             <a href="https://ferris.uz#cli-download" class="text-zinc-200 hover:text-white p-2.5 rounded-xl hover:bg-zinc-900/60 border border-transparent hover:border-white/5">
-                <span class="flex items-center gap-2.5"><i data-lucide="terminal" class="w-4 h-4 text-zinc-400"></i> ferris-cli O'rnatish</span>
+                <span class="flex items-center gap-2.5"><i data-lucide="terminal" class="w-4 h-4 text-zinc-400"></i> <span data-i18n="drawer_install">ferris-cli O'rnatish</span></span>
             </a>
             <a href="https://ferris.uz#playground" class="text-zinc-200 hover:text-white p-2.5 rounded-xl hover:bg-zinc-900/60 border border-transparent hover:border-white/5">
-                <span class="flex items-center gap-2.5"><i data-lucide="play" class="w-4 h-4 text-brand-orange"></i> Rust Kod Playground</span>
+                <span class="flex items-center gap-2.5"><i data-lucide="play" class="w-4 h-4 text-brand-orange"></i> <span data-i18n="drawer_playground">Rust Kod Playground</span></span>
             </a>
             <a href="https://api.ferris.uz/api/v1/context" target="_blank" class="text-zinc-200 hover:text-white p-2.5 rounded-xl hover:bg-zinc-900/60 border border-transparent hover:border-white/5 flex items-center justify-between">
-                <span class="flex items-center gap-2.5"><i data-lucide="cpu" class="w-4 h-4 text-cyan-400"></i> api.ferris.uz (JSON API)</span>
+                <span class="flex items-center gap-2.5"><i data-lucide="cpu" class="w-4 h-4 text-cyan-400"></i> <span data-i18n="drawer_api">api.ferris.uz (JSON API)</span></span>
                 <span class="text-xs font-mono text-zinc-500">v1 &rarr;</span>
             </a>
             <a href="https://github.com/rust-uz/ferris" target="_blank" rel="noopener" class="text-zinc-200 hover:text-white p-2.5 rounded-xl hover:bg-zinc-900/60 border border-transparent hover:border-white/5 flex items-center justify-between mt-2 pt-3 border-t border-white/5">
@@ -387,14 +653,14 @@
                 <img src="/logo.png" alt="Ferris" class="w-6 h-6 rounded-md object-contain border border-white/10 bg-zinc-900 p-0.5 opacity-80"/>
                 <span class="text-zinc-200 font-bold font-sans tracking-wide">FERRIS.UZ</span>
                 <span class="hidden sm:inline text-zinc-600">&bull;</span>
-                <span class="text-zinc-400">Rust Uzbekistan Rasmiy Ekotizimi</span>
+                <span class="text-zinc-400" data-i18n="footer_ecosystem">Rust Uzbekistan Rasmiy Ekotizimi</span>
             </div>
             <div class="flex flex-wrap items-center justify-center gap-x-6 gap-y-2">
                 <a href="https://topics.ferris.uz" class="hover:text-zinc-300 transition-colors">topics.ferris.uz</a>
                 <a href="https://groups.ferris.uz" class="hover:text-zinc-300 transition-colors">groups.ferris.uz</a>
-                <a href="https://ferris.uz/profile" class="hover:text-zinc-300 transition-colors">Profil</a>
-                <a href="https://ferris.uz/privacy" class="hover:text-zinc-300 transition-colors text-zinc-400 font-sans">Maxfiylik Siyosati</a>
-                <a href="https://ferris.uz/terms" class="hover:text-zinc-300 transition-colors text-zinc-400 font-sans">Foydalanish Qoidalari</a>
+                <a href="https://ferris.uz/profile" class="hover:text-zinc-300 transition-colors" data-i18n="footer_profile">Profil</a>
+                <a href="https://ferris.uz/privacy" class="hover:text-zinc-300 transition-colors text-zinc-400 font-sans" data-i18n="footer_privacy">Maxfiylik Siyosati</a>
+                <a href="https://ferris.uz/terms" class="hover:text-zinc-300 transition-colors text-zinc-400 font-sans" data-i18n="footer_terms">Foydalanish Qoidalari</a>
                 <a href="https://api.ferris.uz/api/v1/context" class="hover:text-zinc-300 transition-colors">api.ferris.uz</a>
                 <a href="https://github.com/rust-uz/ferris" target="_blank" rel="noopener" class="hover:text-amber-400 transition-colors flex items-center gap-1.5 font-sans">
                     <svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
@@ -410,7 +676,7 @@
     <!-- Floating DM Launcher Button -->
     <button id="floatingDmBtn" onclick="toggleDmDrawer()" class="fixed bottom-6 right-6 z-40 flex items-center gap-2 px-3.5 py-2.5 rounded-2xl bg-zinc-950/90 hover:bg-zinc-900 border border-brand-orange/40 text-white font-medium text-xs shadow-2xl backdrop-blur-lg transition-all hover:scale-105 group" title="Shaxsiy Xabarlar (DM)">
         <i data-lucide="mail" class="w-4 h-4 text-brand-orange group-hover:scale-110 transition-transform"></i>
-        <span class="font-semibold font-mono hidden sm:inline">Shaxsiy Chat</span>
+        <span class="font-semibold font-mono hidden sm:inline" data-i18n="floating_dm_text">Shaxsiy Chat</span>
         <span id="floatingDmBadge" class="hidden w-2 h-2 rounded-full bg-brand-orange animate-ping"></span>
     </button>
 
@@ -1292,7 +1558,7 @@
             <!-- Search Input Header -->
             <div class="flex items-center gap-3 px-4 py-3.5 border-b border-white/10 bg-zinc-900/60">
                 <i data-lucide="search" class="w-5 h-5 text-brand-orange shrink-0"></i>
-                <input id="globalSearchInput" type="text" autocomplete="off" placeholder="Mavzular, muhokamalar, jamiyatlar yoki dasturchilarni qidiring..." class="w-full bg-transparent text-sm sm:text-base text-white placeholder-zinc-500 focus:outline-none font-sans" oninput="handleGlobalSearchInput(this.value)">
+                <input id="globalSearchInput" type="text" autocomplete="off" placeholder="Mavzular, muhokamalar, jamiyatlar yoki dasturchilarni qidiring..." data-i18n-placeholder="search_modal_placeholder" class="w-full bg-transparent text-sm sm:text-base text-white placeholder-zinc-500 focus:outline-none font-sans" oninput="handleGlobalSearchInput(this.value)">
                 <span id="searchSpinner" class="hidden shrink-0"><span class="w-4 h-4 border-2 border-brand-orange border-t-transparent rounded-full animate-spin inline-block"></span></span>
                 <kbd class="hidden sm:inline-block px-2 py-0.5 text-[11px] font-mono text-zinc-400 bg-zinc-800/80 border border-white/10 rounded cursor-pointer shrink-0" onclick="closeSearchModal()">ESC</kbd>
                 <button onclick="closeSearchModal()" class="sm:hidden text-zinc-400 hover:text-white p-1 text-xl leading-none">&times;</button>
@@ -1303,8 +1569,8 @@
                 <!-- Empty state placeholder -->
                 <div id="searchEmptyState" class="py-10 text-center text-xs text-zinc-500 font-sans">
                     <i data-lucide="compass" class="w-8 h-8 text-zinc-600 mx-auto mb-2 opacity-60"></i>
-                    <p class="text-zinc-400 font-medium text-sm">Platforma bo'ylab tezkor qidiruv</p>
-                    <p class="text-zinc-500 mt-1">Kamida 2 ta belgi kiriting yoki toifalardan birini tanlang</p>
+                    <p class="text-zinc-400 font-medium text-sm" data-i18n="search_modal_title">Platforma bo'ylab tezkor qidiruv</p>
+                    <p class="text-zinc-500 mt-1" data-i18n="search_modal_hint">Kamida 2 ta belgi kiriting yoki toifalardan birini tanlang</p>
                     <div class="flex items-center justify-center gap-2 mt-4 text-[11px] font-mono">
                         <span class="px-2 py-0.5 rounded bg-zinc-900 border border-white/10 text-zinc-400">f/rust</span>
                         <span class="px-2 py-0.5 rounded bg-zinc-900 border border-white/10 text-zinc-400">async</span>

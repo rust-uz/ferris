@@ -3,12 +3,17 @@
 {% block content %}
 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-16 md:py-24 flex flex-col gap-20 sm:gap-28">
 
-    <!-- 1. HERO SECTION -->
+    <!-- 1. HERO SECTION & INTERACTIVE CLI v0.3.0 SHOWCASE -->
     <section class="text-center flex flex-col items-center max-w-4xl mx-auto">
         <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-zinc-900/90 border border-white/15 text-xs font-mono text-zinc-300 mb-6 sm:mb-8 shadow-sm flex-wrap justify-center">
             <span class="flex items-center gap-2 text-zinc-200">
                 <span class="w-2 h-2 rounded-full bg-brand-orange animate-ping"></span>
-                <span class="tracking-wide">RUST UZBEKISTAN RASMIY EKOTIZIMI</span>
+                <span class="tracking-wide" data-i18n="hero_badge_tag">RUST UZBEKISTAN RASMIY EKOTIZIMI</span>
+            </span>
+            <span class="text-white/20 hidden sm:inline">&bull;</span>
+            <span class="text-brand-orange font-semibold flex items-center gap-1.5">
+                <i data-lucide="shield-check" class="w-3.5 h-3.5"></i>
+                <span data-i18n="hero_badge_v030">v0.3.0 — Pre-Commit Secret Guardian & Landlock Enclave</span>
             </span>
             <span class="text-white/20 hidden sm:inline">&bull;</span>
             <a href="https://github.com/rust-uz/ferris" target="_blank" rel="noopener" class="text-amber-400 hover:text-amber-300 flex items-center gap-1">
@@ -17,11 +22,11 @@
         </div>
 
         <h1 class="text-3xl sm:text-5xl md:text-6xl font-extrabold tracking-tight text-white leading-[1.12] mb-6 sm:mb-8">
-            Tizimli Dasturlash.<br class="hidden sm:inline"/>
-            <span class="bg-gradient-to-r from-brand-orange via-amber-400 to-orange-500 bg-clip-text text-transparent">Xotira Xavfsizligi.</span> Maksimal Tezlik.
+            <span data-i18n="hero_h1_systems">Tizimli Dasturlash.</span><br class="hidden sm:inline"/>
+            <span class="bg-gradient-to-r from-brand-orange via-amber-400 to-orange-500 bg-clip-text text-transparent" data-i18n="hero_h1_memory">Xotira Xavfsizligi.</span> <span data-i18n="hero_h1_speed">Maksimal Tezlik.</span>
         </h1>
 
-        <p class="text-sm sm:text-base md:text-lg text-zinc-400 leading-relaxed max-w-2xl mb-8 sm:mb-10 px-2">
+        <p class="text-sm sm:text-base md:text-lg text-zinc-400 leading-relaxed max-w-2xl mb-8 sm:mb-10 px-2" data-i18n="hero_subtitle">
             Garbage Collector kechikishlarisiz, toza xotira va yuqori RPS.
             O'zbekiston Rustaceanlari forumi, faol jamiyatlar va rasmiy <code class="text-brand-orange font-mono font-medium px-2 py-0.5 rounded-lg bg-zinc-900 border border-white/10">ferris-cli</code> Linux Security Enclave vositasi.
         </p>
@@ -29,12 +34,12 @@
         <div class="flex flex-col sm:flex-row items-center gap-3.5 w-full max-w-md sm:max-w-none justify-center mb-8 sm:mb-10">
             <a href="#cli-download" class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-2xl bg-brand-orange hover:bg-orange-600 text-white font-semibold text-sm transition-all shadow-xl shadow-orange-950/50 hover:scale-[1.02] active:scale-[0.98]">
                 <i data-lucide="terminal" class="w-4 h-4"></i>
-                <span>ferris-cli O'rnatish</span>
-                <span class="text-xs bg-black/20 px-2 py-0.5 rounded-md font-mono">v0.2.1</span>
+                <span data-i18n="hero_btn_install">ferris-cli O'rnatish</span>
+                <span class="text-xs bg-black/20 px-2 py-0.5 rounded-md font-mono">v0.3.0</span>
             </a>
             <a href="https://topics.ferris.uz" class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-2xl bg-zinc-900/80 hover:bg-zinc-800 border border-white/15 hover:border-white/25 text-white font-semibold text-sm transition-all shadow-sm hover:scale-[1.02] active:scale-[0.98]">
                 <i data-lucide="layers" class="w-4 h-4 text-brand-orange"></i>
-                <span>Mavzular & Forum &rarr;</span>
+                <span data-i18n="hero_btn_forum">Mavzular & Forum &rarr;</span>
             </a>
             <a href="https://github.com/rust-uz/ferris" target="_blank" rel="noopener" class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-2xl bg-zinc-900/40 hover:bg-zinc-900 border border-white/10 hover:border-white/20 text-zinc-300 hover:text-white font-semibold text-sm transition-all">
                 <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
@@ -45,19 +50,190 @@
         <!-- 1-Line Quick Install Bar -->
         <div class="w-full max-w-lg flex items-center justify-between gap-2.5 px-4 py-3 rounded-2xl bg-zinc-950/90 border border-white/15 font-mono text-xs text-zinc-300 shadow-inner group">
             <span class="text-emerald-400 select-none font-bold">$</span>
-            <code id="quickCmd" class="flex-grow text-left select-all truncate text-zinc-200">curl -fsSL https://ferris.uz/install.sh | sh</code>
-            <button onclick="copyText('curl -fsSL https://ferris.uz/install.sh | sh', this)" class="px-3 py-1.5 rounded-xl bg-zinc-900 hover:bg-zinc-800 border border-white/10 hover:border-white/20 text-zinc-200 text-xs transition-all shrink-0 font-sans active:scale-95">
-                Nusxa
+            <code id="quickCmd" class="flex-grow text-left select-all truncate text-zinc-200">curl -fsSL https://ferris.uz/install.sh | bash</code>
+            <button onclick="copyText('curl -fsSL https://ferris.uz/install.sh | bash', this)" class="px-3.5 py-1.5 rounded-xl bg-zinc-900 hover:bg-zinc-800 border border-white/10 hover:border-brand-orange/40 text-zinc-200 text-xs transition-all shrink-0 font-sans active:scale-95 flex items-center gap-1.5 cursor-pointer">
+                <i data-lucide="copy" class="w-3.5 h-3.5"></i>
+                <span class="copy-label" data-i18n="btn_copy">Nusxa</span>
             </button>
+        </div>
+
+        <!-- FERRIS CLI v0.3.0 INTERACTIVE TERMINAL BLOCK -->
+        <div class="w-full max-w-4xl mx-auto mt-10 rounded-2xl sm:rounded-3xl bg-zinc-950/95 border border-white/15 overflow-hidden shadow-2xl font-mono text-xs text-left">
+            <!-- Terminal Header / Titlebar -->
+            <div class="flex flex-wrap items-center justify-between px-4 py-3 bg-zinc-900/90 border-b border-white/10 gap-3">
+                <!-- Left: macOS Window Traffic Lights & Command Tabs -->
+                <div class="flex items-center gap-3">
+                    <div class="flex items-center gap-1.5 shrink-0 select-none">
+                        <span class="w-3 h-3 rounded-full bg-rose-500/80 inline-block shadow-sm"></span>
+                        <span class="w-3 h-3 rounded-full bg-amber-500/80 inline-block shadow-sm"></span>
+                        <span class="w-3 h-3 rounded-full bg-emerald-500/80 inline-block shadow-sm"></span>
+                    </div>
+                    <!-- Command Tabs -->
+                    <div class="flex items-center gap-1 bg-black/60 p-1 rounded-xl border border-white/10 text-xs">
+                        <button onclick="switchCliTab('scan')" id="cli-tab-btn-scan" class="cli-cmd-tab px-3 py-1.5 rounded-lg bg-brand-orange text-white font-semibold transition-all flex items-center gap-1.5 cursor-pointer shadow-sm">
+                            <i data-lucide="shield-alert" class="w-3.5 h-3.5"></i>
+                            <span data-i18n="terminal_scan_btn">ferris scan</span>
+                        </button>
+                        <button onclick="switchCliTab('vault')" id="cli-tab-btn-vault" class="cli-cmd-tab px-3 py-1.5 rounded-lg text-zinc-400 hover:text-white transition-all flex items-center gap-1.5 cursor-pointer">
+                            <i data-lucide="lock" class="w-3.5 h-3.5"></i>
+                            <span data-i18n="terminal_vault_btn">ferris vault</span>
+                        </button>
+                        <button onclick="switchCliTab('run')" id="cli-tab-btn-run" class="cli-cmd-tab px-3 py-1.5 rounded-lg text-zinc-400 hover:text-white transition-all flex items-center gap-1.5 cursor-pointer">
+                            <i data-lucide="cpu" class="w-3.5 h-3.5"></i>
+                            <span data-i18n="terminal_run_btn">ferris run</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Right: v0.3.0 Badge & Quick Copy Button -->
+                <div class="flex items-center gap-2.5 ml-auto">
+                    <span class="hidden sm:inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-orange-500/10 border border-orange-500/30 text-[11px] font-mono text-brand-orange font-semibold">
+                        <span class="w-1.5 h-1.5 rounded-full bg-brand-orange animate-ping"></span>
+                        <span data-i18n="terminal_badge">v0.3.0 — Pre-Commit Secret Guardian & Landlock Enclave</span>
+                    </span>
+                    <button onclick="copyText('curl -fsSL https://ferris.uz/install.sh | bash', this)" class="px-2.5 py-1.5 rounded-xl bg-zinc-800 hover:bg-zinc-700 border border-white/15 hover:border-brand-orange/40 text-[11px] text-zinc-200 hover:text-white transition-all flex items-center gap-1.5 cursor-pointer active:scale-95 shadow-sm" title="curl buyrug'ini nusxalash">
+                        <i data-lucide="copy" class="w-3 h-3 text-brand-orange"></i>
+                        <span class="copy-label font-sans font-medium" data-i18n="btn_copy_cmd">Nusxa olish</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Terminal Output Panels -->
+            <!-- Tab 1: ferris scan (Pre-Commit Secret Guardian) -->
+            <div id="cli-panel-scan" class="cli-cmd-panel p-5 sm:p-7 text-zinc-300 leading-relaxed overflow-x-auto space-y-3">
+                <div class="flex items-center justify-between text-[11px] text-zinc-500 pb-2 border-b border-white/5">
+                    <span class="flex items-center gap-2 text-zinc-400">
+                        <i data-lucide="git-commit" class="w-3.5 h-3.5 text-brand-orange"></i>
+                        <span>git commit pre-commit hook execution &bull; exit code 1</span>
+                    </span>
+                    <span class="font-mono text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">sub-10ms scan</span>
+                </div>
+                <p><span class="text-emerald-400 font-bold">$</span> <span class="text-white">git commit -m "feat: add payment gateway & AI assistant"</span></p>
+                <p class="text-cyan-400 pl-3 flex items-center gap-1.5">
+                    <i data-lucide="search" class="w-3.5 h-3.5"></i>
+                    <span data-lang-uz="🔍 [Ferris Secret Guardian] Git staged fayllar skaner qilinmoqda (Pre-Commit)..." data-lang-en="🔍 [Ferris Secret Guardian] Scanning git staged files (Pre-Commit Hook)...">🔍 [Ferris Secret Guardian] Git staged fayllar skaner qilinmoqda (Pre-Commit)...</span>
+                </p>
+                
+                <div class="pl-3 py-1">
+                    <p class="text-rose-400 font-bold flex items-center gap-1.5">
+                        <i data-lucide="alert-triangle" class="w-4 h-4"></i>
+                        <span data-lang-uz="🚨 [XAVF] 2 ta maxfiy kalit topildi! (Tekshiruv: 4ms, 6 ta fayl)" data-lang-en="🚨 [ALERT] 2 exposed secrets detected! (Duration: 4ms, 6 files scanned)">🚨 [XAVF] 2 ta maxfiy kalit topildi! (Tekshiruv: 4ms, 6 ta fayl)</span>
+                    </p>
+                    <div class="my-2 border-t border-rose-500/30"></div>
+                    
+                    <div class="space-y-2 text-xs">
+                        <div>
+                            <p class="text-amber-400 font-semibold">  1. OpenAI / Anthropic API Key <span class="text-zinc-500 font-normal">(Line 14)</span></p>
+                            <p class="pl-5 text-zinc-400">File:   <span class="text-cyan-300">src/services/ai.rs</span></p>
+                            <p class="pl-5 text-zinc-400">Secret: <span class="text-rose-400 font-bold bg-rose-500/10 px-1.5 py-0.5 rounded border border-rose-500/20">sk-proj-ab92****...****9f82</span></p>
+                            <p class="pl-5 text-zinc-500 font-mono">Code:   <span class="text-zinc-300">let client = OpenAI::new("sk-proj-ab92739481948194819481949f82");</span></p>
+                        </div>
+
+                        <div class="pt-1">
+                            <p class="text-amber-400 font-semibold">  2. AWS Access Key ID <span class="text-zinc-500 font-normal">(Line 8)</span></p>
+                            <p class="pl-5 text-zinc-400">File:   <span class="text-cyan-300">config/storage.env</span></p>
+                            <p class="pl-5 text-zinc-400">Secret: <span class="text-rose-400 font-bold bg-rose-500/10 px-1.5 py-0.5 rounded border border-rose-500/20">AKIAIOSFODNN7EXAMPLE</span></p>
+                            <p class="pl-5 text-zinc-500 font-mono">Code:   <span class="text-zinc-300">AWS_ACCESS_KEY_ID="AKIAIOSFODNN7EXAMPLE"</span></p>
+                        </div>
+                    </div>
+
+                    <div class="my-2 border-t border-rose-500/30"></div>
+                    <p class="text-rose-400 font-semibold" data-lang-uz="🚨 [Ferris Guardian] Commit to'xtatildi! Git tarixiga maxfiy kalit tushishining oldi olindi (Exit code 1)." data-lang-en="🚨 [Ferris Guardian] Commit blocked! Prevented credentials leak into git history (Exit code 1).">
+                        🚨 [Ferris Guardian] Commit to'xtatildi! Git tarixiga maxfiy kalit tushishining oldi olindi (Exit code 1).
+                    </p>
+                    <p class="text-amber-300 text-[11px] mt-1" data-lang-uz="💡 Tavsiya: Sirlarni .env faylida saqlang va 'ferris vault seal' bilan shifrlang!" data-lang-en="💡 Tip: Store credentials in .env and encrypt them using 'ferris vault seal'!">
+                        💡 Tavsiya: Sirlarni .env faylida saqlang va 'ferris vault seal' bilan shifrlang!
+                    </p>
+                </div>
+            </div>
+
+            <!-- Tab 2: ferris vault (ChaCha20-Poly1305 Zero-Disk Footprint) -->
+            <div id="cli-panel-vault" class="cli-cmd-panel hidden p-5 sm:p-7 text-zinc-300 leading-relaxed overflow-x-auto space-y-3">
+                <div class="flex items-center justify-between text-[11px] text-zinc-500 pb-2 border-b border-white/5">
+                    <span class="flex items-center gap-2 text-zinc-400">
+                        <i data-lucide="shield" class="w-3.5 h-3.5 text-brand-orange"></i>
+                        <span>Authenticated Encryption AEAD &bull; Zero-Disk Plaintext</span>
+                    </span>
+                    <span class="font-mono text-cyan-400 bg-cyan-500/10 px-2 py-0.5 rounded border border-cyan-500/20">BLAKE3 KDF + 256-bit AEAD</span>
+                </div>
+                <p><span class="text-emerald-400 font-bold">$</span> <span class="text-white">ferris vault seal</span></p>
+                <div class="pl-3 space-y-2">
+                    <p class="text-cyan-400 flex items-center gap-1.5">
+                        <i data-lucide="lock" class="w-3.5 h-3.5"></i>
+                        <span data-lang-uz="🔒 [Ferris Vault] .env fayli muhrlanmoqda..." data-lang-en="🔒 [Ferris Vault] Sealing .env secrets file...">🔒 [Ferris Vault] .env fayli muhrlanmoqda...</span>
+                    </p>
+                    <p class="text-zinc-300 pl-4" data-lang-uz="🔑 BLAKE3 KDF orqali apparat darajasidagi 256-bitli master kalit hosil qilindi." data-lang-en="🔑 Derived 256-bit machine-bound master key via BLAKE3 KDF.">🔑 BLAKE3 KDF orqali apparat darajasidagi 256-bitli master kalit hosil qilindi.</p>
+                    <div class="pl-4 text-xs space-y-1">
+                        <p class="text-zinc-400 font-semibold" data-lang-uz="🛡️ ChaCha20-Poly1305 AEAD shifrlash qo'llanildi:" data-lang-en="🛡️ ChaCha20-Poly1305 AEAD authenticated encryption applied:">🛡️ ChaCha20-Poly1305 AEAD shifrlash qo'llanildi:</p>
+                        <p class="pl-4 text-zinc-300">&bull; <span data-lang-uz="Manba:  .env (32 ta o'zgaruvchi, 1,420 bayt)" data-lang-en="Source: .env (32 environment variables, 1,420 bytes)">Manba:  .env (32 ta o'zgaruvchi, 1,420 bayt)</span></p>
+                        <p class="pl-4 text-zinc-300">&bull; <span data-lang-uz="Natija: .env.ferris (Zero-Knowledge Shifrlangan Ombor)" data-lang-en="Output: .env.ferris (Zero-Knowledge Sealed Vault)">Natija: .env.ferris (Zero-Knowledge Shifrlangan Ombor)</span></p>
+                    </div>
+                    <p class="text-emerald-400 pl-4 flex items-center gap-1.5">
+                        <i data-lucide="sparkles" class="w-3.5 h-3.5"></i>
+                        <span data-lang-uz="✨ [Zero-Disk Footprint] Asl .env fayli diskdan xavfsiz tozalandi (DoD 5220.22-M)." data-lang-en="✨ [Zero-Disk Footprint] Plaintext .env wiped from disk (DoD 5220.22-M secure erasure).">✨ [Zero-Disk Footprint] Asl .env fayli diskdan xavfsiz tozalandi (DoD 5220.22-M).</span>
+                    </p>
+                    <p class="text-emerald-300 font-semibold pl-4 flex items-center gap-1.5">
+                        <i data-lucide="check-circle" class="w-3.5 h-3.5 text-emerald-400"></i>
+                        <span data-lang-uz="✅ Muvaffaqiyatli: Sirlar diskda faqat shifrlangan holatda saqlanadi." data-lang-en="✅ Success: Credentials are now safely encrypted at rest.">✅ Muvaffaqiyatli: Sirlar diskda faqat shifrlangan holatda saqlanadi.</span>
+                    </p>
+                </div>
+
+                <div class="pt-2 border-t border-white/5">
+                    <p><span class="text-emerald-400 font-bold">$</span> <span class="text-white">ferris vault inspect</span></p>
+                    <p class="text-zinc-400 pl-3 pt-1 text-[11px]" data-lang-uz="📋 Ombor ichidagi kalitlar ro'yxati (qiymatlar oshkor etilmaydi):" data-lang-en="📋 Keys inside vault (values masked):">📋 Ombor ichidagi kalitlar ro'yxati (qiymatlar oshkor etilmaydi):</p>
+                    <div class="pl-6 text-zinc-300 text-[11px] grid grid-cols-2 sm:grid-cols-3 gap-1 pt-1 font-mono">
+                        <span class="text-cyan-300">&bull; DATABASE_URL</span>
+                        <span class="text-cyan-300">&bull; OPENAI_API_KEY</span>
+                        <span class="text-cyan-300">&bull; AWS_SECRET_KEY</span>
+                        <span class="text-cyan-300">&bull; JWT_SECRET</span>
+                        <span class="text-cyan-300">&bull; TELEGRAM_TOKEN</span>
+                        <span class="text-cyan-300">&bull; REDIS_PASSWORD</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab 3: ferris run (Landlock LSM Kernel Sandbox + RAM Secrets) -->
+            <div id="cli-panel-run" class="cli-cmd-panel hidden p-5 sm:p-7 text-zinc-300 leading-relaxed overflow-x-auto space-y-3">
+                <div class="flex items-center justify-between text-[11px] text-zinc-500 pb-2 border-b border-white/5">
+                    <span class="flex items-center gap-2 text-zinc-400">
+                        <i data-lucide="cpu" class="w-3.5 h-3.5 text-cyan-400"></i>
+                        <span>Linux Landlock LSM Enclave &bull; RAM-Only In-Memory Secrets</span>
+                    </span>
+                    <span class="font-mono text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">PR_SET_DUMPABLE=0</span>
+                </div>
+                <p><span class="text-emerald-400 font-bold">$</span> <span class="text-white">ferris run --allow-write ./logs -- python3 bot.py</span></p>
+                <div class="pl-3 space-y-2">
+                    <p class="text-cyan-400 flex items-center gap-1.5">
+                        <i data-lucide="shield-check" class="w-3.5 h-3.5"></i>
+                        <span data-lang-uz="🛡️ [Ferris Enclave v0.3.0] Yadro darajasidagi Landlock LSM faollashtirildi:" data-lang-en="🛡️ [Ferris Enclave v0.3.0] Kernel Landlock LSM sandbox initialized:">🛡️ [Ferris Enclave v0.3.0] Yadro darajasidagi Landlock LSM faollashtirildi:</span>
+                    </p>
+                    <div class="pl-4 text-xs space-y-1 text-zinc-300">
+                        <p>&bull; <span class="text-zinc-400" data-lang-uz="RAM Himoyasi:" data-lang-en="Memory Hardening:">RAM Himoyasi:</span> <code class="text-cyan-300">PR_SET_DUMPABLE=0</code> & <code class="text-cyan-300">RLIMIT_CORE=0</code> (<span data-lang-uz="/proc/pid/mem scraping bloklangan" data-lang-en="/proc/pid/mem scraping blocked">/proc/pid/mem scraping bloklangan</span>)</p>
+                        <p>&bull; <span class="text-zinc-400" data-lang-uz="Filesystem:" data-lang-en="Filesystem:">Filesystem:</span> <span class="text-emerald-300 font-semibold" data-lang-uz="Kod papkasi QAT'IY O'QISH (Read-Only) rejimida" data-lang-en="Project directory mounted strictly READ-ONLY">Kod papkasi QAT'IY O'QISH (Read-Only) rejimida</span></p>
+                        <p>&bull; <span class="text-zinc-400" data-lang-uz="Write Access:" data-lang-en="Write Access:">Write Access:</span> <span class="text-amber-300" data-lang-uz="Faqat ./logs/ katalogiga ruxsat berildi" data-lang-en="Explicitly granted to ./logs/ only">Faqat ./logs/ katalogiga ruxsat berildi</span></p>
+                        <p>&bull; <span class="text-zinc-400" data-lang-uz="Vault Secrets:" data-lang-en="Vault Secrets:">Vault Secrets:</span> <span data-lang-uz=".env.ferris faqat RAM xotiraga yuklandi (diskda ochilmadi)" data-lang-en=".env.ferris decrypted strictly into RAM (never unsealed on disk)">.env.ferris faqat RAM xotiraga yuklandi (diskda ochilmadi)</span></p>
+                    </div>
+                    <p class="text-emerald-400 pl-4 flex items-center gap-1.5 pt-1">
+                        <i data-lucide="zap" class="w-3.5 h-3.5"></i>
+                        <span class="font-bold">[Process Started]: python3 bot.py (PID: 418290)</span>
+                    </p>
+                    <p class="text-zinc-400 pl-6 text-xs font-mono">
+                        2026-10-24 23:28:12 [INFO] Telegram Bot successfully initialized with RAM token.
+                    </p>
+                    <p class="text-zinc-400 pl-6 text-xs font-mono">
+                        2026-10-24 23:28:12 [INFO] Secure enclave polling active. Zero secrets leaked.
+                    </p>
+                </div>
+            </div>
         </div>
     </section>
 
     <!-- 2. SUBDOMAINS ARCHITECTURE HUB -->
     <section>
         <div class="flex flex-col items-center text-center mb-10 sm:mb-12">
-            <span class="text-xs font-mono font-semibold text-brand-orange tracking-wider uppercase mb-2">Cloud Ecosystem</span>
-            <h2 class="text-2xl sm:text-3xl md:text-4xl font-bold tracking-tight text-white">Ferris.uz Subdomenlar Tizimi</h2>
-            <p class="text-xs sm:text-sm text-zinc-400 mt-2 max-w-xl">Har bir yo'nalish alohida subdomen, yuqori RPS va mustaqil servislar orqali ta'minlangan</p>
+            <span class="text-xs font-mono font-semibold text-brand-orange tracking-wider uppercase mb-2" data-i18n="subdomain_tag">Cloud Ecosystem</span>
+            <h2 class="text-2xl sm:text-3xl md:text-4xl font-bold tracking-tight text-white" data-i18n="subdomain_title">Ferris.uz Subdomenlar Tizimi</h2>
+            <p class="text-xs sm:text-sm text-zinc-400 mt-2 max-w-xl" data-i18n="subdomain_desc">Har bir yo'nalish alohida subdomen, yuqori RPS va mustaqil servislar orqali ta'minlangan</p>
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -69,12 +245,12 @@
                     </span>
                     <span class="text-xs font-mono text-amber-400 bg-amber-400/10 border border-amber-400/20 px-2.5 py-1 rounded-full">topics.ferris.uz</span>
                 </div>
-                <h3 class="text-lg sm:text-xl font-bold text-white group-hover:text-brand-orange transition-colors mb-2.5">Mavzular & Forum</h3>
-                <p class="text-xs sm:text-sm text-zinc-400 leading-relaxed flex-grow">
+                <h3 class="text-lg sm:text-xl font-bold text-white group-hover:text-brand-orange transition-colors mb-2.5" data-i18n="card_topics_title">Mavzular & Forum</h3>
+                <p class="text-xs sm:text-sm text-zinc-400 leading-relaxed flex-grow" data-i18n="card_topics_desc">
                     <code class="text-zinc-300 font-mono">f/rust</code>, <code class="text-zinc-300 font-mono">f/async</code>, <code class="text-zinc-300 font-mono">f/systems</code> va <code class="text-zinc-300 font-mono">f/quantum</code> yo'nalishlarida chuqur texnik maqolalar va ochiq muhokamalar.
                 </p>
                 <div class="mt-6 pt-4 border-t border-white/5 flex items-center justify-between text-xs font-semibold text-brand-orange">
-                    <span>Mavzularga o'tish</span>
+                    <span data-i18n="card_topics_action">Mavzularga o'tish</span>
                     <span class="group-hover:translate-x-1.5 transition-transform">&rarr;</span>
                 </div>
             </a>
@@ -87,12 +263,12 @@
                     </span>
                     <span class="text-xs font-mono text-emerald-400 bg-emerald-400/10 border border-emerald-400/20 px-2.5 py-1 rounded-full">groups.ferris.uz</span>
                 </div>
-                <h3 class="text-lg sm:text-xl font-bold text-white group-hover:text-emerald-400 transition-colors mb-2.5">Jamiyatlar & Guruhlar</h3>
-                <p class="text-xs sm:text-sm text-zinc-400 leading-relaxed flex-grow">
+                <h3 class="text-lg sm:text-xl font-bold text-white group-hover:text-emerald-400 transition-colors mb-2.5" data-i18n="card_groups_title">Jamiyatlar & Guruhlar</h3>
+                <p class="text-xs sm:text-sm text-zinc-400 leading-relaxed flex-grow" data-i18n="card_groups_desc">
                     Rustacean to'garaklari, hududiy meetup guruhlari va ochiq manbali loyihalar katalogi. Yangi jamiyat ochish va birlashish maydoni.
                 </p>
                 <div class="mt-6 pt-4 border-t border-white/5 flex items-center justify-between text-xs font-semibold text-emerald-400">
-                    <span>Jamiyatlarni ko'rish</span>
+                    <span data-i18n="card_groups_action">Jamiyatlarni ko'rish</span>
                     <span class="group-hover:translate-x-1.5 transition-transform">&rarr;</span>
                 </div>
             </a>
@@ -105,12 +281,12 @@
                     </span>
                     <span class="text-xs font-mono text-cyan-400 bg-cyan-400/10 border border-cyan-400/20 px-2.5 py-1 rounded-full">api.ferris.uz</span>
                 </div>
-                <h3 class="text-lg sm:text-xl font-bold text-white group-hover:text-cyan-400 transition-colors mb-2.5">REST & WebSocket API</h3>
-                <p class="text-xs sm:text-sm text-zinc-400 leading-relaxed flex-grow">
+                <h3 class="text-lg sm:text-xl font-bold text-white group-hover:text-cyan-400 transition-colors mb-2.5" data-i18n="card_api_title">REST & WebSocket API</h3>
+                <p class="text-xs sm:text-sm text-zinc-400 leading-relaxed flex-grow" data-i18n="card_api_desc">
                     Axum va Tokio asosidagi ultra-tezkor Rust backend. Barcha subdomenlar va rasmiy ferris-cli uchun yagona asinxron miya.
                 </p>
                 <div class="mt-6 pt-4 border-t border-white/5 flex items-center justify-between text-xs font-semibold text-cyan-400">
-                    <span>API Context ko'rish</span>
+                    <span data-i18n="card_api_action">API Context ko'rish</span>
                     <span class="group-hover:translate-x-1.5 transition-transform">&rarr;</span>
                 </div>
             </a>
@@ -123,47 +299,47 @@
             <div class="max-w-2xl">
                 <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-orange-500/10 border border-orange-500/20 text-xs font-mono text-brand-orange uppercase mb-3">
                     <i data-lucide="shield" class="w-3.5 h-3.5"></i>
-                    <span>Linux Security Enclave & Vault</span>
+                    <span data-i18n="cli_section_tag">Linux Security Enclave & Vault</span>
                 </div>
                 <h2 class="text-2xl sm:text-3xl md:text-4xl font-bold tracking-tight text-white flex items-center gap-3">
                     <i data-lucide="terminal" class="w-8 h-8 text-brand-orange shrink-0"></i>
-                    <span>ferris-cli — Terminal Vositasini O'rnatish</span>
+                    <span data-i18n="cli_section_title">ferris-cli — Terminal Vositasini O'rnatish</span>
                 </h2>
-                <p class="text-xs sm:text-sm text-zinc-400 mt-2 leading-relaxed">
-                    Linux Landlock LSM yadroviy qamali, ChaCha20-Poly1305 sirlar ombori va Zero-Trust tarmoq izolyatsiyasiga ega rasmiy terminal ilovasi (v0.2.1).
+                <p class="text-xs sm:text-sm text-zinc-400 mt-2 leading-relaxed" data-i18n="cli_section_desc">
+                    Linux Landlock LSM yadroviy qamali, ChaCha20-Poly1305 sirlar ombori va Zero-Trust tarmoq izolyatsiyasiga ega rasmiy terminal ilovasi (v0.3.0).
                 </p>
             </div>
             <div class="flex flex-wrap gap-2.5 shrink-0">
                 <a href="/downloads/ferris-linux" download="ferris" class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-brand-orange hover:bg-orange-600 text-white text-xs font-semibold shadow-lg shadow-orange-950/40 transition-all hover:scale-105 active:scale-95">
                     <i data-lucide="download" class="w-3.5 h-3.5"></i> Linux x86_64
                 </a>
-                <a href="/downloads/ferris-cli_0.2.0_amd64.deb" download class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-zinc-900 hover:bg-zinc-800 text-zinc-200 text-xs font-semibold border border-white/10 transition-all hover:scale-105 active:scale-95">
+                <a href="/downloads/ferris-cli_0.3.0_amd64.deb" download class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-zinc-900 hover:bg-zinc-800 text-zinc-200 text-xs font-semibold border border-white/10 transition-all hover:scale-105 active:scale-95">
                     <i data-lucide="package" class="w-3.5 h-3.5"></i> .deb Paket
                 </a>
                 <a href="https://crates.io/crates/ferris-cli" target="_blank" rel="noopener" class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-zinc-900 hover:bg-zinc-800 text-zinc-200 text-xs font-semibold border border-white/10 transition-all hover:scale-105 active:scale-95">
-                    <i data-lucide="box" class="w-3.5 h-3.5 text-brand-orange"></i> Crates.io v0.2.1
+                    <i data-lucide="box" class="w-3.5 h-3.5 text-brand-orange"></i> Crates.io v0.3.0
                 </a>
             </div>
         </div>
 
         <!-- OS Selector Tabs -->
         <div class="flex border-b border-white/10 gap-2 mb-6 overflow-x-auto pb-1 scrollbar-none">
-            <button onclick="switchTab('linux')" id="tab-btn-linux" class="tab-btn px-4 py-2.5 text-xs sm:text-sm font-semibold border-b-2 border-brand-orange text-white shrink-0 rounded-t-lg transition-colors flex items-center gap-1.5">
+            <button onclick="switchTab('linux')" id="tab-btn-linux" class="tab-btn px-4 py-2.5 text-xs sm:text-sm font-semibold border-b-2 border-brand-orange text-white shrink-0 rounded-t-lg transition-colors flex items-center gap-1.5 cursor-pointer">
                 <i data-lucide="terminal" class="w-4 h-4 text-emerald-400"></i> Linux (curl)
             </button>
-            <button onclick="switchTab('brew')" id="tab-btn-brew" class="tab-btn px-4 py-2.5 text-xs sm:text-sm font-semibold border-b-2 border-transparent text-zinc-400 hover:text-zinc-200 shrink-0 rounded-t-lg transition-colors flex items-center gap-1.5">
+            <button onclick="switchTab('brew')" id="tab-btn-brew" class="tab-btn px-4 py-2.5 text-xs sm:text-sm font-semibold border-b-2 border-transparent text-zinc-400 hover:text-zinc-200 shrink-0 rounded-t-lg transition-colors flex items-center gap-1.5 cursor-pointer">
                 <i data-lucide="apple" class="w-4 h-4"></i> macOS (Homebrew)
             </button>
-            <button onclick="switchTab('arch')" id="tab-btn-arch" class="tab-btn px-4 py-2.5 text-xs sm:text-sm font-semibold border-b-2 border-transparent text-zinc-400 hover:text-zinc-200 shrink-0 rounded-t-lg transition-colors flex items-center gap-1.5">
+            <button onclick="switchTab('arch')" id="tab-btn-arch" class="tab-btn px-4 py-2.5 text-xs sm:text-sm font-semibold border-b-2 border-transparent text-zinc-400 hover:text-zinc-200 shrink-0 rounded-t-lg transition-colors flex items-center gap-1.5 cursor-pointer">
                 <i data-lucide="cpu" class="w-4 h-4 text-cyan-400"></i> Arch Linux (AUR)
             </button>
-            <button onclick="switchTab('debian')" id="tab-btn-debian" class="tab-btn px-4 py-2.5 text-xs sm:text-sm font-semibold border-b-2 border-transparent text-zinc-400 hover:text-zinc-200 shrink-0 rounded-t-lg transition-colors flex items-center gap-1.5">
+            <button onclick="switchTab('debian')" id="tab-btn-debian" class="tab-btn px-4 py-2.5 text-xs sm:text-sm font-semibold border-b-2 border-transparent text-zinc-400 hover:text-zinc-200 shrink-0 rounded-t-lg transition-colors flex items-center gap-1.5 cursor-pointer">
                 <i data-lucide="package" class="w-4 h-4 text-rose-400"></i> Debian / Ubuntu
             </button>
-            <button onclick="switchTab('windows')" id="tab-btn-windows" class="tab-btn px-4 py-2.5 text-xs sm:text-sm font-semibold border-b-2 border-transparent text-zinc-400 hover:text-zinc-200 shrink-0 rounded-t-lg transition-colors flex items-center gap-1.5">
+            <button onclick="switchTab('windows')" id="tab-btn-windows" class="tab-btn px-4 py-2.5 text-xs sm:text-sm font-semibold border-b-2 border-transparent text-zinc-400 hover:text-zinc-200 shrink-0 rounded-t-lg transition-colors flex items-center gap-1.5 cursor-pointer">
                 <i data-lucide="monitor" class="w-4 h-4 text-blue-400"></i> Windows (PowerShell)
             </button>
-            <button onclick="switchTab('cargo')" id="tab-btn-cargo" class="tab-btn px-4 py-2.5 text-xs sm:text-sm font-semibold border-b-2 border-transparent text-zinc-400 hover:text-zinc-200 shrink-0 rounded-t-lg transition-colors flex items-center gap-1.5">
+            <button onclick="switchTab('cargo')" id="tab-btn-cargo" class="tab-btn px-4 py-2.5 text-xs sm:text-sm font-semibold border-b-2 border-transparent text-zinc-400 hover:text-zinc-200 shrink-0 rounded-t-lg transition-colors flex items-center gap-1.5 cursor-pointer">
                 <i data-lucide="box" class="w-4 h-4 text-brand-orange"></i> Cargo
             </button>
         </div>
@@ -172,9 +348,9 @@
         <div id="tab-content-linux" class="tab-pane flex flex-col gap-3">
             <div class="flex items-center justify-between gap-3 px-4 py-3.5 rounded-2xl bg-zinc-950/90 border border-white/15 font-mono text-xs sm:text-sm text-zinc-200 overflow-x-auto">
                 <span class="text-emerald-400 select-none font-bold">$</span>
-                <code class="flex-grow select-all">curl -fsSL https://ferris.uz/install.sh | sh</code>
-                <button onclick="copyText('curl -fsSL https://ferris.uz/install.sh | sh', this)" class="px-3.5 py-1.5 rounded-xl bg-zinc-900 hover:bg-zinc-800 border border-white/10 text-xs text-white shrink-0 font-sans transition-colors">
-                    Nusxa
+                <code class="flex-grow select-all">curl -fsSL https://ferris.uz/install.sh | bash</code>
+                <button onclick="copyText('curl -fsSL https://ferris.uz/install.sh | bash', this)" class="px-3.5 py-1.5 rounded-xl bg-zinc-900 hover:bg-zinc-800 border border-white/10 text-xs text-white shrink-0 font-sans transition-colors cursor-pointer">
+                    <span data-i18n="btn_copy">Nusxa</span>
                 </button>
             </div>
             <p class="text-xs text-zinc-500 font-mono">Binar SHA-256 xesh tekshiruvi bilan avtomatik <code class="text-zinc-400">/usr/local/bin/ferris</code> (yoki <code class="text-zinc-400">~/.local/bin/ferris</code>) ga xavfsiz o'rnatiladi.</p>
@@ -185,8 +361,8 @@
             <div class="flex items-center justify-between gap-3 px-4 py-3.5 rounded-2xl bg-zinc-950/90 border border-white/15 font-mono text-xs sm:text-sm text-zinc-200 overflow-x-auto">
                 <span class="text-amber-400 select-none font-bold">$</span>
                 <code class="flex-grow select-all">brew install https://ferris.uz/downloads/ferris.rb</code>
-                <button onclick="copyText('brew install https://ferris.uz/downloads/ferris.rb', this)" class="px-3.5 py-1.5 rounded-xl bg-zinc-900 hover:bg-zinc-800 border border-white/10 text-xs text-white shrink-0 font-sans transition-colors">
-                    Nusxa
+                <button onclick="copyText('brew install https://ferris.uz/downloads/ferris.rb', this)" class="px-3.5 py-1.5 rounded-xl bg-zinc-900 hover:bg-zinc-800 border border-white/10 text-xs text-white shrink-0 font-sans transition-colors cursor-pointer">
+                    <span data-i18n="btn_copy">Nusxa</span>
                 </button>
             </div>
             <p class="text-xs text-zinc-500 font-mono">macOS (Apple Silicon M1-M4 & Intel) va Linuxbrew uchun to'liq avtomatik formula.</p>
@@ -197,8 +373,8 @@
             <div class="flex items-center justify-between gap-3 px-4 py-3.5 rounded-2xl bg-zinc-950/90 border border-white/15 font-mono text-xs sm:text-sm text-zinc-200 overflow-x-auto">
                 <span class="text-sky-400 select-none font-bold">$</span>
                 <code class="flex-grow select-all">yay -S ferris-cli-bin</code>
-                <button onclick="copyText('yay -S ferris-cli-bin', this)" class="px-3.5 py-1.5 rounded-xl bg-zinc-900 hover:bg-zinc-800 border border-white/10 text-xs text-white shrink-0 font-sans transition-colors">
-                    Nusxa
+                <button onclick="copyText('yay -S ferris-cli-bin', this)" class="px-3.5 py-1.5 rounded-xl bg-zinc-900 hover:bg-zinc-800 border border-white/10 text-xs text-white shrink-0 font-sans transition-colors cursor-pointer">
+                    <span data-i18n="btn_copy">Nusxa</span>
                 </button>
             </div>
             <p class="text-xs text-zinc-500 font-mono">Yoki manbadan yig'ish uchun: <code class="text-zinc-400">paru -S ferris-cli</code></p>
@@ -208,9 +384,9 @@
         <div id="tab-content-debian" class="tab-pane hidden flex flex-col gap-3">
             <div class="flex items-center justify-between gap-3 px-4 py-3.5 rounded-2xl bg-zinc-950/90 border border-white/15 font-mono text-xs sm:text-sm text-zinc-200 overflow-x-auto">
                 <span class="text-red-400 select-none font-bold">$</span>
-                <code class="flex-grow select-all">curl -fsSLO https://ferris.uz/downloads/ferris-cli_0.2.0_amd64.deb && sudo dpkg -i ferris-cli_0.2.0_amd64.deb</code>
-                <button onclick="copyText('curl -fsSLO https://ferris.uz/downloads/ferris-cli_0.2.0_amd64.deb && sudo dpkg -i ferris-cli_0.2.0_amd64.deb', this)" class="px-3.5 py-1.5 rounded-xl bg-zinc-900 hover:bg-zinc-800 border border-white/10 text-xs text-white shrink-0 font-sans transition-colors">
-                    Nusxa
+                <code class="flex-grow select-all">curl -fsSLO https://ferris.uz/downloads/ferris-cli_0.3.0_amd64.deb && sudo dpkg -i ferris-cli_0.3.0_amd64.deb</code>
+                <button onclick="copyText('curl -fsSLO https://ferris.uz/downloads/ferris-cli_0.3.0_amd64.deb && sudo dpkg -i ferris-cli_0.3.0_amd64.deb', this)" class="px-3.5 py-1.5 rounded-xl bg-zinc-900 hover:bg-zinc-800 border border-white/10 text-xs text-white shrink-0 font-sans transition-colors cursor-pointer">
+                    <span data-i18n="btn_copy">Nusxa</span>
                 </button>
             </div>
             <p class="text-xs text-zinc-500 font-mono">Debian, Ubuntu, Linux Mint va Pop!_OS tizimlariga rasmiy paket boshqaruvi bilan o'rnatish.</p>
@@ -221,8 +397,8 @@
             <div class="flex items-center justify-between gap-3 px-4 py-3.5 rounded-2xl bg-zinc-950/90 border border-white/15 font-mono text-xs sm:text-sm text-zinc-200 overflow-x-auto">
                 <span class="text-cyan-400 select-none font-bold">PS&gt;</span>
                 <code class="flex-grow select-all">iwr -useb https://ferris.uz/install.ps1 | iex</code>
-                <button onclick="copyText('iwr -useb https://ferris.uz/install.ps1 | iex', this)" class="px-3.5 py-1.5 rounded-xl bg-zinc-900 hover:bg-zinc-800 border border-white/10 text-xs text-white shrink-0 font-sans transition-colors">
-                    Nusxa
+                <button onclick="copyText('iwr -useb https://ferris.uz/install.ps1 | iex', this)" class="px-3.5 py-1.5 rounded-xl bg-zinc-900 hover:bg-zinc-800 border border-white/10 text-xs text-white shrink-0 font-sans transition-colors cursor-pointer">
+                    <span data-i18n="btn_copy">Nusxa</span>
                 </button>
             </div>
             <p class="text-xs text-zinc-500 font-mono">PowerShell orqali avtomatik foydalanuvchi PATH muhitiga qo'shiladi.</p>
@@ -233,8 +409,8 @@
             <div class="flex items-center justify-between gap-3 px-4 py-3.5 rounded-2xl bg-zinc-950/90 border border-white/15 font-mono text-xs sm:text-sm text-zinc-200 overflow-x-auto">
                 <span class="text-brand-orange select-none font-bold">$</span>
                 <code class="flex-grow select-all">cargo install ferris-cli</code>
-                <button onclick="copyText('cargo install ferris-cli', this)" class="px-3.5 py-1.5 rounded-xl bg-zinc-900 hover:bg-zinc-800 border border-white/10 text-xs text-white shrink-0 font-sans transition-colors">
-                    Nusxa
+                <button onclick="copyText('cargo install ferris-cli', this)" class="px-3.5 py-1.5 rounded-xl bg-zinc-900 hover:bg-zinc-800 border border-white/10 text-xs text-white shrink-0 font-sans transition-colors cursor-pointer">
+                    <span data-i18n="btn_copy">Nusxa</span>
                 </button>
             </div>
             <p class="text-xs text-zinc-500 font-mono">Rust toolchain mavjud barcha operatsion tizimlarda to'g'ridan-to'g'ri Crates.io reyestridan o'rnatish.</p>
@@ -248,10 +424,13 @@
                     <span class="w-3 h-3 rounded-full bg-amber-500/80"></span>
                     <span class="w-3 h-3 rounded-full bg-emerald-500/80"></span>
                 </div>
-                <span class="text-zinc-500 text-[11px] font-mono">bash &bull; ferris-cli v0.2.1 Enclave</span>
+                <span class="text-zinc-500 text-[11px] font-mono">bash &bull; ferris-cli v0.3.0 Enclave</span>
             </div>
             <div class="p-4 sm:p-6 text-zinc-300 leading-relaxed overflow-x-auto space-y-2.5">
-                <p><span class="text-emerald-400 font-bold">$</span> ferris vault seal</p>
+                <p><span class="text-emerald-400 font-bold">$</span> ferris scan --staged</p>
+                <p class="text-cyan-400 pl-4 flex items-center gap-1.5"><i data-lucide="shield-alert" class="w-3.5 h-3.5"></i> [Ferris Guardian] Git staged fayllar tahlil qilindi. Maxfiy tokenlar bloklandi (Exit 1).</p>
+
+                <p class="pt-2"><span class="text-emerald-400 font-bold">$</span> ferris vault seal</p>
                 <p class="text-emerald-400 pl-4 flex items-center gap-1.5"><i data-lucide="shield" class="w-3.5 h-3.5"></i> [Ferris Vault] .env fayli ChaCha20-Poly1305 bilan muhrlandi (.env.ferris).</p>
                 <p class="text-zinc-500 pl-4 font-sans text-[11px]">&bull; Asl ochiq fayl diskdan izsiz tozalandi (Zero-Disk Footprint).</p>
 
@@ -271,13 +450,13 @@
     <section id="playground" class="glass-card p-6 sm:p-10 md:p-12 rounded-3xl relative overflow-hidden">
         <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-6">
             <div>
-                <span class="text-xs font-mono font-semibold text-brand-orange uppercase flex items-center gap-1.5"><i data-lucide="terminal" class="w-3.5 h-3.5"></i> Interactive Lab</span>
-                <h2 class="text-2xl sm:text-3xl md:text-4xl font-bold tracking-tight text-white mt-1">Rust Kod Laboratoriyasi</h2>
-                <p class="text-xs sm:text-sm text-zinc-400 mt-2">Brauzeringizda real <code class="text-amber-400 font-mono">rustc</code> kompilyatorida kod yozing va ishga tushiring</p>
+                <span class="text-xs font-mono font-semibold text-brand-orange uppercase flex items-center gap-1.5"><i data-lucide="terminal" class="w-3.5 h-3.5"></i> <span data-i18n="playground_tag">Interactive Lab</span></span>
+                <h2 class="text-2xl sm:text-3xl md:text-4xl font-bold tracking-tight text-white mt-1" data-i18n="playground_title">Rust Kod Laboratoriyasi</h2>
+                <p class="text-xs sm:text-sm text-zinc-400 mt-2" data-i18n="playground_desc">Brauzeringizda real <code class="text-amber-400 font-mono">rustc</code> kompilyatorida kod yozing va ishga tushiring</p>
             </div>
             <button id="runPlaygroundBtn" onclick="runRealRustPlayground()" class="px-5 py-2.5 rounded-2xl bg-brand-orange hover:bg-orange-600 text-white font-semibold text-xs transition-all shadow-lg shadow-orange-950/40 hover:scale-105 active:scale-95 self-start sm:self-auto flex items-center gap-2 cursor-pointer">
                 <i id="runPlaygroundIcon" data-lucide="play" class="w-3.5 h-3.5 fill-current"></i>
-                <span id="runPlaygroundText">Kodni Sinash</span>
+                <span id="runPlaygroundText" data-i18n="playground_run_btn">Kodni Sinash</span>
             </button>
         </div>
 
@@ -328,14 +507,43 @@
 {% block scripts %}
 <script>
     function copyText(text, btn) {
-        navigator.clipboard.writeText(text);
-        const old = btn.innerHTML;
-        btn.innerHTML = '<i data-lucide="check" class="w-3.5 h-3.5 text-emerald-400"></i>';
+        if (!navigator.clipboard) {
+            const ta = document.createElement('textarea');
+            ta.value = text;
+            document.body.appendChild(ta);
+            ta.select();
+            document.execCommand('copy');
+            document.body.removeChild(ta);
+        } else {
+            navigator.clipboard.writeText(text);
+        }
+        const currentLang = localStorage.getItem('ferris_lang') || (navigator.language && navigator.language.toLowerCase().startsWith('uz') ? 'uz' : 'en');
+        const copiedText = currentLang === 'uz' ? 'Nusxalandi!' : 'Copied!';
+        const origHtml = btn.innerHTML;
+        btn.innerHTML = `<i data-lucide="check" class="w-3.5 h-3.5 text-emerald-400"></i><span class="text-emerald-400 font-semibold font-sans text-xs">${copiedText}</span>`;
+        btn.classList.add('border-emerald-500/50', 'bg-emerald-500/10');
         if (window.lucide) lucide.createIcons();
         setTimeout(() => {
-            btn.innerHTML = old;
+            btn.innerHTML = origHtml;
+            btn.classList.remove('border-emerald-500/50', 'bg-emerald-500/10');
             if (window.lucide) lucide.createIcons();
-        }, 1500);
+        }, 1800);
+    }
+
+    function switchCliTab(tab) {
+        const tabs = ['scan', 'vault', 'run'];
+        tabs.forEach(t => {
+            const btn = document.getElementById(`cli-tab-btn-${t}`);
+            const panel = document.getElementById(`cli-panel-${t}`);
+            if (t === tab) {
+                if (btn) btn.className = 'cli-cmd-tab px-3 py-1.5 rounded-lg bg-brand-orange text-white font-semibold transition-all flex items-center gap-1.5 cursor-pointer shadow-sm';
+                if (panel) panel.classList.remove('hidden');
+            } else {
+                if (btn) btn.className = 'cli-cmd-tab px-3 py-1.5 rounded-lg text-zinc-400 hover:text-white transition-all flex items-center gap-1.5 cursor-pointer';
+                if (panel) panel.classList.add('hidden');
+            }
+        });
+        if (window.lucide) lucide.createIcons();
     }
 
     function switchTab(os) {
