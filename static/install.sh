@@ -2,12 +2,12 @@
 # 🦀 Ferris.uz Rasmiy CLI O'rnatuvchi Skripti (Linux x86_64)
 set -e
 
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-CYAN='\033[0;36m'
-BOLD='\033[1m'
-NC='\033[0m'
+RED=$(printf '\033[0;31m')
+GREEN=$(printf '\033[0;32m')
+YELLOW=$(printf '\033[1;33m')
+CYAN=$(printf '\033[0;36m')
+BOLD=$(printf '\033[1m')
+NC=$(printf '\033[0m')
 
 echo ""
 echo "${CYAN}${BOLD}    _~^~^~_      🦀 Ferris.uz CLI O'rnatuvchisi${NC}"
