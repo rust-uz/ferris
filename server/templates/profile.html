@@ -2,6 +2,11 @@
 
 {% block title %}Profil — @{{ user.username }} &bull; Ferris.uz{% endblock %}
 {% block description %}Ferris.uz platformasidagi @{{ user.username }} dasturchi profili, jamiyatlari va muhokamalari.{% endblock %}
+{% block canonical %}https://ferris.uz/@{{ user.username }}{% endblock %}
+{% block og_title %}{{ user.display_name }} (@{{ user.username }}) — Ferris.uz{% endblock %}
+{% block og_desc %}Ferris.uz platformasidagi @{{ user.username }} dasturchi profili, jamiyatlari va muhokamalari.{% endblock %}
+{% block og_url %}https://ferris.uz/@{{ user.username }}{% endblock %}
+{% block og_image %}{{ user.avatar_url.as_deref().unwrap_or("/logo.jpg") }}{% endblock %}
 
 {% block content %}
 <div class="max-w-5xl mx-auto px-4 sm:px-6 py-10 flex flex-col gap-10">

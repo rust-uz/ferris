@@ -1,7 +1,36 @@
 {% extends "base.html" %}
 
 {% block title %}topics.ferris.uz — Rust Mavzulari va Muhokamalar Forumi{% endblock %}
-{% block description %}O'zbekiston Rustaceanlar forumi: f/rust, f/async, f/systems, f/quantum muhokamalari.{% endblock %}
+{% block description %}O'zbekiston Rustaceanlar forumi: f/rust, f/async, f/systems, f/quantum muhokamalari va texnik savol-javoblar.{% endblock %}
+{% block canonical %}https://topics.ferris.uz{% endblock %}
+{% block og_title %}topics.ferris.uz — Rust Mavzulari va Muhokamalar Forumi{% endblock %}
+{% block og_desc %}O'zbekiston Rustaceanlar forumi: f/rust, f/async, f/systems, f/quantum muhokamalari va texnik savol-javoblar.{% endblock %}
+{% block og_url %}https://topics.ferris.uz{% endblock %}
+
+{% block extra_head %}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "CollectionPage",
+  "name": "topics.ferris.uz — Rust Texnik Muhokamalari",
+  "url": "https://topics.ferris.uz",
+  "description": "O'zbekiston Rustaceanlar forumi: f/rust, f/async, f/systems, f/quantum muhokamalari.",
+  "mainEntity": {
+    "@type": "ItemList",
+    "itemListElement": [
+      {% for topic in topics %}
+      {
+        "@type": "ListItem",
+        "position": {{ loop.index }},
+        "name": "{{ topic.title }} ({{ topic.slug }})",
+        "url": "https://topics.ferris.uz#{{ topic.slug }}"
+      }{% if !loop.last %},{% endif %}
+      {% endfor %}
+    ]
+  }
+}
+</script>
+{% endblock %}
 
 {% block content %}
 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 flex flex-col gap-10 sm:gap-14">
@@ -84,7 +113,7 @@
             </div>
             {% else %}
             {% for item in posts %}
-            <article data-post-id="{{ item.post.id }}" class="post-card glass-card p-5 sm:p-7 rounded-3xl transition-all duration-200 flex flex-col gap-4">
+            <article id="post-{{ item.post.id }}" data-post-id="{{ item.post.id }}" class="post-card glass-card p-5 sm:p-7 rounded-3xl transition-all duration-200 flex flex-col gap-4 scroll-mt-24">
                 <div class="flex items-center justify-between flex-wrap gap-2.5">
                     <div class="flex items-center gap-2 sm:gap-3 text-xs text-zinc-400 font-mono flex-wrap">
                         <span class="text-amber-400 font-semibold bg-amber-400/10 px-2 py-0.5 rounded">
@@ -127,9 +156,9 @@
                     {{ item.post.title }}
                 </h3>
 
-                <p class="post-content text-xs sm:text-sm text-zinc-300 leading-relaxed font-sans whitespace-pre-line">
+                <div class="post-content markdown-body text-xs sm:text-sm text-zinc-300 leading-relaxed font-sans" data-raw="{{ item.post.content }}">
                     {{ item.post.content }}
-                </p>
+                </div>
 
                 <!-- Comments / Replies Section -->
                 <div class="mt-4 pt-4 border-t border-white/5 flex flex-col gap-3.5">
@@ -151,7 +180,9 @@
                                     <button class="comment-owner-action hidden text-zinc-600 hover:text-rose-400 transition-colors cursor-pointer flex items-center" data-author="{{ comment.author_name }}" onclick="deleteCommentPrompt('{{ comment.id }}')" title="Izohni o'chirish"><i data-lucide="trash-2" class="w-3 h-3"></i></button>
                                 </div>
                             </div>
-                            <p class="text-zinc-200 font-sans leading-relaxed text-xs sm:text-sm">{{ comment.content }}</p>
+                            <div class="comment-content markdown-body text-zinc-200 font-sans leading-relaxed text-xs sm:text-sm" data-raw="{{ comment.content }}">
+                                {{ comment.content }}
+                            </div>
                         </div>
                         {% endfor %}
                     </div>
@@ -173,34 +204,75 @@
 
 </div>
 
-<!-- Modal: New Post -->
-<div id="postModal" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
-    <div class="w-full max-w-lg bg-zinc-950 border border-white/15 rounded-2xl p-6 shadow-2xl flex flex-col gap-4">
+<!-- Modal: New Post (Rich Markdown Editor & Live Preview) -->
+<div id="postModal" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-3 sm:p-4">
+    <div class="w-full max-w-2xl sm:max-w-3xl bg-zinc-950 border border-white/15 rounded-2xl p-5 sm:p-6 shadow-2xl flex flex-col gap-4">
         <div class="flex items-center justify-between pb-3 border-b border-white/10">
-            <h3 class="text-base font-bold text-white">Yangi Muhokama Chop Etish</h3>
-            <button onclick="document.getElementById('postModal').classList.add('hidden')" class="text-zinc-500 hover:text-white text-xl">&times;</button>
+            <div class="flex items-center gap-2">
+                <i data-lucide="edit-3" class="w-5 h-5 text-brand-orange"></i>
+                <h3 class="text-base font-bold text-white">Yangi Muhokama Chop Etish</h3>
+            </div>
+            <button onclick="document.getElementById('postModal').classList.add('hidden')" class="text-zinc-500 hover:text-white text-2xl leading-none">&times;</button>
         </div>
+
         <div class="flex flex-col gap-3 text-xs">
-            <div>
-                <label class="block text-zinc-400 font-medium mb-1">Mavzu kanali:</label>
-                <select id="postTopic" class="w-full px-3 py-2 rounded-lg bg-zinc-900 border border-white/10 text-white focus:outline-none focus:border-brand-orange">
-                    {% for topic in topics %}
-                    <option value="{{ topic.slug }}">{{ topic.slug }} — {{ topic.title }}</option>
-                    {% endfor %}
-                </select>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                    <label class="block text-zinc-400 font-medium mb-1">Mavzu kanali:</label>
+                    <select id="postTopic" class="w-full px-3 py-2 rounded-xl bg-zinc-900 border border-white/10 text-white focus:outline-none focus:border-brand-orange">
+                        {% for topic in topics %}
+                        <option value="{{ topic.slug }}">{{ topic.slug }} — {{ topic.title }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-zinc-400 font-medium mb-1">Sarlavha:</label>
+                    <input type="text" id="postTitle" placeholder="Muhokama sarlavhasi..." class="w-full px-3 py-2 rounded-xl bg-zinc-900 border border-white/10 text-white focus:outline-none focus:border-brand-orange font-sans"/>
+                </div>
             </div>
+
+            <!-- Editor / Preview Tabs & Markdown Toolbar -->
             <div>
-                <label class="block text-zinc-400 font-medium mb-1">Sarlavha:</label>
-                <input type="text" id="postTitle" placeholder="Muhokama sarlavhasi..." class="w-full px-3 py-2 rounded-lg bg-zinc-900 border border-white/10 text-white focus:outline-none focus:border-brand-orange font-sans"/>
-            </div>
-            <div>
-                <label class="block text-zinc-400 font-medium mb-1">Matn (Markdown formatida):</label>
-                <textarea id="postContent" rows="5" placeholder="Kodingiz yoki savolingizni yozing..." class="w-full px-3 py-2 rounded-lg bg-zinc-900 border border-white/10 text-white focus:outline-none focus:border-brand-orange font-sans"></textarea>
+                <div class="flex items-center justify-between border-b border-white/10 pb-2 mb-2 flex-wrap gap-2">
+                    <div class="flex items-center gap-1.5">
+                        <button type="button" id="tabBtnWrite" onclick="switchPostTab('write')" class="px-3 py-1 rounded-lg text-xs font-semibold bg-brand-orange text-white flex items-center gap-1.5 transition-colors cursor-pointer">
+                            <i data-lucide="edit-3" class="w-3.5 h-3.5"></i> <span>Tahrirlash</span>
+                        </button>
+                        <button type="button" id="tabBtnPreview" onclick="switchPostTab('preview')" class="px-3 py-1 rounded-lg text-xs font-semibold text-zinc-400 hover:text-white hover:bg-zinc-900 flex items-center gap-1.5 transition-colors cursor-pointer">
+                            <i data-lucide="eye" class="w-3.5 h-3.5"></i> <span>Jonli ko'rish (Preview)</span>
+                        </button>
+                    </div>
+
+                    <!-- Markdown Quick Toolbar -->
+                    <div id="mdToolbar" class="flex items-center gap-1 text-zinc-400 flex-wrap">
+                        <button type="button" onclick="insertMd('**', '**')" class="p-1 px-1.5 hover:text-white hover:bg-zinc-900 border border-transparent hover:border-white/10 rounded font-bold text-xs" title="Qalin (Bold)">B</button>
+                        <button type="button" onclick="insertMd('*', '*')" class="p-1 px-1.5 hover:text-white hover:bg-zinc-900 border border-transparent hover:border-white/10 rounded italic text-xs" title="Kursiv (Italic)">I</button>
+                        <button type="button" onclick="insertMd('`', '`')" class="p-1 px-1.5 hover:text-white hover:bg-zinc-900 border border-transparent hover:border-white/10 rounded font-mono text-xs" title="Inline kod">&lt;/&gt;</button>
+                        <button type="button" onclick="insertMd('```rust\n', '\n```')" class="p-1 px-2 hover:text-white bg-zinc-900/60 hover:bg-zinc-900 border border-white/10 rounded font-mono text-[11px] text-amber-400 font-semibold" title="Rust kod bloki">```rust```</button>
+                        <button type="button" onclick="insertMd('[', '](https://)')" class="p-1 px-1.5 hover:text-white hover:bg-zinc-900 border border-transparent hover:border-white/10 rounded text-xs" title="Havola">[link]</button>
+                        <button type="button" onclick="insertMd('> ', '')" class="p-1 px-1.5 hover:text-white hover:bg-zinc-900 border border-transparent hover:border-white/10 rounded text-xs" title="Iqtibos">&gt;</button>
+                        <button type="button" onclick="insertMd('- ', '')" class="p-1 px-1.5 hover:text-white hover:bg-zinc-900 border border-transparent hover:border-white/10 rounded text-xs" title="Ro'yxat">&bull; List</button>
+                    </div>
+                </div>
+
+                <!-- Write Area -->
+                <div id="postWriteArea">
+                    <textarea id="postContent" rows="7" placeholder="Kodingiz yoki savolingizni yozing (Markdown to'liq qo'llab-quvvatlanadi)..." class="w-full px-3.5 py-2.5 rounded-xl bg-zinc-900 border border-white/10 text-white placeholder-zinc-500 focus:outline-none focus:border-brand-orange font-mono text-xs leading-relaxed"></textarea>
+                </div>
+
+                <!-- Preview Area -->
+                <div id="postPreviewArea" class="hidden min-h-[160px] max-h-[280px] overflow-y-auto p-4 rounded-xl bg-black/60 border border-white/10 markdown-body">
+                    <!-- Live preview renders here -->
+                </div>
             </div>
         </div>
-        <div class="flex justify-end gap-2 pt-2 border-t border-white/10">
-            <button onclick="document.getElementById('postModal').classList.add('hidden')" class="px-4 py-2 rounded-lg text-zinc-400 hover:text-white text-xs">Bekor qilish</button>
-            <button onclick="submitPost()" class="px-5 py-2 rounded-lg bg-brand-orange hover:bg-orange-600 text-white font-semibold text-xs transition-colors">Chop etish</button>
+
+        <div class="flex justify-between items-center pt-2 border-t border-white/10 text-xs text-zinc-500 font-mono">
+            <span>Markdown & Rust sintaksisi faol</span>
+            <div class="flex items-center gap-2">
+                <button onclick="document.getElementById('postModal').classList.add('hidden')" class="px-4 py-2 rounded-xl text-zinc-400 hover:text-white transition-colors">Bekor qilish</button>
+                <button onclick="submitPost()" class="px-5 py-2 rounded-xl bg-brand-orange hover:bg-orange-600 text-white font-semibold shadow-md transition-all active:scale-95">Chop etish</button>
+            </div>
         </div>
     </div>
 </div>
@@ -388,6 +460,82 @@
             })
             .catch(() => {});
     }
+
+    // Markdown Live Preview & Formatting Helpers
+    function switchPostTab(tab) {
+        const writeArea = document.getElementById('postWriteArea');
+        const previewArea = document.getElementById('postPreviewArea');
+        const tabBtnWrite = document.getElementById('tabBtnWrite');
+        const tabBtnPreview = document.getElementById('tabBtnPreview');
+        const toolbar = document.getElementById('mdToolbar');
+
+        if (tab === 'write') {
+            writeArea.classList.remove('hidden');
+            previewArea.classList.add('hidden');
+            toolbar.classList.remove('hidden');
+            tabBtnWrite.className = 'px-3 py-1 rounded-lg text-xs font-semibold bg-brand-orange text-white flex items-center gap-1.5 transition-colors cursor-pointer';
+            tabBtnPreview.className = 'px-3 py-1 rounded-lg text-xs font-semibold text-zinc-400 hover:text-white hover:bg-zinc-900 flex items-center gap-1.5 transition-colors cursor-pointer';
+        } else {
+            writeArea.classList.add('hidden');
+            previewArea.classList.remove('hidden');
+            toolbar.classList.add('hidden');
+            tabBtnWrite.className = 'px-3 py-1 rounded-lg text-xs font-semibold text-zinc-400 hover:text-white hover:bg-zinc-900 flex items-center gap-1.5 transition-colors cursor-pointer';
+            tabBtnPreview.className = 'px-3 py-1 rounded-lg text-xs font-semibold bg-brand-orange text-white flex items-center gap-1.5 transition-colors cursor-pointer';
+
+            const content = document.getElementById('postContent').value.trim();
+            if (content && window.marked) {
+                previewArea.innerHTML = marked.parse(content);
+                previewArea.querySelectorAll('pre code').forEach(block => {
+                    if (window.hljs) hljs.highlightElement(block);
+                });
+            } else {
+                previewArea.innerHTML = '<span class="text-zinc-500 italic">Ko\'rish uchun avval matn yozing...</span>';
+            }
+        }
+    }
+
+    function insertMd(prefix, suffix) {
+        const textarea = document.getElementById('postContent');
+        if (!textarea) return;
+
+        const start = textarea.selectionStart;
+        const end = textarea.selectionEnd;
+        const text = textarea.value;
+        const selected = text.substring(start, end);
+
+        textarea.value = text.substring(0, start) + prefix + selected + suffix + text.substring(end);
+        textarea.focus();
+        textarea.setSelectionRange(start + prefix.length, end + prefix.length);
+    }
+
+    function renderAllMarkdown() {
+        if (!window.marked) return;
+        marked.setOptions({ breaks: true, gfm: true });
+
+        document.querySelectorAll('.post-content[data-raw]').forEach(el => {
+            const raw = el.getAttribute('data-raw');
+            if (raw) {
+                el.innerHTML = marked.parse(raw);
+                el.querySelectorAll('pre code').forEach(block => {
+                    if (window.hljs) hljs.highlightElement(block);
+                });
+            }
+        });
+
+        document.querySelectorAll('.comment-content[data-raw]').forEach(el => {
+            const raw = el.getAttribute('data-raw');
+            if (raw) {
+                el.innerHTML = marked.parse(raw);
+                el.querySelectorAll('pre code').forEach(block => {
+                    if (window.hljs) hljs.highlightElement(block);
+                });
+            }
+        });
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+        renderAllMarkdown();
+    });
 
     // Interaction & Viewport Observer
     if ('IntersectionObserver' in window) {

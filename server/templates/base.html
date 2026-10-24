@@ -8,24 +8,24 @@
     <meta name="keywords" content="Rust, Rust Uzbekistan, rust-uz, ferris.uz, ferris-cli, tizimli dasturlash, systems programming, post-quantum cryptography, blake3, rust kitobi, doc.ferris.uz">
     <meta name="author" content="Rust Uzbekistan Community / Ibrohim Miraxmedov">
     <meta name="robots" content="index, follow">
-    <link rel="canonical" href="https://ferris.uz/">
+    <link rel="canonical" href="{% block canonical %}https://ferris.uz/{% endblock %}">
     <meta name="theme-color" content="#f74c00">
 
     <!-- Open Graph (Facebook, Telegram, Discord, LinkedIn) -->
-    <meta property="og:type" content="website">
-    <meta property="og:url" content="https://ferris.uz/">
+    <meta property="og:type" content="{% block og_type %}website{% endblock %}">
+    <meta property="og:url" content="{% block og_url %}https://ferris.uz/{% endblock %}">
     <meta property="og:title" content="{% block og_title %}Ferris.uz — O'zbekiston Rust Tizim Dasturlash Ekotizimi{% endblock %}">
     <meta property="og:description" content="{% block og_desc %}O'zbekiston Rustaceanlar rasmiy portali. ferris-cli (v0.2.1), Post-Quantum BLAKE3 kriptografiyasi va o'zbekcha Rust kitobi (doc.ferris.uz).{% endblock %}">
-    <meta property="og:image" content="https://ferris.uz/logo.png">
+    <meta property="og:image" content="{% block og_image %}https://ferris.uz/logo.png{% endblock %}">
     <meta property="og:site_name" content="Ferris.uz">
     <meta property="og:locale" content="uz_UZ">
 
     <!-- Twitter Card -->
     <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:url" content="https://ferris.uz/">
-    <meta name="twitter:title" content="Ferris.uz — O'zbekiston Rust Ekotizimi">
-    <meta name="twitter:description" content="O'zbekiston suveren Rust dasturchilari forumi, ferris-cli va doc.ferris.uz rasmiy kitobi.">
-    <meta name="twitter:image" content="https://ferris.uz/logo.png">
+    <meta name="twitter:url" content="{% block twitter_url %}https://ferris.uz/{% endblock %}">
+    <meta name="twitter:title" content="{% block twitter_title %}Ferris.uz — O'zbekiston Rust Ekotizimi{% endblock %}">
+    <meta name="twitter:description" content="{% block twitter_desc %}O'zbekiston suveren Rust dasturchilari forumi, ferris-cli va doc.ferris.uz rasmiy kitobi.{% endblock %}">
+    <meta name="twitter:image" content="{% block twitter_image %}https://ferris.uz/logo.png{% endblock %}">
 
     <!-- Structured Data (JSON-LD) for Search AI & Google Rich Snippets -->
     <script type="application/ld+json">
@@ -70,6 +70,12 @@
 
     <!-- Lucide Modern Vector Icons -->
     <script src="/js/lucide.min.js"></script>
+
+    <!-- Syntax Highlighting & Markdown Parser -->
+    <link rel="stylesheet" href="/highlight-dark.css">
+    <script src="/js/marked.min.js"></script>
+    <script src="/js/highlight.min.js"></script>
+    <script src="/js/rust.min.js"></script>
 
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -122,7 +128,84 @@
         .glow-orange {
             box-shadow: 0 0 40px -8px rgba(247, 76, 0, 0.35);
         }
+
+        /* Custom Cyber-OLED Markdown Styling */
+        .markdown-body {
+            color: #e4e4e7;
+            font-size: 0.875rem;
+            line-height: 1.65;
+        }
+        .markdown-body h1, .markdown-body h2, .markdown-body h3, .markdown-body h4 {
+            color: #ffffff;
+            font-weight: 700;
+            margin-top: 1rem;
+            margin-bottom: 0.5rem;
+        }
+        .markdown-body h1 { font-size: 1.25rem; }
+        .markdown-body h2 { font-size: 1.1rem; }
+        .markdown-body h3 { font-size: 1rem; }
+        .markdown-body p {
+            margin-bottom: 0.65rem;
+        }
+        .markdown-body p:last-child {
+            margin-bottom: 0;
+        }
+        .markdown-body a {
+            color: #f74c00;
+            text-decoration: underline;
+            text-underline-offset: 3px;
+            transition: color 0.15s;
+        }
+        .markdown-body a:hover {
+            color: #ff6a00;
+        }
+        .markdown-body code:not(pre code) {
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            padding: 0.15rem 0.35rem;
+            border-radius: 0.375rem;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.825em;
+            color: #fca5a5;
+        }
+        .markdown-body pre {
+            background: #09090b !important;
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 0.75rem;
+            padding: 0.875rem 1rem;
+            overflow-x: auto;
+            margin: 0.75rem 0;
+        }
+        .markdown-body pre code {
+            background: transparent !important;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.825rem;
+            line-height: 1.5;
+        }
+        .markdown-body blockquote {
+            border-left: 3px solid #f74c00;
+            background: rgba(247, 76, 0, 0.05);
+            padding: 0.5rem 0.875rem;
+            border-radius: 0 0.5rem 0.5rem 0;
+            color: #d4d4d8;
+            margin: 0.75rem 0;
+        }
+        .markdown-body ul {
+            list-style-type: disc;
+            padding-left: 1.25rem;
+            margin-bottom: 0.65rem;
+        }
+        .markdown-body ol {
+            list-style-type: decimal;
+            padding-left: 1.25rem;
+            margin-bottom: 0.65rem;
+        }
+        .markdown-body hr {
+            border-color: rgba(255, 255, 255, 0.1);
+            margin: 1rem 0;
+        }
     </style>
+    {% block extra_head %}{% endblock %}
 </head>
 <body class="bg-black text-zinc-100 font-sans antialiased min-h-screen flex flex-col relative selection:bg-brand-orange selection:text-white">
     <!-- Ambient Backdrop -->
@@ -167,8 +250,15 @@
                 </a>
             </nav>
 
-            <!-- Right Controls: CLI + Auth Block -->
+            <!-- Right Controls: Search + CLI + Auth Block -->
             <div class="flex items-center gap-2 sm:gap-3">
+                <!-- Global Instant Search Button (Ctrl+K) -->
+                <button onclick="openSearchModal()" class="flex items-center gap-2 px-3 py-1.5 text-xs rounded-xl bg-zinc-900/90 hover:bg-zinc-800 border border-white/10 hover:border-brand-orange/40 text-zinc-400 hover:text-white transition-all shadow-sm group cursor-pointer" title="Tezkor Qidiruv (Ctrl+K)">
+                    <i data-lucide="search" class="w-3.5 h-3.5 text-zinc-400 group-hover:text-brand-orange transition-colors"></i>
+                    <span class="hidden md:inline font-medium">Qidiruv</span>
+                    <kbd class="hidden sm:inline-block px-1.5 py-0.5 text-[10px] font-mono text-zinc-500 bg-black/60 border border-white/10 rounded">Ctrl+K</kbd>
+                </button>
+
                 <a href="https://ferris.uz#cli-download" class="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-xl bg-zinc-900 border border-white/15 text-zinc-300 hover:text-white hover:bg-zinc-800 hover:border-brand-orange/40 transition-all">
                     <span>⬇</span> ferris-cli
                 </a>
@@ -234,6 +324,10 @@
     <!-- Mobile Drawer -->
     <div id="mobileDrawer" class="hidden lg:hidden fixed inset-x-0 top-16 bg-zinc-950/98 backdrop-blur-2xl border-b border-white/10 px-5 py-6 z-40 transition-all max-h-[calc(100vh-4rem)] overflow-y-auto">
         <div class="flex flex-col gap-3 text-sm font-medium">
+            <button onclick="openSearchModal(); document.getElementById('mobileDrawer').classList.add('hidden');" class="text-zinc-200 hover:text-white flex items-center justify-between p-2.5 rounded-xl bg-zinc-900/80 border border-white/10 hover:border-brand-orange/40 transition-all text-left">
+                <span class="flex items-center gap-2.5"><i data-lucide="search" class="w-4 h-4 text-brand-orange"></i> Tezkor Qidiruv</span>
+                <span class="text-xs font-mono text-zinc-400 bg-black/60 px-2 py-0.5 rounded border border-white/10">Ctrl+K</span>
+            </button>
             <a href="https://topics.ferris.uz" class="text-zinc-200 hover:text-white flex items-center justify-between p-2.5 rounded-xl hover:bg-zinc-900/60 border border-transparent hover:border-white/5 transition-all">
                 <span class="flex items-center gap-2.5"><i data-lucide="layers" class="w-4 h-4 text-brand-orange"></i> topics.ferris.uz (Mavzular)</span>
                 <span class="text-xs font-mono text-brand-orange bg-brand-orange/10 px-2 py-0.5 rounded-md">Forum &rarr;</span>
@@ -1143,6 +1237,299 @@
             initGlobalWebSocket();
             if (window.lucide) lucide.createIcons();
         });
+    </script>
+    <!-- ============================================================================== -->
+    <!-- GLOBAL INSTANT SEARCH MODAL (Ctrl+K) -->
+    <!-- ============================================================================== -->
+    <div id="searchModal" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-start justify-center pt-12 sm:pt-20 px-3 sm:px-4" onclick="if(event.target===this) closeSearchModal()">
+        <div class="w-full max-w-2xl bg-zinc-950 border border-white/15 rounded-2xl shadow-2xl overflow-hidden flex flex-col transition-all">
+            <!-- Search Input Header -->
+            <div class="flex items-center gap-3 px-4 py-3.5 border-b border-white/10 bg-zinc-900/60">
+                <i data-lucide="search" class="w-5 h-5 text-brand-orange shrink-0"></i>
+                <input id="globalSearchInput" type="text" autocomplete="off" placeholder="Mavzular, muhokamalar, jamiyatlar yoki dasturchilarni qidiring..." class="w-full bg-transparent text-sm sm:text-base text-white placeholder-zinc-500 focus:outline-none font-sans" oninput="handleGlobalSearchInput(this.value)">
+                <span id="searchSpinner" class="hidden shrink-0"><span class="w-4 h-4 border-2 border-brand-orange border-t-transparent rounded-full animate-spin inline-block"></span></span>
+                <kbd class="hidden sm:inline-block px-2 py-0.5 text-[11px] font-mono text-zinc-400 bg-zinc-800/80 border border-white/10 rounded cursor-pointer shrink-0" onclick="closeSearchModal()">ESC</kbd>
+                <button onclick="closeSearchModal()" class="sm:hidden text-zinc-400 hover:text-white p-1 text-xl leading-none">&times;</button>
+            </div>
+
+            <!-- Search Results Container -->
+            <div id="searchResultsList" class="max-h-[60vh] overflow-y-auto p-2 sm:p-3 divide-y divide-white/5 space-y-1">
+                <!-- Empty state placeholder -->
+                <div id="searchEmptyState" class="py-10 text-center text-xs text-zinc-500 font-sans">
+                    <i data-lucide="compass" class="w-8 h-8 text-zinc-600 mx-auto mb-2 opacity-60"></i>
+                    <p class="text-zinc-400 font-medium text-sm">Platforma bo'ylab tezkor qidiruv</p>
+                    <p class="text-zinc-500 mt-1">Kamida 2 ta belgi kiriting yoki toifalardan birini tanlang</p>
+                    <div class="flex items-center justify-center gap-2 mt-4 text-[11px] font-mono">
+                        <span class="px-2 py-0.5 rounded bg-zinc-900 border border-white/10 text-zinc-400">f/rust</span>
+                        <span class="px-2 py-0.5 rounded bg-zinc-900 border border-white/10 text-zinc-400">async</span>
+                        <span class="px-2 py-0.5 rounded bg-zinc-900 border border-white/10 text-zinc-400">CLI</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Footer Shortcuts -->
+            <div class="px-4 py-2.5 bg-zinc-900/40 border-t border-white/10 flex items-center justify-between text-[11px] font-mono text-zinc-500">
+                <div class="flex items-center gap-3">
+                    <span><kbd class="px-1.5 py-0.5 bg-zinc-800 border border-white/10 rounded text-zinc-400">↑↓</kbd> Tanlash</span>
+                    <span><kbd class="px-1.5 py-0.5 bg-zinc-800 border border-white/10 rounded text-zinc-400">↵</kbd> Ochish</span>
+                </div>
+                <span><kbd class="px-1.5 py-0.5 bg-zinc-800 border border-white/10 rounded text-zinc-400">ESC</kbd> Yopish</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let searchDebounceTimer = null;
+        let currentSearchIndex = -1;
+
+        function openSearchModal() {
+            const modal = document.getElementById('searchModal');
+            if (!modal) return;
+            modal.classList.remove('hidden');
+            const input = document.getElementById('globalSearchInput');
+            if (input) {
+                input.value = '';
+                setTimeout(() => input.focus(), 50);
+            }
+            const empty = document.getElementById('searchEmptyState');
+            if (empty) {
+                empty.classList.remove('hidden');
+                empty.innerHTML = `
+                    <i data-lucide="compass" class="w-8 h-8 text-zinc-600 mx-auto mb-2 opacity-60"></i>
+                    <p class="text-zinc-400 font-medium text-sm">Platforma bo'ylab tezkor qidiruv</p>
+                    <p class="text-zinc-500 mt-1">Kamida 2 ta belgi kiriting yoki toifalardan birini tanlang</p>
+                    <div class="flex items-center justify-center gap-2 mt-4 text-[11px] font-mono">
+                        <span class="px-2 py-0.5 rounded bg-zinc-900 border border-white/10 text-zinc-400">f/rust</span>
+                        <span class="px-2 py-0.5 rounded bg-zinc-900 border border-white/10 text-zinc-400">async</span>
+                        <span class="px-2 py-0.5 rounded bg-zinc-900 border border-white/10 text-zinc-400">CLI</span>
+                    </div>
+                `;
+            }
+            const list = document.getElementById('searchResultsList');
+            if (list) {
+                const items = list.querySelectorAll('.search-item, .search-cat-header');
+                items.forEach(el => el.remove());
+            }
+            currentSearchIndex = -1;
+            if (window.lucide) lucide.createIcons();
+        }
+
+        function closeSearchModal() {
+            const modal = document.getElementById('searchModal');
+            if (modal) modal.classList.add('hidden');
+        }
+
+        window.addEventListener('keydown', (e) => {
+            if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
+                e.preventDefault();
+                const modal = document.getElementById('searchModal');
+                if (modal && !modal.classList.contains('hidden')) {
+                    closeSearchModal();
+                } else {
+                    openSearchModal();
+                }
+            } else if (e.key === 'Escape') {
+                closeSearchModal();
+            } else if (document.getElementById('searchModal') && !document.getElementById('searchModal').classList.contains('hidden')) {
+                const items = document.querySelectorAll('.search-item');
+                if (!items.length) return;
+
+                if (e.key === 'ArrowDown') {
+                    e.preventDefault();
+                    currentSearchIndex = (currentSearchIndex + 1) % items.length;
+                    updateSearchSelection(items);
+                } else if (e.key === 'ArrowUp') {
+                    e.preventDefault();
+                    currentSearchIndex = (currentSearchIndex - 1 + items.length) % items.length;
+                    updateSearchSelection(items);
+                } else if (e.key === 'Enter') {
+                    if (currentSearchIndex >= 0 && items[currentSearchIndex]) {
+                        e.preventDefault();
+                        items[currentSearchIndex].click();
+                    }
+                }
+            }
+        });
+
+        function updateSearchSelection(items) {
+            items.forEach((item, idx) => {
+                if (idx === currentSearchIndex) {
+                    item.classList.add('bg-brand-orange/15', 'border-brand-orange/30');
+                    item.scrollIntoView({ block: 'nearest' });
+                } else {
+                    item.classList.remove('bg-brand-orange/15', 'border-brand-orange/30');
+                }
+            });
+        }
+
+        function handleGlobalSearchInput(val) {
+            clearTimeout(searchDebounceTimer);
+            const q = val.trim();
+            const spinner = document.getElementById('searchSpinner');
+            const emptyState = document.getElementById('searchEmptyState');
+            const list = document.getElementById('searchResultsList');
+
+            if (q.length < 2) {
+                if (spinner) spinner.classList.add('hidden');
+                if (emptyState) emptyState.classList.remove('hidden');
+                const items = list.querySelectorAll('.search-item, .search-cat-header');
+                items.forEach(el => el.remove());
+                return;
+            }
+
+            if (spinner) spinner.classList.remove('hidden');
+
+            searchDebounceTimer = setTimeout(async () => {
+                try {
+                    const res = await fetch(`/api/v1/search?q=${encodeURIComponent(q)}`);
+                    const data = await res.json();
+                    if (spinner) spinner.classList.add('hidden');
+                    renderSearchResults(data, q);
+                } catch(e) {
+                    if (spinner) spinner.classList.add('hidden');
+                }
+            }, 250);
+        }
+
+        function renderSearchResults(data, q) {
+            const list = document.getElementById('searchResultsList');
+            const emptyState = document.getElementById('searchEmptyState');
+            if (!list) return;
+
+            const oldItems = list.querySelectorAll('.search-item, .search-cat-header');
+            oldItems.forEach(el => el.remove());
+
+            const totalResults = (data.topics?.length || 0) + (data.posts?.length || 0) + (data.groups?.length || 0) + (data.users?.length || 0);
+
+            if (totalResults === 0) {
+                if (emptyState) {
+                    emptyState.classList.remove('hidden');
+                    emptyState.innerHTML = `
+                        <i data-lucide="alert-circle" class="w-8 h-8 text-amber-500 mx-auto mb-2 opacity-70"></i>
+                        <p class="text-zinc-300 font-medium text-sm">"${escapeHtml(q)}" bo'yicha natija topilmadi</p>
+                        <p class="text-zinc-500 text-xs mt-1">Boshqa so'z bilan qidirib ko'ring yoki yangi mavzu oching</p>
+                    `;
+                    if (window.lucide) lucide.createIcons();
+                }
+                currentSearchIndex = -1;
+                return;
+            }
+
+            if (emptyState) emptyState.classList.add('hidden');
+            currentSearchIndex = -1;
+
+            const addHeader = (title, icon) => {
+                const h = document.createElement('div');
+                h.className = 'search-cat-header text-[11px] font-mono text-zinc-400 font-semibold px-3 pt-3 pb-1 flex items-center gap-1.5 uppercase tracking-wider';
+                h.innerHTML = `<i data-lucide="${icon}" class="w-3.5 h-3.5 text-brand-orange"></i><span>${title}</span>`;
+                list.appendChild(h);
+            };
+
+            // 1. Mavzular
+            if (data.topics && data.topics.length > 0) {
+                addHeader('Mavzular', 'layers');
+                data.topics.forEach(t => {
+                    const a = document.createElement('a');
+                    a.href = `https://topics.ferris.uz#${t.slug}`;
+                    a.className = 'search-item flex items-center justify-between p-3 rounded-xl hover:bg-zinc-900 border border-transparent hover:border-white/10 transition-colors block cursor-pointer';
+                    a.onclick = () => closeSearchModal();
+                    a.innerHTML = `
+                        <div class="flex items-center gap-3">
+                            <span class="p-2 rounded-lg bg-zinc-900 border border-white/5 text-amber-400 font-mono text-xs font-bold">${escapeHtml(t.slug)}</span>
+                            <div>
+                                <div class="text-sm font-semibold text-white">${escapeHtml(t.title)}</div>
+                                <div class="text-xs text-zinc-400 line-clamp-1">${escapeHtml(t.description || '')}</div>
+                            </div>
+                        </div>
+                        <i data-lucide="arrow-up-right" class="w-4 h-4 text-zinc-500"></i>
+                    `;
+                    list.appendChild(a);
+                });
+            }
+
+            // 2. Muhokamalar (Posts)
+            if (data.posts && data.posts.length > 0) {
+                addHeader('Muhokamalar va Postlar', 'message-square');
+                data.posts.forEach(p => {
+                    const a = document.createElement('a');
+                    a.href = `https://topics.ferris.uz#post-${p.id}`;
+                    a.className = 'search-item flex items-start justify-between p-3 rounded-xl hover:bg-zinc-900 border border-transparent hover:border-white/10 transition-colors block cursor-pointer';
+                    a.onclick = () => closeSearchModal();
+                    a.innerHTML = `
+                        <div class="flex-grow pr-2">
+                            <div class="flex items-center gap-2 mb-1">
+                                <span class="text-[10px] font-mono text-brand-orange bg-brand-orange/10 px-1.5 py-0.5 rounded">${escapeHtml(p.topic_slug || 'f/rust')}</span>
+                                <span class="text-[11px] text-zinc-400 font-mono">@${escapeHtml(p.author_name || 'Rustacean')} &bull; ${p.created_at}</span>
+                            </div>
+                            <div class="text-sm font-semibold text-white hover:text-brand-orange transition-colors">${escapeHtml(p.title)}</div>
+                            <div class="text-xs text-zinc-400 line-clamp-1 mt-0.5 font-sans">${escapeHtml(p.snippet)}</div>
+                        </div>
+                        <i data-lucide="arrow-up-right" class="w-4 h-4 text-zinc-500 mt-1 shrink-0"></i>
+                    `;
+                    list.appendChild(a);
+                });
+            }
+
+            // 3. Jamiyatlar (Groups)
+            if (data.groups && data.groups.length > 0) {
+                addHeader('Jamiyatlar (Communities)', 'users');
+                data.groups.forEach(g => {
+                    const a = document.createElement('a');
+                    a.href = `https://groups.ferris.uz/f/${g.slug}`;
+                    a.className = 'search-item flex items-center justify-between p-3 rounded-xl hover:bg-zinc-900 border border-transparent hover:border-white/10 transition-colors block cursor-pointer';
+                    a.onclick = () => closeSearchModal();
+                    a.innerHTML = `
+                        <div class="flex items-center gap-3">
+                            <img src="${g.avatar_url || '/logo.png'}" class="w-8 h-8 rounded-lg object-cover border border-white/10"/>
+                            <div>
+                                <div class="text-sm font-semibold text-white flex items-center gap-2">
+                                    <span>${escapeHtml(g.name)}</span>
+                                    <span class="text-[10px] font-mono text-zinc-500">f/${escapeHtml(g.slug)}</span>
+                                </div>
+                                <div class="text-xs text-zinc-400 line-clamp-1">${escapeHtml(g.description || '')}</div>
+                            </div>
+                        </div>
+                        <span class="text-xs font-mono text-zinc-500">${g.members_count} a'zo</span>
+                    `;
+                    list.appendChild(a);
+                });
+            }
+
+            // 4. Dasturchilar (Users)
+            if (data.users && data.users.length > 0) {
+                addHeader('Dasturchilar', 'user');
+                data.users.forEach(u => {
+                    const a = document.createElement('a');
+                    a.href = `https://ferris.uz/@${u.username}`;
+                    a.className = 'search-item flex items-center justify-between p-3 rounded-xl hover:bg-zinc-900 border border-transparent hover:border-white/10 transition-colors block cursor-pointer';
+                    a.onclick = () => closeSearchModal();
+                    a.innerHTML = `
+                        <div class="flex items-center gap-3">
+                            <img src="${u.avatar_url || '/logo.png'}" class="w-7 h-7 rounded-full object-cover border border-white/15"/>
+                            <div>
+                                <div class="text-sm font-semibold text-white">@${escapeHtml(u.username)}</div>
+                                <div class="text-xs text-zinc-400">${escapeHtml(u.display_name)}</div>
+                            </div>
+                        </div>
+                        <i data-lucide="chevron-right" class="w-4 h-4 text-zinc-500"></i>
+                    `;
+                    list.appendChild(a);
+                });
+            }
+
+            if (window.lucide) lucide.createIcons();
+        }
+
+        function escapeHtml(str) {
+            if (!str) return '';
+            return str.replace(/[&<>'"]/g, tag => ({
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                "'": '&#39;',
+                '"': '&quot;'
+            }[tag] || tag));
+        }
     </script>
     {% block scripts %}{% endblock %}
 </body>

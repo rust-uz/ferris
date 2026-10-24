@@ -836,12 +836,13 @@ async fn main() {
         .route("/install.sh", get(install_sh_handler))
         .route("/install.ps1", get(install_ps1_handler))
         .route("/robots.txt", get(robots_handler))
-        .route("/sitemap.xml", get(sitemap_handler))
+        .route("/sitemap.xml", get(dynamic_sitemap_handler))
         .route("/favicon.ico", get(favicon_handler))
         // Tizim & Holat
         .route("/api/v1/ping", get(ping_handler))
         .route("/api/v1/stats", get(stats_handler))
         .route("/api/v1/context", get(context_handler))
+        .route("/api/v1/search", get(search_handler))
         // Mavzular (Topics)
         .route("/api/v1/topics", get(topics_list_handler))
         .route("/api/v1/topics/:slug", get(topic_detail_handler))
@@ -1448,15 +1449,274 @@ async fn install_ps1_handler() -> impl IntoResponse {
 }
 
 async fn robots_handler() -> impl IntoResponse {
-    let content = std::fs::read_to_string("public/robots.txt")
-        .unwrap_or_else(|_| include_str!("../../static/robots.txt").to_string());
+    let content = "User-agent: *\nAllow: /\nAllow: /topics\nAllow: /groups\nAllow: /f/\nAllow: /@\nAllow: /profile/\nDisallow: /api/\nDisallow: /device\n\nSitemap: https://ferris.uz/sitemap.xml\n";
     ([(axum::http::header::CONTENT_TYPE, "text/plain; charset=utf-8")], content)
 }
 
-async fn sitemap_handler() -> impl IntoResponse {
-    let content = std::fs::read_to_string("public/sitemap.xml")
-        .unwrap_or_else(|_| include_str!("../../static/sitemap.xml").to_string());
-    ([(axum::http::header::CONTENT_TYPE, "application/xml; charset=utf-8")], content)
+async fn dynamic_sitemap_handler(State(state): State<AppState>) -> impl IntoResponse {
+    let now = Utc::now().format("%Y-%m-%d").to_string();
+
+    let mut xml = String::from("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
+    xml.push_str("<urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\">\n");
+
+    // 1. Asosiy statik sahifalar
+    let static_pages = [
+        ("https://ferris.uz/", "1.0", "daily"),
+        ("https://topics.ferris.uz", "0.9", "hourly"),
+        ("https://groups.ferris.uz", "0.9", "daily"),
+        ("https://ferris.uz/device", "0.7", "monthly"),
+        ("https://ferris.uz/privacy", "0.5", "monthly"),
+        ("https://ferris.uz/terms", "0.5", "monthly"),
+    ];
+
+    for (url, priority, changefreq) in static_pages {
+        xml.push_str(&format!(
+            "  <url>\n    <loc>{}</loc>\n    <lastmod>{}</lastmod>\n    <changefreq>{}</changefreq>\n    <priority>{}</priority>\n  </url>\n",
+            url, now, changefreq, priority
+        ));
+    }
+
+    // 2. Dinamik Jamiyatlar (Groups)
+    {
+        let groups = state.groups.read().unwrap();
+        for g in groups.iter() {
+            xml.push_str(&format!(
+                "  <url>\n    <loc>https://ferris.uz/f/{}</loc>\n    <lastmod>{}</lastmod>\n    <changefreq>daily</changefreq>\n    <priority>0.8</priority>\n  </url>\n",
+                g.slug,
+                g.updated_at.format("%Y-%m-%d")
+            ));
+        }
+    }
+
+    // 3. Dinamik Mavzular (Topics)
+    {
+        let topics = state.topics.read().unwrap();
+        for t in topics.iter() {
+            xml.push_str(&format!(
+                "  <url>\n    <loc>https://topics.ferris.uz#{}</loc>\n    <lastmod>{}</lastmod>\n    <changefreq>daily</changefreq>\n    <priority>0.8</priority>\n  </url>\n",
+                t.slug, now
+            ));
+        }
+    }
+
+    // 4. Dinamik Foydalanuvchi Profillari (Users)
+    if let Some(pool) = &state.db {
+        if let Ok(rows) = sqlx::query("SELECT username, updated_at FROM users WHERE username IS NOT NULL LIMIT 200")
+            .fetch_all(pool)
+            .await
+        {
+            for r in rows {
+                let uname: Option<String> = r.get("username");
+                if let Some(username) = uname {
+                    let updated_at: chrono::DateTime<Utc> = r.get("updated_at");
+                    xml.push_str(&format!(
+                        "  <url>\n    <loc>https://ferris.uz/@{}</loc>\n    <lastmod>{}</lastmod>\n    <changefreq>weekly</changefreq>\n    <priority>0.7</priority>\n  </url>\n",
+                        username,
+                        updated_at.format("%Y-%m-%d")
+                    ));
+                }
+            }
+        }
+    }
+
+    xml.push_str("</urlset>");
+    ([(axum::http::header::CONTENT_TYPE, "application/xml; charset=utf-8")], xml)
+}
+
+// ==============================================================================
+// GLOBAL INSTANT SEARCH API
+// ==============================================================================
+
+#[derive(Debug, Deserialize)]
+pub struct SearchQuery {
+    pub q: Option<String>,
+}
+
+#[derive(Debug, Serialize)]
+pub struct SearchTopicItem {
+    pub slug: String,
+    pub title: String,
+    pub description: Option<String>,
+}
+
+#[derive(Debug, Serialize)]
+pub struct SearchPostItem {
+    pub id: Uuid,
+    pub title: String,
+    pub topic_slug: Option<String>,
+    pub author_name: Option<String>,
+    pub created_at: String,
+    pub snippet: String,
+}
+
+#[derive(Debug, Serialize)]
+pub struct SearchGroupItem {
+    pub slug: String,
+    pub name: String,
+    pub description: Option<String>,
+    pub avatar_url: String,
+    pub members_count: i32,
+}
+
+#[derive(Debug, Serialize)]
+pub struct SearchUserItem {
+    pub username: String,
+    pub display_name: String,
+    pub avatar_url: String,
+}
+
+#[derive(Debug, Serialize)]
+pub struct SearchResponse {
+    pub query: String,
+    pub topics: Vec<SearchTopicItem>,
+    pub posts: Vec<SearchPostItem>,
+    pub groups: Vec<SearchGroupItem>,
+    pub users: Vec<SearchUserItem>,
+}
+
+async fn search_handler(
+    State(state): State<AppState>,
+    Query(params): Query<SearchQuery>,
+) -> impl IntoResponse {
+    let q = match params.q {
+        Some(s) => s.trim().to_lowercase(),
+        None => String::new(),
+    };
+
+    if q.len() < 2 {
+        return Json(SearchResponse {
+            query: q,
+            topics: vec![],
+            posts: vec![],
+            groups: vec![],
+            users: vec![],
+        });
+    }
+
+    // 1. Mavzular (Topics)
+    let topics: Vec<SearchTopicItem> = {
+        let guard = state.topics.read().unwrap();
+        guard
+            .iter()
+            .filter(|t| {
+                t.slug.to_lowercase().contains(&q)
+                    || t.title.to_lowercase().contains(&q)
+                    || t.description.as_deref().unwrap_or("").to_lowercase().contains(&q)
+            })
+            .take(5)
+            .map(|t| SearchTopicItem {
+                slug: t.slug.clone(),
+                title: t.title.clone(),
+                description: t.description.clone(),
+            })
+            .collect()
+    };
+
+    // 2. Jamiyatlar (Groups)
+    let groups: Vec<SearchGroupItem> = {
+        let guard = state.groups.read().unwrap();
+        guard
+            .iter()
+            .filter(|g| {
+                g.name.to_lowercase().contains(&q)
+                    || g.slug.to_lowercase().contains(&q)
+                    || g.description.as_deref().unwrap_or("").to_lowercase().contains(&q)
+            })
+            .take(5)
+            .map(|g| SearchGroupItem {
+                slug: g.slug.clone(),
+                name: g.name.clone(),
+                description: g.description.clone(),
+                avatar_url: g.avatar_url.clone(),
+                members_count: g.members_count,
+            })
+            .collect()
+    };
+
+    // 3. Postlar (Muhokamalar)
+    let posts: Vec<SearchPostItem> = {
+        let guard = state.posts.read().unwrap();
+        guard
+            .iter()
+            .filter(|p| {
+                p.title.to_lowercase().contains(&q) || p.content.to_lowercase().contains(&q)
+            })
+            .take(15)
+            .map(|p| {
+                let content_lower = p.content.to_lowercase();
+                let snippet = if let Some(idx) = content_lower.find(&q) {
+                    let start = idx.saturating_sub(40);
+                    let end = (idx + q.len() + 80).min(p.content.len());
+                    let sub = &p.content[start..end];
+                    format!("...{}...", sub.replace('\n', " "))
+                } else {
+                    let end = 100.min(p.content.len());
+                    format!("{}...", &p.content[..end].replace('\n', " "))
+                };
+
+                SearchPostItem {
+                    id: p.id,
+                    title: p.title.clone(),
+                    topic_slug: p.topic_slug.clone(),
+                    author_name: p.author_name.clone(),
+                    created_at: p.created_at.format("%Y-%m-%d").to_string(),
+                    snippet,
+                }
+            })
+            .collect()
+    };
+
+    // 4. Foydalanuvchilar (Users)
+    let mut users = Vec::new();
+    if let Some(pool) = &state.db {
+        let pattern = format!("%{}%", q);
+        if let Ok(rows) = sqlx::query(
+            "SELECT username, display_name, avatar_url FROM users WHERE username ILIKE $1 OR display_name ILIKE $1 LIMIT 6"
+        )
+        .bind(&pattern)
+        .fetch_all(pool)
+        .await
+        {
+            for r in rows {
+                let uname: Option<String> = r.try_get("username").ok().flatten();
+                if let Some(username) = uname {
+                    let display_name: String = r.try_get("display_name").unwrap_or_else(|_| "Rustacean".to_string());
+                    let avatar_url: String = r.try_get("avatar_url").unwrap_or_else(|_| "/logo.png".to_string());
+                    users.push(SearchUserItem {
+                        username,
+                        display_name,
+                        avatar_url,
+                    });
+                }
+            }
+        }
+    } else {
+        let sessions = state.sessions.read().unwrap();
+        for (_, profile) in sessions.iter() {
+            if profile.username.to_lowercase().contains(&q)
+                || profile.display_name.to_lowercase().contains(&q)
+            {
+                if !users.iter().any(|u: &SearchUserItem| u.username == profile.username) {
+                    users.push(SearchUserItem {
+                        username: profile.username.clone(),
+                        display_name: profile.display_name.clone(),
+                        avatar_url: profile.avatar_url.clone().unwrap_or_else(|| "/logo.png".to_string()),
+                    });
+                }
+            }
+            if users.len() >= 6 {
+                break;
+            }
+        }
+    }
+
+    Json(SearchResponse {
+        query: q,
+        topics,
+        posts,
+        groups,
+        users,
+    })
 }
 
 async fn favicon_handler() -> impl IntoResponse {

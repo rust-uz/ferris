@@ -2,6 +2,11 @@
 
 {% block title %}{{ group.name }} — groups.ferris.uz/f/{{ group.slug }}{% endblock %}
 {% block description %}{{ group.name }} hamjamiyati rasmiy sahifasi va muhokamalar maydoni.{% endblock %}
+{% block canonical %}https://ferris.uz/f/{{ group.slug }}{% endblock %}
+{% block og_title %}{{ group.name }} — Ferris Jamiyati{% endblock %}
+{% block og_desc %}{{ group.name }} hamjamiyati rasmiy sahifasi va jonli muhokamalari.{% endblock %}
+{% block og_url %}https://ferris.uz/f/{{ group.slug }}{% endblock %}
+{% block og_image %}{{ group.avatar_url }}{% endblock %}
 
 {% block content %}
 <div class="max-w-6xl mx-auto px-4 sm:px-6 py-10 flex flex-col gap-10">

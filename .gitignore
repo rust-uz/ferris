@@ -18,3 +18,4 @@ distribution/aur/*/pkg/
 .env*
 *.local
 
+public
