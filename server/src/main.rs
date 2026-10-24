@@ -86,6 +86,17 @@ pub struct UserIdentity {
     pub avatar_url: Option<String>,
 }
 
+#[derive(Serialize, Deserialize, Clone, Debug)]
+pub struct ActiveTokenItem {
+    pub id: String,
+    pub client_id: String,
+    pub client_name: String,
+    pub name: String,
+    pub created_at: String,
+    pub last_used_at: Option<String>,
+    pub scopes: Vec<String>,
+}
+
 #[derive(Template)]
 #[template(path = "profile.html")]
 pub struct ProfileTemplate {
@@ -98,6 +109,8 @@ pub struct ProfileTemplate {
     pub has_telegram: bool,
     pub github_username: Option<String>,
     pub telegram_username: Option<String>,
+    pub active_tokens: Vec<ActiveTokenItem>,
+    pub can_unlink: bool,
 }
 
 #[derive(Template)]
@@ -790,6 +803,8 @@ async fn main() {
             if let Ok(origin_str) = origin.to_str() {
                 if origin_str == "https://ferris.uz"
                     || origin_str.ends_with(".ferris.uz")
+                    || origin_str == "https://hikaku.uz"
+                    || origin_str.ends_with(".hikaku.uz")
                     || origin_str.starts_with("http://localhost:")
                     || origin_str.starts_with("http://127.0.0.1:")
                 {
@@ -856,6 +871,10 @@ async fn main() {
         .route("/api/v1/oauth/device/approve", post(oauth_device_approve_handler))
         .route("/api/v1/oauth/device/deny", post(oauth_device_deny_handler))
         .route("/api/v1/oauth/verify", get(oauth_verify_handler))
+        .route("/api/v1/oauth/tokens", get(oauth_tokens_list_handler))
+        .route("/api/v1/oauth/tokens/:id", delete(oauth_token_revoke_handler))
+        .route("/api/v1/oauth/tokens/revoke-all", post(oauth_token_revoke_all_handler))
+        .route("/api/v1/auth/identities/:provider", delete(auth_identity_unlink_handler))
         // Shaxsiy Xabarlar (Direct Messages) & Xabarni O'chirish
         .route("/api/v1/dm", get(dm_conversations_handler))
         .route("/api/v1/dm/:username", get(dm_messages_handler).post(dm_send_handler))
@@ -1357,6 +1376,45 @@ async fn render_profile_view(
         .find(|i| i.provider == "telegram")
         .and_then(|i| i.provider_username.clone());
 
+    let can_unlink = identities.len() > 1;
+    let mut active_tokens = Vec::new();
+
+    if is_own_profile {
+        if let Some(ref pool) = state.db {
+            if let Ok(rows) = sqlx::query(
+                "SELECT pat.id, pat.client_id, COALESCE(oc.client_name, pat.client_id) as client_name,
+                        pat.name, pat.created_at, pat.last_used_at, pat.scopes
+                 FROM personal_access_tokens pat
+                 LEFT JOIN oauth_clients oc ON pat.client_id = oc.client_id
+                 WHERE pat.user_id = $1
+                 ORDER BY pat.created_at DESC",
+            )
+            .bind(&user.id)
+            .fetch_all(pool)
+            .await {
+                for r in rows {
+                    let tid: String = r.try_get("id").unwrap_or_default();
+                    let cid: String = r.try_get("client_id").unwrap_or_default();
+                    let cname: String = r.try_get("client_name").unwrap_or_default();
+                    let name: String = r.try_get("name").unwrap_or_default();
+                    let cat: chrono::DateTime<Utc> = r.try_get("created_at").unwrap_or_else(|_| Utc::now());
+                    let lat: Option<chrono::DateTime<Utc>> = r.try_get("last_used_at").ok().flatten();
+                    let scopes: Vec<String> = r.try_get("scopes").unwrap_or_default();
+
+                    active_tokens.push(ActiveTokenItem {
+                        id: tid,
+                        client_id: cid,
+                        client_name: cname,
+                        name,
+                        created_at: cat.format("%Y-%m-%d %H:%M").to_string(),
+                        last_used_at: lat.map(|t| t.format("%Y-%m-%d %H:%M").to_string()),
+                        scopes,
+                    });
+                }
+            }
+        }
+    }
+
     let template = ProfileTemplate {
         user: user.clone(),
         joined_groups,
@@ -1367,6 +1425,8 @@ async fn render_profile_view(
         has_telegram,
         github_username,
         telegram_username,
+        active_tokens,
+        can_unlink,
     };
 
     match template.render() {
@@ -3680,6 +3740,250 @@ async fn oauth_verify_handler(
             "error": "Yaroqsiz yoki mavjud bo'lmagan token"
         })),
     ))
+}
+
+async fn oauth_tokens_list_handler(
+    State(state): State<AppState>,
+    headers: HeaderMap,
+) -> Result<Json<serde_json::Value>, (StatusCode, Json<serde_json::Value>)> {
+    let auth_user = get_authenticated_user(&headers, &state).ok_or_else(|| {
+        (
+            StatusCode::UNAUTHORIZED,
+            Json(serde_json::json!({ "error": "Avtorizatsiyadan o'tish shart" })),
+        )
+    })?;
+
+    let pool = match state.db.as_ref() {
+        Some(p) => p,
+        None => {
+            return Err((
+                StatusCode::SERVICE_UNAVAILABLE,
+                Json(serde_json::json!({ "error": "Baza mavjud emas" })),
+            ));
+        }
+    };
+
+    let rows = sqlx::query(
+        "SELECT pat.id, pat.client_id, COALESCE(oc.client_name, pat.client_id) as client_name,
+                pat.name, pat.created_at, pat.last_used_at, pat.scopes
+         FROM personal_access_tokens pat
+         LEFT JOIN oauth_clients oc ON pat.client_id = oc.client_id
+         WHERE pat.user_id = $1
+         ORDER BY pat.created_at DESC",
+    )
+    .bind(&auth_user.id)
+    .fetch_all(pool)
+    .await
+    .map_err(|e| {
+        (
+            StatusCode::INTERNAL_SERVER_ERROR,
+            Json(serde_json::json!({ "error": e.to_string() })),
+        )
+    })?;
+
+    let mut tokens = Vec::new();
+    for r in rows {
+        let tid: String = r.try_get("id").unwrap_or_default();
+        let cid: String = r.try_get("client_id").unwrap_or_default();
+        let cname: String = r.try_get("client_name").unwrap_or_default();
+        let name: String = r.try_get("name").unwrap_or_default();
+        let cat: chrono::DateTime<Utc> = r.try_get("created_at").unwrap_or_else(|_| Utc::now());
+        let lat: Option<chrono::DateTime<Utc>> = r.try_get("last_used_at").ok().flatten();
+        let scopes: Vec<String> = r.try_get("scopes").unwrap_or_default();
+
+        tokens.push(ActiveTokenItem {
+            id: tid,
+            client_id: cid,
+            client_name: cname,
+            name,
+            created_at: cat.format("%Y-%m-%d %H:%M").to_string(),
+            last_used_at: lat.map(|t| t.format("%Y-%m-%d %H:%M").to_string()),
+            scopes,
+        });
+    }
+
+    Ok(Json(serde_json::json!({
+        "success": true,
+        "tokens": tokens
+    })))
+}
+
+async fn oauth_token_revoke_handler(
+    State(state): State<AppState>,
+    headers: HeaderMap,
+    Path(token_id): Path<String>,
+) -> Result<Json<serde_json::Value>, (StatusCode, Json<serde_json::Value>)> {
+    let auth_user = get_authenticated_user(&headers, &state).ok_or_else(|| {
+        (
+            StatusCode::UNAUTHORIZED,
+            Json(serde_json::json!({ "error": "Avtorizatsiyadan o'tish shart" })),
+        )
+    })?;
+
+    let pool = match state.db.as_ref() {
+        Some(p) => p,
+        None => {
+            return Err((
+                StatusCode::SERVICE_UNAVAILABLE,
+                Json(serde_json::json!({ "error": "Baza mavjud emas" })),
+            ));
+        }
+    };
+
+    let row = sqlx::query(
+        "SELECT token_hash FROM personal_access_tokens WHERE id = $1 AND user_id = $2"
+    )
+    .bind(&token_id)
+    .bind(&auth_user.id)
+    .fetch_optional(pool)
+    .await
+    .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, Json(serde_json::json!({ "error": e.to_string() }))))?;
+
+    let token_hash: Option<String> = row.and_then(|r| r.try_get("token_hash").ok());
+
+    let res = sqlx::query("DELETE FROM personal_access_tokens WHERE id = $1 AND user_id = $2")
+        .bind(&token_id)
+        .bind(&auth_user.id)
+        .execute(pool)
+        .await
+        .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, Json(serde_json::json!({ "error": e.to_string() }))))?;
+
+    if res.rows_affected() == 0 {
+        return Err((
+            StatusCode::NOT_FOUND,
+            Json(serde_json::json!({ "error": "Token topilmadi yoki sizga tegishli emas" })),
+        ));
+    }
+
+    // Also purge from in-memory cache and sessions table
+    {
+        let mut sessions = state.sessions.write().unwrap();
+        sessions.retain(|token, user| {
+            if user.id == auth_user.id && token.starts_with("ferris_pat_") {
+                if let Some(ref th) = token_hash {
+                    let h = format!("{:x}", Sha256::digest(token.as_bytes()));
+                    return &h != th;
+                }
+            }
+            true
+        });
+    }
+
+    info!("🗑️ PAT token {} revoked for @{}", token_id, auth_user.username);
+
+    Ok(Json(serde_json::json!({
+        "success": true,
+        "message": "Token muvaffaqiyatli bekor qilindi (Revoked)"
+    })))
+}
+
+async fn oauth_token_revoke_all_handler(
+    State(state): State<AppState>,
+    headers: HeaderMap,
+) -> Result<Json<serde_json::Value>, (StatusCode, Json<serde_json::Value>)> {
+    let auth_user = get_authenticated_user(&headers, &state).ok_or_else(|| {
+        (
+            StatusCode::UNAUTHORIZED,
+            Json(serde_json::json!({ "error": "Avtorizatsiyadan o'tish shart" })),
+        )
+    })?;
+
+    let pool = match state.db.as_ref() {
+        Some(p) => p,
+        None => {
+            return Err((
+                StatusCode::SERVICE_UNAVAILABLE,
+                Json(serde_json::json!({ "error": "Baza mavjud emas" })),
+            ));
+        }
+    };
+
+    let _ = sqlx::query("DELETE FROM personal_access_tokens WHERE user_id = $1")
+        .bind(&auth_user.id)
+        .execute(pool)
+        .await;
+
+    // Purge all PAT tokens for this user from memory
+    {
+        let mut sessions = state.sessions.write().unwrap();
+        sessions.retain(|token, user| {
+            !(user.id == auth_user.id && token.starts_with("ferris_pat_"))
+        });
+    }
+
+    info!("🗑️ All PAT tokens revoked for @{}", auth_user.username);
+
+    Ok(Json(serde_json::json!({
+        "success": true,
+        "message": "Barcha boshqa qurilma tokenlari bekor qilindi"
+    })))
+}
+
+async fn auth_identity_unlink_handler(
+    State(state): State<AppState>,
+    headers: HeaderMap,
+    Path(provider): Path<String>,
+) -> Result<Json<serde_json::Value>, (StatusCode, Json<serde_json::Value>)> {
+    let auth_user = get_authenticated_user(&headers, &state).ok_or_else(|| {
+        (
+            StatusCode::UNAUTHORIZED,
+            Json(serde_json::json!({ "error": "Avtorizatsiyadan o'tish shart" })),
+        )
+    })?;
+
+    let pool = match state.db.as_ref() {
+        Some(p) => p,
+        None => {
+            return Err((
+                StatusCode::SERVICE_UNAVAILABLE,
+                Json(serde_json::json!({ "error": "Baza mavjud emas" })),
+            ));
+        }
+    };
+
+    let clean_provider = provider.to_lowercase();
+    if clean_provider != "github" && clean_provider != "telegram" {
+        return Err((
+            StatusCode::BAD_REQUEST,
+            Json(serde_json::json!({ "error": "Noma'lum provayder" })),
+        ));
+    }
+
+    let count: i64 = sqlx::query_scalar("SELECT COUNT(*) FROM user_identities WHERE user_id = $1")
+        .bind(&auth_user.id)
+        .fetch_one(pool)
+        .await
+        .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, Json(serde_json::json!({ "error": e.to_string() }))))?;
+
+    if count <= 1 {
+        return Err((
+            StatusCode::BAD_REQUEST,
+            Json(serde_json::json!({
+                "error": "Akkauntdan oxirgi kirish provayderini uzib bo'lmaydi. Kamida bitta autentifikatsiya usuli qolishi shart!"
+            })),
+        ));
+    }
+
+    let res = sqlx::query("DELETE FROM user_identities WHERE user_id = $1 AND provider = $2")
+        .bind(&auth_user.id)
+        .bind(&clean_provider)
+        .execute(pool)
+        .await
+        .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, Json(serde_json::json!({ "error": e.to_string() }))))?;
+
+    if res.rows_affected() == 0 {
+        return Err((
+            StatusCode::NOT_FOUND,
+            Json(serde_json::json!({ "error": "Ushbu provayder hisobingizga ulanmagan" })),
+        ));
+    }
+
+    info!("🔓 Provider {} unlinked for @{}", clean_provider, auth_user.username);
+
+    Ok(Json(serde_json::json!({
+        "success": true,
+        "message": format!("{} hisobi muvaffaqiyatli uzildi", clean_provider)
+    })))
 }
 
 // ==============================================================================

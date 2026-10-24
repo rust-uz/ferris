@@ -1,0 +1,10 @@
+[Unit]
+Description=Nightly Backup Timer for Ferris.uz PostgreSQL (03:00 UTC)
+
+[Timer]
+OnCalendar=*-*-* 03:00:00 UTC
+Persistent=true
+RandomizedDelaySec=300
+
+[Install]
+WantedBy=timers.target

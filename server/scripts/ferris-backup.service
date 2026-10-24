@@ -1,0 +1,10 @@
+[Unit]
+Description=Ferris.uz PostgreSQL Automated Disaster Recovery Backup
+After=postgresql.service
+
+[Service]
+Type=oneshot
+User=root
+ExecStart=/opt/ferris/scripts/backup_ferris_db.sh
+StandardOutput=append:/var/log/ferris_backup.log
+StandardError=append:/var/log/ferris_backup.log
