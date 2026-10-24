@@ -9,7 +9,7 @@ license=('MIT' 'Apache-2.0')
 provides=('ferris' 'ferris-cli')
 conflicts=('ferris-cli')
 source=("ferris-linux-${pkgver}::https://ferris.uz/downloads/ferris-linux")
-sha256sums=('77cd07fe5e62c8022992778e29baaa02a494ea2295b0d73d537a46d77f317287')
+sha256sums=('5afa052da9a2624fa3a29b939543ba39d10b7b2b20d2faafe1830dcdc0faaaff')
 
 package() {
     install -Dm755 "${srcdir}/ferris-linux-${pkgver}" "${pkgdir}/usr/bin/ferris"
