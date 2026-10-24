@@ -1933,7 +1933,7 @@ async fn update_username_handler(
             ));
         }
 
-        // Update database (users, posts, comments)
+        // Update database (users, posts, comments, chat_messages, direct_messages, group_members, blocked_users)
         let _ = sqlx::query("UPDATE users SET username = $1 WHERE id = $2")
             .bind(&clean)
             .bind(&current_user.id)
@@ -1951,6 +1951,54 @@ async fn update_username_handler(
 
         let _ = sqlx::query(
             "UPDATE comments SET author_name = $1 WHERE LOWER(author_name) = LOWER($2)"
+        )
+        .bind(&clean)
+        .bind(&old_username)
+        .execute(pool)
+        .await;
+
+        let _ = sqlx::query(
+            "UPDATE chat_messages SET author_username = $1 WHERE LOWER(author_username) = LOWER($2)"
+        )
+        .bind(&clean)
+        .bind(&old_username)
+        .execute(pool)
+        .await;
+
+        let _ = sqlx::query(
+            "UPDATE direct_messages SET sender_username = $1 WHERE LOWER(sender_username) = LOWER($2)"
+        )
+        .bind(&clean)
+        .bind(&old_username)
+        .execute(pool)
+        .await;
+
+        let _ = sqlx::query(
+            "UPDATE direct_messages SET receiver_username = $1 WHERE LOWER(receiver_username) = LOWER($2)"
+        )
+        .bind(&clean)
+        .bind(&old_username)
+        .execute(pool)
+        .await;
+
+        let _ = sqlx::query(
+            "UPDATE group_members SET username = $1 WHERE LOWER(username) = LOWER($2)"
+        )
+        .bind(&clean)
+        .bind(&old_username)
+        .execute(pool)
+        .await;
+
+        let _ = sqlx::query(
+            "UPDATE blocked_users SET blocker_username = $1 WHERE LOWER(blocker_username) = LOWER($2)"
+        )
+        .bind(&clean)
+        .bind(&old_username)
+        .execute(pool)
+        .await;
+
+        let _ = sqlx::query(
+            "UPDATE blocked_users SET blocked_username = $1 WHERE LOWER(blocked_username) = LOWER($2)"
         )
         .bind(&clean)
         .bind(&old_username)
