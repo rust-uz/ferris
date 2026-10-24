@@ -426,9 +426,8 @@
                 <div class="flex flex-col">
                     <h3 id="dmHeaderTitle" class="text-sm font-bold text-white tracking-tight flex items-center gap-2">
                         <i data-lucide="mail" class="w-4 h-4 text-brand-orange"></i>
-                        <span>Shaxsiy Xabarlar (DM)</span>
+                        <span>Shaxsiy Xabarlar</span>
                     </h3>
-                    <span id="dmHeaderSubtitle" class="text-[10px] font-mono text-zinc-500">Real-time WebSocket &bull; PostgreSQL 16</span>
                 </div>
             </div>
             <div class="flex items-center gap-3">
@@ -456,9 +455,7 @@
                 </form>
                 <div class="flex items-center gap-2 mt-2.5 text-[11px] text-zinc-500 font-mono">
                     <span>Tavsiya:</span>
-                    <button onclick="openDmWith('founder')" class="text-cyan-400 hover:underline">@founder</button>
-                    <span>&bull;</span>
-                    <button onclick="openDmWith('ibrohimkoha')" class="text-yellow-400 hover:underline">@ibrohimkoha</button>
+                    <button onclick="openDmWith('ibrohimkoha')" class="text-cyan-400 hover:underline">@ibrohimkoha</button>
                 </div>
             </div>
 
@@ -831,8 +828,9 @@
             document.getElementById('dmListView').classList.remove('hidden');
             document.getElementById('dmChatView').classList.add('hidden');
             document.getElementById('dmBackBtn').classList.add('hidden');
-            document.getElementById('dmHeaderTitle').innerHTML = '<i data-lucide="mail" class="w-4 h-4 text-brand-orange"></i> <span>Shaxsiy Xabarlar (DM)</span>';
-            document.getElementById('dmHeaderSubtitle').innerText = 'Real-time WebSocket • PostgreSQL 16';
+            document.getElementById('dmHeaderTitle').innerHTML = '<i data-lucide="mail" class="w-4 h-4 text-brand-orange"></i> <span>Shaxsiy Xabarlar</span>';
+            const sub = document.getElementById('dmHeaderSubtitle');
+            if (sub) sub.innerText = '';
             if (window.lucide) lucide.createIcons();
             loadDmConversations();
         };

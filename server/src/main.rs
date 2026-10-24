@@ -4787,12 +4787,17 @@ async fn dm_conversations_handler(
     if let Some(ref pool) = state.db {
         let rows = sqlx::query(
             r#"
-            SELECT DISTINCT
-                CASE WHEN sender_username = $1 THEN receiver_username ELSE sender_username END as peer_username,
-                text, timestamp
-            FROM direct_messages
-            WHERE sender_username = $1 OR receiver_username = $1
-            ORDER BY timestamp DESC
+            SELECT DISTINCT ON (LOWER(peer_username))
+                peer_username, text, timestamp
+            FROM (
+                SELECT 
+                    CASE WHEN LOWER(sender_username) = LOWER($1) THEN receiver_username ELSE sender_username END as peer_username,
+                    text, timestamp
+                FROM direct_messages
+                WHERE LOWER(sender_username) = LOWER($1) OR LOWER(receiver_username) = LOWER($1)
+                ORDER BY timestamp DESC
+            ) sub
+            ORDER BY LOWER(peer_username), timestamp DESC
             "#
         )
         .bind(&auth_user.username)
@@ -4804,7 +4809,7 @@ async fn dm_conversations_handler(
         let mut seen = HashSet::new();
         for r in rows {
             let peer: String = r.try_get("peer_username").unwrap_or_default();
-            if seen.insert(peer.clone()) {
+            if seen.insert(peer.to_lowercase()) {
                 let text: String = r.try_get("text").unwrap_or_default();
                 let timestamp: i64 = r.try_get("timestamp").unwrap_or(0);
                 convos.push(serde_json::json!({
@@ -4829,20 +4834,31 @@ async fn dm_messages_handler(
         Some(u) => u,
         None => return Err((StatusCode::UNAUTHORIZED, Json(serde_json::json!({ "error": "Avtorizatsiyadan o'tilmagan" })))),
     };
-    let clean_target = target_user.trim_start_matches('@');
+    let clean_target = target_user.trim_start_matches('@').trim().to_lowercase();
 
     if let Some(ref pool) = state.db {
+        let target_row = sqlx::query("SELECT username FROM users WHERE LOWER(username) = LOWER($1)")
+            .bind(&clean_target)
+            .fetch_optional(pool)
+            .await
+            .unwrap_or(None);
+
+        let canonical_target = match target_row {
+            Some(r) => r.try_get::<String, _>("username").unwrap_or_else(|_| clean_target.clone()),
+            None => clean_target.clone(),
+        };
+
         let rows = sqlx::query(
             r#"
             SELECT id, sender_username, receiver_username, text, timestamp, is_read, msg_hash
             FROM direct_messages
-            WHERE (sender_username = $1 AND receiver_username = $2)
-               OR (sender_username = $2 AND receiver_username = $1)
+            WHERE (LOWER(sender_username) = LOWER($1) AND LOWER(receiver_username) = LOWER($2))
+               OR (LOWER(sender_username) = LOWER($2) AND LOWER(receiver_username) = LOWER($1))
             ORDER BY timestamp ASC
             "#
         )
         .bind(&auth_user.username)
-        .bind(clean_target)
+        .bind(&canonical_target)
         .fetch_all(pool)
         .await
         .unwrap_or_default();
@@ -4867,25 +4883,25 @@ async fn dm_messages_handler(
         }).collect();
 
         let is_blocked_by_me = sqlx::query_scalar::<_, bool>(
-            "SELECT EXISTS(SELECT 1 FROM blocked_users WHERE blocker_username = $1 AND blocked_username = $2)"
+            "SELECT EXISTS(SELECT 1 FROM blocked_users WHERE LOWER(blocker_username) = LOWER($1) AND LOWER(blocked_username) = LOWER($2))"
         )
         .bind(&auth_user.username)
-        .bind(clean_target)
+        .bind(&canonical_target)
         .fetch_one(pool)
         .await
         .unwrap_or(false);
 
         let is_blocked_by_them = sqlx::query_scalar::<_, bool>(
-            "SELECT EXISTS(SELECT 1 FROM blocked_users WHERE blocker_username = $1 AND blocked_username = $2)"
+            "SELECT EXISTS(SELECT 1 FROM blocked_users WHERE LOWER(blocker_username) = LOWER($1) AND LOWER(blocked_username) = LOWER($2))"
         )
-        .bind(clean_target)
+        .bind(&canonical_target)
         .bind(&auth_user.username)
         .fetch_one(pool)
         .await
         .unwrap_or(false);
 
         return Ok(Json(serde_json::json!({
-            "target": clean_target,
+            "target": canonical_target,
             "is_blocked_by_me": is_blocked_by_me,
             "is_blocked_by_them": is_blocked_by_them,
             "messages": messages
@@ -4905,7 +4921,7 @@ async fn dm_send_handler(
         Some(u) => u,
         None => return Err((StatusCode::UNAUTHORIZED, Json(serde_json::json!({ "error": "Avtorizatsiyadan o'tilmagan" })))),
     };
-    let clean_target = target_user.trim_start_matches('@').to_string();
+    let clean_target = target_user.trim_start_matches('@').trim().to_lowercase();
 
     if clean_target.eq_ignore_ascii_case(&auth_user.username) {
         return Err((StatusCode::BAD_REQUEST, Json(serde_json::json!({ "error": "O'zingizga shaxsiy xabar yubora olmaysiz!" }))));
@@ -4926,23 +4942,22 @@ async fn dm_send_handler(
     }
 
     // Foydalanuvchi mavjudligi va bloklanganlik tekshiruvi
-    if let Some(ref pool) = state.db {
-        let target_exists = sqlx::query_scalar::<_, bool>(
-            "SELECT EXISTS(SELECT 1 FROM users WHERE LOWER(username) = LOWER($1))"
-        )
-        .bind(&clean_target)
-        .fetch_one(pool)
-        .await
-        .unwrap_or(false);
+    let canonical_target = if let Some(ref pool) = state.db {
+        let target_row = sqlx::query("SELECT username FROM users WHERE LOWER(username) = LOWER($1)")
+            .bind(&clean_target)
+            .fetch_optional(pool)
+            .await
+            .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, Json(serde_json::json!({ "error": format!("Baza xatoligi: {}", e) }))))?;
 
-        if !target_exists {
-            return Err((StatusCode::NOT_FOUND, Json(serde_json::json!({ "error": "Bunday foydalanuvchi topilmadi!" }))));
-        }
+        let canonical = match target_row {
+            Some(r) => r.try_get::<String, _>("username").unwrap_or_default(),
+            None => return Err((StatusCode::NOT_FOUND, Json(serde_json::json!({ "error": "Bunday foydalanuvchi topilmadi!" })))),
+        };
 
         let is_blocked = sqlx::query_scalar::<_, bool>(
-            "SELECT EXISTS(SELECT 1 FROM blocked_users WHERE blocker_username = $1 AND blocked_username = $2)"
+            "SELECT EXISTS(SELECT 1 FROM blocked_users WHERE LOWER(blocker_username) = LOWER($1) AND LOWER(blocked_username) = LOWER($2))"
         )
-        .bind(&clean_target)
+        .bind(&canonical)
         .bind(&auth_user.username)
         .fetch_one(pool)
         .await
@@ -4953,10 +4968,10 @@ async fn dm_send_handler(
         }
 
         let has_blocked = sqlx::query_scalar::<_, bool>(
-            "SELECT EXISTS(SELECT 1 FROM blocked_users WHERE blocker_username = $1 AND blocked_username = $2)"
+            "SELECT EXISTS(SELECT 1 FROM blocked_users WHERE LOWER(blocker_username) = LOWER($1) AND LOWER(blocked_username) = LOWER($2))"
         )
         .bind(&auth_user.username)
-        .bind(&clean_target)
+        .bind(&canonical)
         .fetch_one(pool)
         .await
         .unwrap_or(false);
@@ -4964,11 +4979,15 @@ async fn dm_send_handler(
         if has_blocked {
             return Err((StatusCode::BAD_REQUEST, Json(serde_json::json!({ "error": "Siz bu foydalanuvchini bloklagansiz. Xabar yozish uchun avval blokdan chiqaring." }))));
         }
-    }
+
+        canonical
+    } else {
+        clean_target.clone()
+    };
 
     let id = Uuid::new_v4();
     let now = SystemTime::now().duration_since(UNIX_EPOCH).unwrap_or_default().as_secs();
-    let dm_hash = compute_dm_hash(&id.to_string(), &auth_user.username, &clean_target, &payload.text, now);
+    let dm_hash = compute_dm_hash(&id.to_string(), &auth_user.username, &canonical_target, &payload.text, now);
 
     if let Some(ref pool) = state.db {
         if let Err(e) = sqlx::query(
@@ -4976,7 +4995,7 @@ async fn dm_send_handler(
         )
         .bind(id)
         .bind(&auth_user.username)
-        .bind(&clean_target)
+        .bind(&canonical_target)
         .bind(&payload.text)
         .bind(now as i64)
         .bind(&dm_hash)
@@ -4991,7 +5010,7 @@ async fn dm_send_handler(
     let dm_event = WsEvent::DirectMessage {
         id: id.to_string(),
         sender_username: auth_user.username.clone(),
-        receiver_username: clean_target.clone(),
+        receiver_username: canonical_target.clone(),
         text: payload.text.clone(),
         timestamp: now,
         msg_hash: Some(dm_hash),
@@ -4999,13 +5018,11 @@ async fn dm_send_handler(
 
     {
         let mut user_ws = state.user_ws.write().unwrap();
-        // Route to receiver if online
-        if let Some(senders) = user_ws.get_mut(&clean_target) {
-            senders.retain(|s| s.send(dm_event.clone()).is_ok());
-        }
-        // Route to sender (all tabs)
-        if let Some(senders) = user_ws.get_mut(&auth_user.username) {
-            senders.retain(|s| s.send(dm_event.clone()).is_ok());
+        // Route to receiver and sender if online (case-insensitive key comparison)
+        for (user_key, senders) in user_ws.iter_mut() {
+            if user_key.eq_ignore_ascii_case(&canonical_target) || user_key.eq_ignore_ascii_case(&auth_user.username) {
+                senders.retain(|s| s.send(dm_event.clone()).is_ok());
+            }
         }
     }
 
@@ -5013,7 +5030,7 @@ async fn dm_send_handler(
         "success": true,
         "id": id,
         "sender": auth_user.username,
-        "receiver": clean_target,
+        "receiver": canonical_target,
         "text": payload.text,
         "timestamp": now
     })))
@@ -5029,39 +5046,36 @@ async fn dm_message_delete_handler(
         None => return Err((StatusCode::UNAUTHORIZED, Json(serde_json::json!({ "error": "Avtorizatsiyadan o'tilmagan" })))),
     };
 
+    let target_uuid = match Uuid::parse_str(id_str.trim()) {
+        Ok(u) => u,
+        Err(_) => {
+            return Err((
+                StatusCode::BAD_REQUEST,
+                Json(serde_json::json!({ "error": "Noto'g'ri xabar identifikatori (UUID talab qilinadi)" })),
+            ));
+        }
+    };
+
     if let Some(ref pool) = state.db {
-        let rows_affected = if let Ok(u) = Uuid::parse_str(id_str.trim()) {
-            sqlx::query(
-                "DELETE FROM direct_messages WHERE id = $1 AND (sender_username = $2 OR receiver_username = $2)"
-            )
-            .bind(u)
-            .bind(&auth_user.username)
-            .execute(pool)
-            .await
-            .map(|r| r.rows_affected())
-            .unwrap_or(0)
-        } else {
-            let prefix = format!("{}%", id_str.trim());
-            sqlx::query(
-                "DELETE FROM direct_messages WHERE id::text LIKE $1 AND (sender_username = $2 OR receiver_username = $2)"
-            )
-            .bind(prefix)
-            .bind(&auth_user.username)
-            .execute(pool)
-            .await
-            .map(|r| r.rows_affected())
-            .unwrap_or(0)
-        };
+        let rows_affected = sqlx::query(
+            "DELETE FROM direct_messages WHERE id = $1 AND (LOWER(sender_username) = LOWER($2) OR LOWER(receiver_username) = LOWER($2))"
+        )
+        .bind(target_uuid)
+        .bind(&auth_user.username)
+        .execute(pool)
+        .await
+        .map(|r| r.rows_affected())
+        .unwrap_or(0);
 
         if rows_affected > 0 {
-            info!("🗑️ DM xabar o'chirildi: {} by @{}", id_str, auth_user.username);
-            return Ok(Json(serde_json::json!({ "success": true, "deleted_message_id": id_str })));
+            info!("🗑️ DM xabar o'chirildi: {} by @{}", target_uuid, auth_user.username);
+            return Ok(Json(serde_json::json!({ "success": true, "deleted_message_id": target_uuid.to_string() })));
         } else {
             return Err((StatusCode::NOT_FOUND, Json(serde_json::json!({ "error": "Xabar topilmadi yoki o'chirishga ruxsat yo'q" }))));
         }
     }
 
-    Ok(Json(serde_json::json!({ "success": true, "deleted_message_id": id_str })))
+    Ok(Json(serde_json::json!({ "success": true, "deleted_message_id": target_uuid.to_string() })))
 }
 
 async fn user_block_handler(
