@@ -69,6 +69,13 @@ pub struct GroupDetailTemplate {
 pub struct LoginTemplate {}
 
 #[derive(Template)]
+#[template(path = "device.html")]
+pub struct DeviceTemplate {
+    pub current_user: Option<UserProfile>,
+    pub initial_code: String,
+}
+
+#[derive(Template)]
 #[template(path = "profile.html")]
 pub struct ProfileTemplate {
     pub user: UserProfile,
@@ -785,6 +792,7 @@ async fn main() {
         .route("/f/:slug", get(group_detail_page_handler))
         .route("/groups/:slug", get(group_detail_page_handler))
         .route("/login", get(login_page_handler))
+        .route("/device", get(device_page_handler))
         .route("/profile", get(my_profile_page_handler))
         .route("/profile/:username", get(user_profile_page_handler))
         .route("/u/:username", get(user_profile_page_handler))
@@ -824,6 +832,12 @@ async fn main() {
         .route("/api/auth/github/callback", get(github_callback_handler))
         .route("/api/auth/me", get(auth_me_handler))
         .route("/api/auth/logout", post(auth_logout_handler))
+        // Universal SSO (Ferris ID) & Device Flow (RFC 8628)
+        .route("/api/v1/oauth/device/code", post(oauth_device_code_handler))
+        .route("/api/v1/oauth/device/token", post(oauth_device_token_handler))
+        .route("/api/v1/oauth/device/approve", post(oauth_device_approve_handler))
+        .route("/api/v1/oauth/device/deny", post(oauth_device_deny_handler))
+        .route("/api/v1/oauth/verify", get(oauth_verify_handler))
         // Shaxsiy Xabarlar (Direct Messages) & Xabarni O'chirish
         .route("/api/v1/dm", get(dm_conversations_handler))
         .route("/api/v1/dm/:username", get(dm_messages_handler).post(dm_send_handler))
@@ -1111,6 +1125,23 @@ async fn group_detail_page_handler(
 
 async fn login_page_handler() -> impl IntoResponse {
     let template = LoginTemplate {};
+    match template.render() {
+        Ok(html) => axum::response::Html(html).into_response(),
+        Err(e) => (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()).into_response(),
+    }
+}
+
+async fn device_page_handler(
+    State(state): State<AppState>,
+    headers: HeaderMap,
+    axum::extract::Query(query): axum::extract::Query<HashMap<String, String>>,
+) -> impl IntoResponse {
+    let current_user = get_authenticated_user(&headers, &state);
+    let initial_code = query.get("code").cloned().unwrap_or_default();
+    let template = DeviceTemplate {
+        current_user,
+        initial_code,
+    };
     match template.render() {
         Ok(html) => axum::response::Html(html).into_response(),
         Err(e) => (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()).into_response(),
@@ -2514,8 +2545,8 @@ async fn auth_me_handler(
     State(state): State<AppState>,
     Query(query): Query<AuthQuery>,
     headers: HeaderMap,
-) -> Result<Json<UserProfile>, (StatusCode, Json<serde_json::Value>)> {
-    let token = query
+) -> axum::response::Response {
+    let token = match query
         .token
         .or_else(|| {
             headers
@@ -2536,23 +2567,91 @@ async fn auth_me_handler(
                     }
                     None
                 })
-        })
-        .ok_or_else(|| {
-            (
+        }) {
+        Some(t) => t,
+        None => {
+            return (
                 StatusCode::UNAUTHORIZED,
                 Json(serde_json::json!({ "error": "Token topilmadi" })),
             )
-        })?;
+                .into_response();
+        }
+    };
 
-    let sessions = state.sessions.read().unwrap();
-    if let Some(user) = sessions.get(&token) {
-        Ok(Json(user.clone()))
-    } else {
-        Err((
-            StatusCode::UNAUTHORIZED,
-            Json(serde_json::json!({ "error": "Yaroqsiz yoki muddati o'tgan sessiya" })),
-        ))
+    let cached_user = {
+        let sessions = state.sessions.read().unwrap();
+        sessions.get(&token).cloned()
+    };
+    if let Some(user) = cached_user {
+        return Json(user).into_response();
     }
+
+    // If starts with ferris_pat_, check personal_access_tokens in database
+    if token.starts_with("ferris_pat_") {
+        if let Some(ref pool) = state.db {
+            let token_hash = format!("{:x}", Sha256::digest(token.as_bytes()));
+            if let Ok(Some(r)) = sqlx::query(
+                "SELECT pat.id, pat.user_id, pat.expires_at,
+                        u.username, u.display_name, u.provider, u.avatar_url, u.created_at
+                 FROM personal_access_tokens pat
+                 JOIN users u ON pat.user_id = u.id
+                 WHERE pat.token_hash = $1"
+            )
+            .bind(&token_hash)
+            .fetch_optional(pool)
+            .await {
+                let exp: Option<chrono::DateTime<Utc>> = r.try_get("expires_at").ok();
+                if let Some(e) = exp {
+                    if Utc::now() > e {
+                        return (
+                            StatusCode::UNAUTHORIZED,
+                            Json(serde_json::json!({ "error": "Token muddati o'tgan" })),
+                        )
+                            .into_response();
+                    }
+                }
+
+                let uid: String = r.try_get("user_id").unwrap_or_default();
+                let uname: String = r.try_get("username").unwrap_or_default();
+                let dname: String = r.try_get("display_name").unwrap_or_default();
+                let prov: String = r.try_get("provider").unwrap_or_default();
+                let aurl: Option<String> = r.try_get("avatar_url").ok();
+                let cat: i64 = r.try_get("created_at").unwrap_or(0);
+
+                let profile = UserProfile {
+                    id: uid,
+                    provider: prov,
+                    username: uname,
+                    display_name: dname,
+                    avatar_url: aurl,
+                    created_at: cat as u64,
+                    expires_at: exp,
+                };
+
+                {
+                    let mut sessions = state.sessions.write().unwrap();
+                    sessions.insert(token.clone(), profile.clone());
+                }
+
+                let pat_id: String = r.try_get("id").unwrap_or_default();
+                let pool = pool.clone();
+                tokio::spawn(async move {
+                    let _ = sqlx::query("UPDATE personal_access_tokens SET last_used_at = NOW() WHERE id = $1")
+                        .bind(&pat_id)
+                        .execute(&pool)
+                        .await;
+                });
+
+                return Json(profile).into_response();
+            }
+        }
+    }
+
+    (
+        StatusCode::UNAUTHORIZED,
+        Json(serde_json::json!({ "error": "Yaroqsiz yoki muddati o'tgan sessiya" })),
+    )
+        .into_response()
 }
 
 async fn auth_logout_handler(
@@ -2603,6 +2702,504 @@ async fn auth_logout_handler(
         [(axum::http::header::SET_COOKIE, cookie_val.to_string())],
         Json(serde_json::json!({ "success": true })),
     )
+}
+
+// ==============================================================================
+// 7.5. UNIVERSAL SSO (FERRIS ID) & DEVICE FLOW (RFC 8628) HANDLERS
+// ==============================================================================
+
+#[derive(Deserialize)]
+pub struct DeviceCodeReq {
+    pub client_id: Option<String>,
+}
+
+async fn oauth_device_code_handler(
+    State(state): State<AppState>,
+    Json(payload): Json<DeviceCodeReq>,
+) -> Result<Json<serde_json::Value>, (StatusCode, Json<serde_json::Value>)> {
+    let pool = match state.db.as_ref() {
+        Some(p) => p,
+        None => {
+            return Err((
+                StatusCode::SERVICE_UNAVAILABLE,
+                Json(serde_json::json!({ "error": "database_unavailable" })),
+            ));
+        }
+    };
+
+    let client_id = payload.client_id.unwrap_or_else(|| "ferris-cli".to_string());
+
+    // Generate secure device_code (64-char hex)
+    let device_code = format!(
+        "{:x}",
+        Sha256::digest(format!("{}:{}:device", Uuid::new_v4(), Utc::now().timestamp_nanos_opt().unwrap_or(0)).as_bytes())
+    );
+
+    // Generate human-friendly user_code: FRIS-XXXX (using non-ambiguous chars)
+    let chars = b"23456789ABCDEFGHJKLMNPQRSTUVWXYZ";
+    let hash = blake3::hash(Uuid::new_v4().as_bytes());
+    let hash_bytes = hash.as_bytes();
+    let part: String = (0..4)
+        .map(|i| {
+            let idx = (hash_bytes[i] as usize) % chars.len();
+            chars[idx] as char
+        })
+        .collect();
+    let user_code = format!("FRIS-{}", part);
+
+    let expires_in_secs: i64 = 600; // 10 minutes
+    let expires_at = Utc::now() + chrono::Duration::seconds(expires_in_secs);
+
+    let res = sqlx::query(
+        "INSERT INTO oauth_device_codes (device_code, user_code, client_id, status, expires_at, created_at)
+         VALUES ($1, $2, $3, 'pending', $4, NOW())",
+    )
+    .bind(&device_code)
+    .bind(&user_code)
+    .bind(&client_id)
+    .bind(expires_at)
+    .execute(pool)
+    .await;
+
+    if let Err(e) = res {
+        warn!("Failed to create device code: {}", e);
+        return Err((
+            StatusCode::INTERNAL_SERVER_ERROR,
+            Json(serde_json::json!({
+                "error": "server_error",
+                "error_description": "Device code yaratishda xatolik yuz berdi"
+            })),
+        ));
+    }
+
+    Ok(Json(serde_json::json!({
+        "device_code": device_code,
+        "user_code": user_code,
+        "verification_uri": "https://ferris.uz/device",
+        "verification_uri_complete": format!("https://ferris.uz/device?code={}", user_code),
+        "expires_in": expires_in_secs,
+        "interval": 5
+    })))
+}
+
+#[derive(Deserialize)]
+pub struct DeviceTokenReq {
+    pub client_id: Option<String>,
+    pub device_code: String,
+}
+
+async fn oauth_device_token_handler(
+    State(state): State<AppState>,
+    Json(payload): Json<DeviceTokenReq>,
+) -> Result<Json<serde_json::Value>, (StatusCode, Json<serde_json::Value>)> {
+    let pool = match state.db.as_ref() {
+        Some(p) => p,
+        None => {
+            return Err((
+                StatusCode::SERVICE_UNAVAILABLE,
+                Json(serde_json::json!({ "error": "database_unavailable" })),
+            ));
+        }
+    };
+
+    let row = sqlx::query(
+        "SELECT device_code, user_code, client_id, user_id, status, expires_at, last_poll_at
+         FROM oauth_device_codes WHERE device_code = $1",
+    )
+    .bind(&payload.device_code)
+    .fetch_optional(pool)
+    .await
+    .map_err(|e| {
+        warn!("DB error checking device token: {}", e);
+        (
+            StatusCode::INTERNAL_SERVER_ERROR,
+            Json(serde_json::json!({ "error": "server_error" })),
+        )
+    })?;
+
+    let row = match row {
+        Some(r) => r,
+        None => {
+            return Err((
+                StatusCode::BAD_REQUEST,
+                Json(serde_json::json!({
+                    "error": "invalid_grant",
+                    "error_description": "Device code topilmadi yoki eskirgan"
+                })),
+            ));
+        }
+    };
+
+    let status: String = row.try_get("status").unwrap_or_else(|_| "pending".to_string());
+    let expires_at: chrono::DateTime<Utc> = row.try_get("expires_at").unwrap_or_else(|_| Utc::now());
+    let client_id: String = row.try_get("client_id").unwrap_or_else(|_| "ferris-cli".to_string());
+
+    if Utc::now() > expires_at {
+        let _ = sqlx::query("DELETE FROM oauth_device_codes WHERE device_code = $1")
+            .bind(&payload.device_code)
+            .execute(pool)
+            .await;
+        return Err((
+            StatusCode::BAD_REQUEST,
+            Json(serde_json::json!({
+                "error": "expired_token",
+                "error_description": "Tasdiqlash kodi muddati o'tgan. Iltimos qaytadan login qiling."
+            })),
+        ));
+    }
+
+    if status == "denied" {
+        let _ = sqlx::query("DELETE FROM oauth_device_codes WHERE device_code = $1")
+            .bind(&payload.device_code)
+            .execute(pool)
+            .await;
+        return Err((
+            StatusCode::BAD_REQUEST,
+            Json(serde_json::json!({
+                "error": "access_denied",
+                "error_description": "Foydalanuvchi ilovaga ruxsat bermadi"
+            })),
+        ));
+    }
+
+    if status == "pending" {
+        let _ = sqlx::query("UPDATE oauth_device_codes SET last_poll_at = NOW() WHERE device_code = $1")
+            .bind(&payload.device_code)
+            .execute(pool)
+            .await;
+        return Err((
+            StatusCode::BAD_REQUEST,
+            Json(serde_json::json!({
+                "error": "authorization_pending",
+                "error_description": "Foydalanuvchi hali brauzerda tasdiqlamadi"
+            })),
+        ));
+    }
+
+    if status == "approved" {
+        let user_id: Option<String> = row.try_get("user_id").ok();
+        let user_id = match user_id {
+            Some(uid) => uid,
+            None => {
+                return Err((
+                    StatusCode::BAD_REQUEST,
+                    Json(serde_json::json!({
+                        "error": "server_error",
+                        "error_description": "Foydalanuvchi ma'lumoti aniqlanmadi"
+                    })),
+                ));
+            }
+        };
+
+        // Fetch user from users table
+        let user_row = sqlx::query(
+            "SELECT id, username, display_name, provider, avatar_url, created_at FROM users WHERE id = $1",
+        )
+        .bind(&user_id)
+        .fetch_optional(pool)
+        .await
+        .map_err(|e| {
+            (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                Json(serde_json::json!({ "error": e.to_string() })),
+            )
+        })?;
+
+        let user_row = match user_row {
+            Some(u) => u,
+            None => {
+                return Err((
+                    StatusCode::BAD_REQUEST,
+                    Json(serde_json::json!({
+                        "error": "user_not_found",
+                        "error_description": "Foydalanuvchi topilmadi"
+                    })),
+                ));
+            }
+        };
+
+        let uname: String = user_row.try_get("username").unwrap_or_default();
+        let dname: String = user_row.try_get("display_name").unwrap_or_default();
+        let prov: String = user_row.try_get("provider").unwrap_or_default();
+        let aurl: Option<String> = user_row.try_get("avatar_url").ok();
+        let cat: i64 = user_row.try_get("created_at").unwrap_or(0);
+
+        let user_profile = UserProfile {
+            id: user_id.clone(),
+            provider: prov,
+            username: uname.clone(),
+            display_name: dname.clone(),
+            avatar_url: aurl.clone(),
+            created_at: cat as u64,
+            expires_at: None,
+        };
+
+        // Generate high-entropy PAT token: ferris_pat_<64_hex>
+        let raw_token_hex = format!(
+            "{:x}",
+            Sha256::digest(format!("{}:{}:pat", Uuid::new_v4(), Utc::now().timestamp_nanos_opt().unwrap_or(0)).as_bytes())
+        );
+        let access_token = format!("ferris_pat_{}", raw_token_hex);
+        let token_hash = format!("{:x}", Sha256::digest(access_token.as_bytes()));
+        let pat_id = Uuid::new_v4().to_string();
+
+        let _ = sqlx::query(
+            "INSERT INTO personal_access_tokens (id, user_id, client_id, token_hash, token_prefix, name, scopes, created_at)
+             VALUES ($1, $2, $3, $4, 'ferris_pat_', $5, '{\"full\"}', NOW())",
+        )
+        .bind(&pat_id)
+        .bind(&user_id)
+        .bind(&client_id)
+        .bind(&token_hash)
+        .bind(format!("{} Login", client_id))
+        .execute(pool)
+        .await;
+
+        // Also insert into in-memory sessions cache for instant auth
+        {
+            let mut sessions = state.sessions.write().unwrap();
+            sessions.insert(access_token.clone(), user_profile.clone());
+        }
+
+        // Clean up the device code
+        let _ = sqlx::query("DELETE FROM oauth_device_codes WHERE device_code = $1")
+            .bind(&payload.device_code)
+            .execute(pool)
+            .await;
+
+        info!("🔑 Device flow completed successfully for @{} (client: {})", uname, client_id);
+
+        return Ok(Json(serde_json::json!({
+            "access_token": access_token,
+            "token_type": "Bearer",
+            "expires_in": null,
+            "user": {
+                "id": user_id,
+                "username": uname,
+                "display_name": dname,
+                "avatar_url": aurl
+            }
+        })));
+    }
+
+    Err((
+        StatusCode::BAD_REQUEST,
+        Json(serde_json::json!({ "error": "invalid_grant" })),
+    ))
+}
+
+#[derive(Deserialize)]
+pub struct DeviceApproveReq {
+    pub user_code: String,
+}
+
+async fn oauth_device_approve_handler(
+    State(state): State<AppState>,
+    headers: HeaderMap,
+    Json(payload): Json<DeviceApproveReq>,
+) -> Result<Json<serde_json::Value>, (StatusCode, Json<serde_json::Value>)> {
+    let user = get_authenticated_user(&headers, &state).ok_or_else(|| {
+        (
+            StatusCode::UNAUTHORIZED,
+            Json(serde_json::json!({
+                "error": "unauthorized",
+                "message": "Tasdiqlash uchun tizimga kirish shart"
+            })),
+        )
+    })?;
+
+    let pool = match state.db.as_ref() {
+        Some(p) => p,
+        None => {
+            return Err((
+                StatusCode::SERVICE_UNAVAILABLE,
+                Json(serde_json::json!({ "error": "database_unavailable" })),
+            ));
+        }
+    };
+
+    let clean_code = payload.user_code.trim().to_uppercase();
+
+    let res = sqlx::query(
+        "UPDATE oauth_device_codes 
+         SET status = 'approved', user_id = $1 
+         WHERE user_code = $2 AND status = 'pending' AND expires_at > NOW()",
+    )
+    .bind(&user.id)
+    .bind(&clean_code)
+    .execute(pool)
+    .await
+    .map_err(|e| {
+        (
+            StatusCode::INTERNAL_SERVER_ERROR,
+            Json(serde_json::json!({ "error": e.to_string() })),
+        )
+    })?;
+
+    if res.rows_affected() == 0 {
+        return Err((
+            StatusCode::BAD_REQUEST,
+            Json(serde_json::json!({
+                "error": "invalid_code",
+                "message": "Kod topilmadi, muddati o'tgan yoki allaqachon ishlatilgan"
+            })),
+        ));
+    }
+
+    info!("✅ Device code {} approved by @{}", clean_code, user.username);
+
+    Ok(Json(serde_json::json!({
+        "success": true,
+        "message": "Ilova muvaffaqiyatli tasdiqlandi! Endi terminalingizga qaytishingiz mumkin."
+    })))
+}
+
+async fn oauth_device_deny_handler(
+    State(state): State<AppState>,
+    headers: HeaderMap,
+    Json(payload): Json<DeviceApproveReq>,
+) -> Result<Json<serde_json::Value>, (StatusCode, Json<serde_json::Value>)> {
+    let _ = get_authenticated_user(&headers, &state);
+
+    if let Some(ref pool) = state.db {
+        let clean_code = payload.user_code.trim().to_uppercase();
+        let _ = sqlx::query(
+            "UPDATE oauth_device_codes SET status = 'denied' WHERE user_code = $1 AND status = 'pending'",
+        )
+        .bind(&clean_code)
+        .execute(pool)
+        .await;
+    }
+
+    Ok(Json(serde_json::json!({
+        "success": true,
+        "message": "Ilovaga kirish rad etildi."
+    })))
+}
+
+async fn oauth_verify_handler(
+    State(state): State<AppState>,
+    headers: HeaderMap,
+) -> Result<Json<serde_json::Value>, (StatusCode, Json<serde_json::Value>)> {
+    let auth_header = headers
+        .get(axum::http::header::AUTHORIZATION)
+        .and_then(|h| h.to_str().ok())
+        .and_then(|v| v.strip_prefix("Bearer ").map(|s| s.trim().to_string()));
+
+    let token = match auth_header {
+        Some(t) => t,
+        None => {
+            return Err((
+                StatusCode::UNAUTHORIZED,
+                Json(serde_json::json!({
+                    "valid": false,
+                    "error": "Authorization Bearer token taqdim etilmadi"
+                })),
+            ));
+        }
+    };
+
+    // First check memory sessions
+    {
+        let sessions = state.sessions.read().unwrap();
+        if let Some(user) = sessions.get(&token) {
+            return Ok(Json(serde_json::json!({
+                "valid": true,
+                "user": user,
+                "token_type": if token.starts_with("ferris_pat_") { "pat" } else { "session" },
+                "scopes": ["full"]
+            })));
+        }
+    }
+
+    // If starts with ferris_pat_, check personal_access_tokens in DB
+    if token.starts_with("ferris_pat_") {
+        if let Some(ref pool) = state.db {
+            let token_hash = format!("{:x}", Sha256::digest(token.as_bytes()));
+            let row = sqlx::query(
+                "SELECT pat.id, pat.user_id, pat.client_id, pat.scopes, pat.expires_at,
+                        u.username, u.display_name, u.provider, u.avatar_url, u.created_at
+                 FROM personal_access_tokens pat
+                 JOIN users u ON pat.user_id = u.id
+                 WHERE pat.token_hash = $1",
+            )
+            .bind(&token_hash)
+            .fetch_optional(pool)
+            .await
+            .map_err(|e| {
+                (
+                    StatusCode::INTERNAL_SERVER_ERROR,
+                    Json(serde_json::json!({ "error": e.to_string() })),
+                )
+            })?;
+
+            if let Some(r) = row {
+                let exp: Option<chrono::DateTime<Utc>> = r.try_get("expires_at").ok();
+                if let Some(e) = exp {
+                    if Utc::now() > e {
+                        return Err((
+                            StatusCode::UNAUTHORIZED,
+                            Json(serde_json::json!({
+                                "valid": false,
+                                "error": "Token muddati o'tgan"
+                            })),
+                        ));
+                    }
+                }
+
+                let uid: String = r.try_get("user_id").unwrap_or_default();
+                let uname: String = r.try_get("username").unwrap_or_default();
+                let dname: String = r.try_get("display_name").unwrap_or_default();
+                let prov: String = r.try_get("provider").unwrap_or_default();
+                let aurl: Option<String> = r.try_get("avatar_url").ok();
+                let cat: i64 = r.try_get("created_at").unwrap_or(0);
+                let client_id: Option<String> = r.try_get("client_id").ok();
+                let scopes: Vec<String> = r.try_get("scopes").unwrap_or_default();
+
+                let user_profile = UserProfile {
+                    id: uid,
+                    provider: prov,
+                    username: uname,
+                    display_name: dname,
+                    avatar_url: aurl,
+                    created_at: cat as u64,
+                    expires_at: exp,
+                };
+
+                // Cache into memory
+                {
+                    let mut sessions = state.sessions.write().unwrap();
+                    sessions.insert(token.clone(), user_profile.clone());
+                }
+
+                // Update last_used_at asynchronously
+                let pool = pool.clone();
+                let pat_id: String = r.try_get("id").unwrap_or_default();
+                tokio::spawn(async move {
+                    let _ = sqlx::query("UPDATE personal_access_tokens SET last_used_at = NOW() WHERE id = $1")
+                        .bind(&pat_id)
+                        .execute(&pool)
+                        .await;
+                });
+
+                return Ok(Json(serde_json::json!({
+                    "valid": true,
+                    "user": user_profile,
+                    "client_id": client_id,
+                    "token_type": "pat",
+                    "scopes": scopes
+                })));
+            }
+        }
+    }
+
+    Err((
+        StatusCode::UNAUTHORIZED,
+        Json(serde_json::json!({
+            "valid": false,
+            "error": "Yaroqsiz yoki mavjud bo'lmagan token"
+        })),
+    ))
 }
 
 // ==============================================================================

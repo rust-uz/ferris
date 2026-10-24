@@ -161,3 +161,47 @@ CREATE INDEX IF NOT EXISTS idx_posts_topic_id ON posts(topic_id);
 CREATE INDEX IF NOT EXISTS idx_posts_jamiyat_id ON posts(jamiyat_id);
 CREATE INDEX IF NOT EXISTS idx_chat_messages_jamiyat_id ON chat_messages(jamiyat_id, created_at);
 CREATE INDEX IF NOT EXISTS idx_jamiyatlar_empty_cleanup ON jamiyatlar(members_count, empty_since) WHERE members_count = 0;
+
+-- =============================================================================
+-- 10. UNIVERSAL SSO & DEVICE FLOW (RFC 8628) & PAT
+-- =============================================================================
+CREATE TABLE IF NOT EXISTS oauth_clients (
+    client_id VARCHAR(50) PRIMARY KEY,
+    client_name VARCHAR(100) NOT NULL,
+    allowed_scopes TEXT[] DEFAULT '{"read:profile"}',
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+INSERT INTO oauth_clients (client_id, client_name, allowed_scopes)
+VALUES 
+    ('ferris-cli', 'Ferris CLI', '{"read:profile", "write:posts", "write:groups"}'),
+    ('hikaku-cli', 'Hikaku CLI', '{"read:profile", "hikaku:deploy"}')
+ON CONFLICT (client_id) DO NOTHING;
+
+CREATE TABLE IF NOT EXISTS oauth_device_codes (
+    device_code VARCHAR(64) PRIMARY KEY,
+    user_code VARCHAR(16) UNIQUE NOT NULL,
+    client_id VARCHAR(50) NOT NULL REFERENCES oauth_clients(client_id) ON DELETE CASCADE,
+    user_id VARCHAR(64) REFERENCES users(id) ON DELETE CASCADE,
+    status VARCHAR(20) NOT NULL DEFAULT 'pending',
+    expires_at TIMESTAMPTZ NOT NULL,
+    last_poll_at TIMESTAMPTZ,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+CREATE INDEX IF NOT EXISTS idx_device_user_code ON oauth_device_codes(user_code);
+
+CREATE TABLE IF NOT EXISTS personal_access_tokens (
+    id VARCHAR(64) PRIMARY KEY,
+    user_id VARCHAR(64) NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    client_id VARCHAR(50) DEFAULT 'ferris-cli',
+    token_hash VARCHAR(64) UNIQUE NOT NULL,
+    token_prefix VARCHAR(16) NOT NULL,
+    name VARCHAR(100) NOT NULL DEFAULT 'CLI Token',
+    scopes TEXT[] DEFAULT '{"full"}',
+    last_used_at TIMESTAMPTZ,
+    expires_at TIMESTAMPTZ,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+CREATE INDEX IF NOT EXISTS idx_pat_token_hash ON personal_access_tokens(token_hash);
+CREATE INDEX IF NOT EXISTS idx_pat_user_id ON personal_access_tokens(user_id);
+

@@ -3,8 +3,9 @@ use colored::*;
 use futures_util::{SinkExt, StreamExt};
 use serde::{Deserialize, Serialize};
 use std::fs;
-use std::path::PathBuf;
 use std::io::Write;
+use std::path::PathBuf;
+use std::time::Duration;
 use tokio::io::{AsyncBufReadExt, BufReader};
 use tokio_tungstenite::connect_async;
 use tokio_tungstenite::tungstenite::protocol::Message as WsMessage;
@@ -925,8 +926,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
         Commands::Login { token } => {
             if let Some(t) = token {
+                // Personal Access Token (PAT) yoki Mavjud Sessiya tekshiruvi
                 let check_res = client
-                    .get(format!("{}/api/auth/me?token={}", cli.api, t))
+                    .get(format!("{}/api/auth/me", cli.api))
+                    .header("Authorization", format!("Bearer {}", t))
                     .send()
                     .await;
 
@@ -939,20 +942,32 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                             username: Some(uname.clone()),
                         };
                         save_config(&new_cfg);
-                        println!("{} Muvaffaqiyatli kirdingiz, @{}!", "✅".green().bold(), uname.cyan());
-                        println!("Terminalda a'zolik, post va fikr bildirish faollashtirildi.");
+                        println!("{} Muvaffaqiyatli kirdingiz, @{}!", "✅".green().bold(), uname.cyan().bold());
+                        println!("🔑 Sessiya tokeni ~/.config/ferris/config.toml ga saqlandi.");
                     }
                     _ => {
                         println!("{} Kiritilgan token yaroqsiz yoki muddati o'tgan.", "❌".red());
                     }
                 }
             } else {
-                println!("{}", "🔐 Ferris.uz terminaliga kirish:".cyan().bold());
-                println!("1. Brauzerda profilingizga kiring: https://ferris.uz/profile");
-                println!("2. Cookie yoki tokeningizni nusxalab, buyruqni ishga tushiring:");
-                println!("   {}", "ferris login <TOKEN>".green().bold());
-                if let Some(cur) = &config.username {
-                    println!("\nHozirgi faol hisob: @{}", cur.yellow());
+                // OAuth 2.0 Device Flow (RFC 8628)
+                match perform_device_login(&client, &cli.api, "ferris-cli").await {
+                    Ok(Some((access_token, uname))) => {
+                        let new_cfg = CliConfig {
+                            token: Some(access_token),
+                            username: Some(uname.clone()),
+                        };
+                        save_config(&new_cfg);
+                        println!("\n{} Muvaffaqiyatli ulandi! Xush kelibsiz, @{}!", "✅".green().bold(), uname.cyan().bold());
+                        println!("🔑 Shaxsiy CLI tokeni (PAT) ~/.config/ferris/config.toml ga saqlandi.");
+                        println!("Terminalda hamjamiyat, postlar, chat va barcha buyruqlar to'liq faollashtirildi.");
+                    }
+                    Ok(None) => {
+                        // Foydalanuvchi bekor qildi yoki xatolik haqida xabar chiqdi
+                    }
+                    Err(e) => {
+                        println!("{} Ulanishda xatolik yuz berdi: {}", "❌".red(), e);
+                    }
                 }
             }
         }
@@ -2019,4 +2034,116 @@ async fn run_live_chat(room: &str, config: &CliConfig) -> Result<(), Box<dyn std
     }
 
     Ok(())
+}
+
+fn open_browser(url: &str) {
+    #[cfg(target_os = "linux")]
+    {
+        let _ = std::process::Command::new("xdg-open").arg(url).spawn();
+    }
+    #[cfg(target_os = "macos")]
+    {
+        let _ = std::process::Command::new("open").arg(url).spawn();
+    }
+    #[cfg(target_os = "windows")]
+    {
+        let _ = std::process::Command::new("cmd").args(["/c", "start", url]).spawn();
+    }
+}
+
+pub async fn perform_device_login(
+    client: &reqwest::Client,
+    api_url: &str,
+    client_id: &str,
+) -> Result<Option<(String, String)>, Box<dyn std::error::Error>> {
+    println!("{}", "🦀 Ferris ID (OAuth 2.0 Device Flow - RFC 8628)".cyan().bold());
+    println!("{}", "Terminal autentifikatsiya so'rovi yuborilmoqda...".dimmed());
+
+    let code_res = client
+        .post(format!("{}/api/v1/oauth/device/code", api_url))
+        .json(&serde_json::json!({ "client_id": client_id }))
+        .send()
+        .await?;
+
+    if !code_res.status().is_success() {
+        let err_body: serde_json::Value = code_res.json().await.unwrap_or_default();
+        let msg = err_body["error_description"].as_str().unwrap_or("Serverdan device code olib bo'lmadi");
+        println!("{} {}", "❌ Xatolik:".red(), msg);
+        return Ok(None);
+    }
+
+    let code_data: serde_json::Value = code_res.json().await?;
+    let device_code = code_data["device_code"].as_str().unwrap_or("").to_string();
+    let user_code = code_data["user_code"].as_str().unwrap_or("").to_string();
+    let verification_uri = code_data["verification_uri"].as_str().unwrap_or("https://ferris.uz/device");
+    let verification_uri_complete = code_data["verification_uri_complete"]
+        .as_str()
+        .unwrap_or(verification_uri);
+    let interval = code_data["interval"].as_u64().unwrap_or(5);
+
+    println!("\n{}", "──────────────────────────────────────────────────────".bright_black());
+    println!("  {} {}", "! Bir martalik tasdiqlash kodi:".yellow().bold(), user_code.green().bold());
+    println!("  {} {}", "🌐 Brauzer tasdiqlash manzili:".cyan().bold(), verification_uri_complete.underline());
+    println!("{}", "──────────────────────────────────────────────────────".bright_black());
+    println!("{}", "Brauzer avtomatik ochilmoqda. Agar ochilmasa, yuqoridagi havolani oching.\n".dimmed());
+
+    let url_clone = verification_uri_complete.to_string();
+    tokio::task::spawn_blocking(move || {
+        open_browser(&url_clone);
+    });
+
+    print!("{}", "⏳ Brauzerda tasdiqlash kutilmoqda ".dimmed());
+    let _ = std::io::stdout().flush();
+
+    let poll_interval = Duration::from_secs(interval.max(3));
+    let start_time = std::time::Instant::now();
+    let max_duration = Duration::from_secs(600); // 10 daqiqa
+
+    while start_time.elapsed() < max_duration {
+        tokio::time::sleep(poll_interval).await;
+
+        let token_res = client
+            .post(format!("{}/api/v1/oauth/device/token", api_url))
+            .json(&serde_json::json!({
+                "client_id": client_id,
+                "device_code": device_code
+            }))
+            .send()
+            .await;
+
+        match token_res {
+            Ok(resp) if resp.status().is_success() => {
+                let token_data: serde_json::Value = resp.json().await?;
+                let access_token = token_data["access_token"].as_str().unwrap_or("").to_string();
+                let username = token_data["user"]["username"].as_str().unwrap_or("user").to_string();
+                return Ok(Some((access_token, username)));
+            }
+            Ok(resp) => {
+                let err_data: serde_json::Value = resp.json().await.unwrap_or_default();
+                let err_code = err_data["error"].as_str().unwrap_or("");
+                if err_code == "authorization_pending" {
+                    print!(".");
+                    let _ = std::io::stdout().flush();
+                    continue;
+                } else if err_code == "access_denied" {
+                    println!("\n{} Foydalanuvchi ilovaga ruxsat bermadi.", "❌".red().bold());
+                    return Ok(None);
+                } else if err_code == "expired_token" {
+                    println!("\n{} Tasdiqlash kodi muddati o'tdi. Qaytadan urinib ko'ring.", "❌".red().bold());
+                    return Ok(None);
+                } else {
+                    println!("\n{} Xatolik: {}", "❌".red(), err_code);
+                    return Ok(None);
+                }
+            }
+            Err(_) => {
+                print!("*");
+                let _ = std::io::stdout().flush();
+                continue;
+            }
+        }
+    }
+
+    println!("\n{} Tasdiqlash vaqti tugadi (Timeout).", "❌".red());
+    Ok(None)
 }

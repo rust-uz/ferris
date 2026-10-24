@@ -1,0 +1,228 @@
+{% extends "base.html" %}
+
+{% block title %}Ilovani Tasdiqlash — Ferris ID (Device Flow){% endblock %}
+{% block description %}Ferris CLI yoki boshqa ekotizim ilovalariga hisobingiz orqali xavfsiz ulanish.{% endblock %}
+
+{% block content %}
+<div class="max-w-md mx-auto px-4 py-16 sm:py-24 flex flex-col items-center text-center">
+
+    <div class="w-full p-8 rounded-3xl bg-zinc-900/60 border border-white/10 backdrop-blur-xl shadow-2xl flex flex-col gap-6 text-left">
+        <!-- Header -->
+        <div class="flex items-center gap-3.5 pb-4 border-b border-white/5">
+            <div class="w-12 h-12 rounded-2xl bg-brand-orange/10 border border-brand-orange/30 flex items-center justify-center text-brand-orange flex-shrink-0 shadow-sm">
+                <i data-lucide="terminal" class="w-6 h-6"></i>
+            </div>
+            <div>
+                <h1 class="text-lg font-bold text-white tracking-tight flex items-center gap-2">
+                    <span>Ferris ID</span>
+                    <span class="text-[10px] font-mono px-2 py-0.5 rounded-full bg-brand-orange/15 text-brand-orange border border-brand-orange/25 font-semibold">DEVICE FLOW</span>
+                </h1>
+                <p class="text-xs text-zinc-400 mt-0.5">
+                    Terminal yoki xizmat hisobingizga kirishni so'ramoqda
+                </p>
+            </div>
+        </div>
+
+        {% if let Some(user) = current_user %}
+        <!-- Foydalanuvchi tizimga kirgan holat -->
+        <div class="flex items-center justify-between p-3.5 rounded-2xl bg-zinc-950/60 border border-white/10">
+            <div class="flex items-center gap-3">
+                {% if let Some(avatar) = user.avatar_url %}
+                <img src="{{ avatar }}" alt="{{ user.display_name }}" class="w-10 h-10 rounded-xl object-cover border border-white/15"/>
+                {% else %}
+                <div class="w-10 h-10 rounded-xl bg-zinc-800 border border-white/10 flex items-center justify-center text-zinc-300 font-bold">
+                    {{ user.username|truncate(2) }}
+                </div>
+                {% endif %}
+                <div>
+                    <div class="text-sm font-semibold text-white">{{ user.display_name }}</div>
+                    <div class="text-xs text-zinc-400 font-mono">@{{ user.username }}</div>
+                </div>
+            </div>
+            <span class="text-[11px] font-mono text-emerald-400 flex items-center gap-1.5 bg-emerald-500/10 px-2.5 py-1 rounded-lg border border-emerald-500/20">
+                <i data-lucide="check-circle-2" class="w-3.5 h-3.5"></i> Faol
+            </span>
+        </div>
+
+        <!-- Kod kiritish yoki tasdiqlash -->
+        <div class="flex flex-col gap-2">
+            <label for="deviceCodeInput" class="text-xs font-semibold text-zinc-300 flex items-center justify-between">
+                <span>Bir martalik tasdiqlash kodi:</span>
+                <span class="text-[10px] text-zinc-500 font-mono">RFC 8628</span>
+            </label>
+            <input type="text" id="deviceCodeInput" value="{{ initial_code }}" placeholder="FRIS-XXXX" maxlength="12"
+                   class="w-full px-4 py-3 text-center text-xl font-mono font-bold tracking-widest uppercase bg-zinc-950/80 border border-white/15 rounded-xl text-white placeholder-zinc-600 focus:outline-none focus:border-brand-orange focus:ring-1 focus:ring-brand-orange transition-all"/>
+            <span class="text-[11px] text-zinc-400 mt-0.5">Terminalingizda ko'rsatilgan 8 ta belgidan iborat kod.</span>
+        </div>
+
+        <!-- So'ralayotgan huquqlar (Scopes) -->
+        <div class="p-3.5 rounded-xl bg-zinc-950/40 border border-white/5 flex flex-col gap-2">
+            <span class="text-[11px] font-semibold text-zinc-400 uppercase tracking-wider font-mono">Ilovaga beriladigan ruxsatlar:</span>
+            <div class="flex items-center gap-2 text-xs text-zinc-300">
+                <i data-lucide="user-check" class="w-4 h-4 text-brand-orange flex-shrink-0"></i>
+                <span>Ferris.uz profilingiz ma'lumotlariga kirish</span>
+            </div>
+            <div class="flex items-center gap-2 text-xs text-zinc-300">
+                <i data-lucide="key" class="w-4 h-4 text-brand-orange flex-shrink-0"></i>
+                <span>ferris-cli va ekotizim CLI buyruqlarini ijro etish</span>
+            </div>
+        </div>
+
+        <!-- Xabar bloki -->
+        <div id="statusAlert" class="hidden p-3.5 rounded-xl text-xs font-medium border flex items-center gap-2.5">
+            <i id="statusIcon" data-lucide="info" class="w-4 h-4 flex-shrink-0"></i>
+            <span id="statusMessage"></span>
+        </div>
+
+        <!-- Tugmalar -->
+        <div id="actionButtons" class="flex items-center gap-3 pt-2">
+            <button id="denyBtn" type="button" class="flex-1 py-2.5 px-4 rounded-xl bg-zinc-800/80 hover:bg-zinc-800 border border-white/10 text-zinc-300 hover:text-white font-semibold text-xs transition-all flex items-center justify-center gap-1.5">
+                <i data-lucide="x" class="w-3.5 h-3.5"></i>
+                <span>Rad etish</span>
+            </button>
+            <button id="approveBtn" type="button" class="flex-1 py-2.5 px-4 rounded-xl bg-brand-orange hover:bg-brand-accent text-white font-semibold text-xs transition-all shadow-lg shadow-brand-orange/20 flex items-center justify-center gap-1.5">
+                <i data-lucide="check" class="w-3.5 h-3.5"></i>
+                <span>Ruxsat berish</span>
+            </button>
+        </div>
+
+        <div id="successDoneBlock" class="hidden flex-col items-center text-center py-4 gap-3">
+            <div class="w-12 h-12 rounded-full bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400 shadow-lg">
+                <i data-lucide="check-circle" class="w-6 h-6"></i>
+            </div>
+            <h3 class="text-sm font-bold text-white">Muvaffaqiyatli tasdiqlandi!</h3>
+            <p class="text-xs text-zinc-400 max-w-xs">
+                Ilovaga ruxsat berildi. Ushbu oynani yopishingiz va terminalingizga qaytishingiz mumkin.
+            </p>
+        </div>
+
+        {% else %}
+        <!-- Foydalanuvchi tizimga kirmagan holat -->
+        <div class="flex flex-col items-center text-center p-6 rounded-2xl bg-zinc-950/60 border border-white/10 gap-4">
+            <div class="w-12 h-12 rounded-2xl bg-zinc-800 border border-white/15 flex items-center justify-center text-zinc-400 shadow-md">
+                <i data-lucide="lock" class="w-6 h-6"></i>
+            </div>
+            <div>
+                <h3 class="text-sm font-bold text-white">Avval hisobingizga kiring</h3>
+                <p class="text-xs text-zinc-400 mt-1">
+                    Terminalga ulanishni tasdiqlash uchun Ferris hisobingiz faol bo'lishi kerak.
+                </p>
+            </div>
+            <a id="loginRedirectBtn" href="/login" class="w-full py-2.5 px-4 rounded-xl bg-brand-orange hover:bg-brand-accent text-white font-semibold text-xs transition-all flex items-center justify-center gap-2 shadow-lg shadow-brand-orange/20">
+                <i data-lucide="log-in" class="w-3.5 h-3.5"></i>
+                <span>Kirish sahifasiga o'tish</span>
+            </a>
+        </div>
+        {% endif %}
+
+        <!-- Footer Eslatma -->
+        <div class="text-[11px] text-zinc-500 font-mono pt-3 border-t border-white/5 flex items-center justify-center gap-1.5">
+            <i data-lucide="shield-check" class="w-3.5 h-3.5 text-zinc-400"></i>
+            <span>Ferris ID Universal SSO &bull; RFC 8628 Himoyalangan</span>
+        </div>
+    </div>
+
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    const codeInput = document.getElementById('deviceCodeInput');
+    const approveBtn = document.getElementById('approveBtn');
+    const denyBtn = document.getElementById('denyBtn');
+    const actionButtons = document.getElementById('actionButtons');
+    const statusAlert = document.getElementById('statusAlert');
+    const statusIcon = document.getElementById('statusIcon');
+    const statusMessage = document.getElementById('statusMessage');
+    const successDoneBlock = document.getElementById('successDoneBlock');
+    const loginRedirectBtn = document.getElementById('loginRedirectBtn');
+
+    if (loginRedirectBtn) {
+        const urlParams = new URLSearchParams(window.location.search);
+        const code = urlParams.get('code');
+        const ret = code ? `/device?code=${encodeURIComponent(code)}` : '/device';
+        loginRedirectBtn.href = `/login?return_to=${encodeURIComponent(ret)}`;
+    }
+
+    function showStatus(type, msg) {
+        if (!statusAlert) return;
+        statusAlert.classList.remove('hidden', 'bg-red-500/10', 'border-red-500/20', 'text-red-400', 'bg-emerald-500/10', 'border-emerald-500/20', 'text-emerald-400', 'bg-zinc-800', 'border-white/10', 'text-zinc-300');
+        
+        if (type === 'error') {
+            statusAlert.classList.add('bg-red-500/10', 'border-red-500/20', 'text-red-400');
+            statusIcon.setAttribute('data-lucide', 'alert-circle');
+        } else if (type === 'success') {
+            statusAlert.classList.add('bg-emerald-500/10', 'border-emerald-500/20', 'text-emerald-400');
+            statusIcon.setAttribute('data-lucide', 'check-circle-2');
+        } else {
+            statusAlert.classList.add('bg-zinc-800', 'border-white/10', 'text-zinc-300');
+            statusIcon.setAttribute('data-lucide', 'loader-2');
+        }
+        statusMessage.textContent = msg;
+        if (window.lucide) lucide.createIcons();
+    }
+
+    if (approveBtn) {
+        approveBtn.addEventListener('click', async () => {
+            const code = codeInput ? codeInput.value.trim().toUpperCase() : '';
+            if (!code) {
+                showStatus('error', 'Iltimos, tasdiqlash kodini kiriting.');
+                return;
+            }
+
+            approveBtn.disabled = true;
+            denyBtn.disabled = true;
+            showStatus('loading', 'Tasdiqlanmoqda...');
+
+            try {
+                const res = await fetch('/api/v1/oauth/device/approve', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ user_code: code })
+                });
+
+                const data = await res.json();
+                if (res.ok && data.success) {
+                    showStatus('success', data.message || 'Muvaffaqiyatli tasdiqlandi!');
+                    if (actionButtons) actionButtons.classList.add('hidden');
+                    if (codeInput) codeInput.disabled = true;
+                    if (successDoneBlock) successDoneBlock.classList.remove('hidden');
+                } else {
+                    approveBtn.disabled = false;
+                    denyBtn.disabled = false;
+                    showStatus('error', data.message || data.error_description || 'Kod yaroqsiz yoki eskirgan.');
+                }
+            } catch (err) {
+                approveBtn.disabled = false;
+                denyBtn.disabled = false;
+                showStatus('error', 'Tarmoq xatosi yuz berdi. Qaytadan urinib ko\'ring.');
+            }
+        });
+    }
+
+    if (denyBtn) {
+        denyBtn.addEventListener('click', async () => {
+            const code = codeInput ? codeInput.value.trim().toUpperCase() : '';
+            if (!code) return;
+
+            approveBtn.disabled = true;
+            denyBtn.disabled = true;
+            showStatus('loading', 'Rad etilmoqda...');
+
+            try {
+                await fetch('/api/v1/oauth/device/deny', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ user_code: code })
+                });
+                showStatus('error', 'Ilovaga kirish rad etildi.');
+                if (actionButtons) actionButtons.classList.add('hidden');
+            } catch (err) {
+                approveBtn.disabled = false;
+                denyBtn.disabled = false;
+                showStatus('error', 'Xatolik yuz berdi.');
+            }
+        });
+    }
+</script>
+{% endblock %}
