@@ -428,6 +428,7 @@
                         <i data-lucide="mail" class="w-4 h-4 text-brand-orange"></i>
                         <span>Shaxsiy Xabarlar</span>
                     </h3>
+                    <span id="dmHeaderSubtitle" class="text-[10px] font-mono text-zinc-500"></span>
                 </div>
             </div>
             <div class="flex items-center gap-3">
@@ -453,9 +454,8 @@
                         Ochish
                     </button>
                 </form>
-                <div class="flex items-center gap-2 mt-2.5 text-[11px] text-zinc-500 font-mono">
-                    <span>Tavsiya:</span>
-                    <button onclick="openDmWith('ibrohimkoha')" class="text-cyan-400 hover:underline">@ibrohimkoha</button>
+                <div class="mt-2 text-[11px] text-zinc-500 font-mono">
+                    <span>Foydalanuvchi username'ini kiritib suhbatni boshlang.</span>
                 </div>
             </div>
 
@@ -481,7 +481,6 @@
                         <i data-lucide="ban" class="w-3 h-3"></i>
                         <span>Bloklash</span>
                     </button>
-                    <span class="text-[10px] font-mono text-zinc-500 hidden sm:inline">PostgreSQL</span>
                 </div>
             </div>
 
@@ -844,6 +843,12 @@
                 return;
             }
 
+            const myUsername = window.currentUser ? window.currentUser.username : null;
+            if (myUsername && cleanUser.toLowerCase() === myUsername.toLowerCase()) {
+                alert("O'zingizga shaxsiy xabar yubora olmaysiz!");
+                return;
+            }
+
             window.activeDmUser = cleanUser;
 
             const drawer = document.getElementById('dmDrawer');
@@ -854,8 +859,10 @@
             document.getElementById('dmListView').classList.add('hidden');
             document.getElementById('dmChatView').classList.remove('hidden');
             document.getElementById('dmBackBtn').classList.remove('hidden');
-            document.getElementById('dmHeaderTitle').innerHTML = `<i data-lucide="message-square" class="w-4 h-4 text-cyan-400 inline mr-1.5"></i> @${cleanUser}`;
-            document.getElementById('dmHeaderSubtitle').innerText = 'Shaxsiy suhbat';
+            document.getElementById('dmHeaderTitle').innerHTML = `<i data-lucide="message-square" class="w-4 h-4 text-cyan-400 inline mr-1.5"></i> @${escapeHtml(cleanUser)}`;
+            
+            const sub = document.getElementById('dmHeaderSubtitle');
+            if (sub) sub.innerText = 'Shaxsiy suhbat';
 
             const pLink = document.getElementById('dmPartnerProfileLink');
             if (pLink) {
@@ -875,7 +882,13 @@
             e.preventDefault();
             const input = document.getElementById('dmTargetInput');
             if (input && input.value.trim()) {
-                openDmWith(input.value.trim());
+                const target = input.value.trim().replace(/^@/, '');
+                const myUsername = window.currentUser ? window.currentUser.username : null;
+                if (myUsername && target.toLowerCase() === myUsername.toLowerCase()) {
+                    alert("O'zingizga shaxsiy xabar yubora olmaysiz!");
+                    return;
+                }
+                openDmWith(target);
                 input.value = '';
             }
         };
@@ -960,7 +973,7 @@
                                 <div class="w-10 h-10 rounded-full bg-zinc-900 border border-white/5 flex items-center justify-center mb-2 text-zinc-400">
                                     <i data-lucide="message-square" class="w-5 h-5"></i>
                                 </div>
-                                @${username} bilan suhbat hali bo'sh.<br/>
+                                @${escapeHtml(username)} bilan suhbat hali bo'sh.<br/>
                                 Birinchi xabaringizni yozing!
                             </div>
                         `;
@@ -973,6 +986,17 @@
                         });
                         scrollDmToBottom();
                     }
+                } else {
+                    const err = await res.json().catch(() => ({}));
+                    container.innerHTML = `
+                        <div class="text-center text-xs text-zinc-400 font-mono py-12 flex flex-col items-center">
+                            <div class="w-10 h-10 rounded-full bg-zinc-900 border border-white/5 flex items-center justify-center mb-2 text-zinc-500">
+                                <i data-lucide="user-x" class="w-5 h-5"></i>
+                            </div>
+                            <span class="text-rose-400 font-semibold">${escapeHtml(err.error || "Foydalanuvchi topilmadi")}</span>
+                        </div>
+                    `;
+                    if (window.lucide) lucide.createIcons();
                 }
             } catch(err) {
                 container.innerHTML = '<div class="text-center text-xs text-rose-400 py-8">Xatolik: suhbat tarixini yuklab bo\'lmadi.</div>';
@@ -1045,7 +1069,7 @@
             const container = document.getElementById('dmMessagesContainer');
             if (!container) return;
 
-            const isMe = myUsername ? (msg.sender === myUsername) : false;
+            const isMe = (myUsername && msg.sender) ? (msg.sender.toLowerCase() === myUsername.toLowerCase()) : false;
             const timeStr = msg.timestamp ? new Date(msg.timestamp * 1000).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : '';
 
             const wrap = document.createElement('div');
@@ -1060,7 +1084,7 @@
 
             const ts = document.createElement('div');
             ts.className = 'text-[10px] font-mono text-zinc-500 px-1 flex items-center gap-1.5';
-            ts.innerHTML = `<span>${isMe ? 'Siz' : '@' + msg.sender} • ${timeStr}</span>`;
+            ts.innerHTML = `<span>${isMe ? 'Siz' : '@' + escapeHtml(msg.sender)} • ${timeStr}</span>`;
 
             if (isMe) {
                 const delBtn = document.createElement('button');
@@ -1125,9 +1149,15 @@
                 });
                 if (res.ok) {
                     scrollDmToBottom();
+                } else {
+                    const err = await res.json().catch(() => ({}));
+                    input.value = text;
+                    alert(err.error || "Xabarni yuborib bo'lmadi");
                 }
             } catch(err) {
                 console.error('Failed to send DM', err);
+                input.value = text;
+                alert("Tarmoq xatoligi: xabarni yuborib bo'lmadi");
             }
         };
 
@@ -1209,15 +1239,21 @@
                             const myUsername = window.currentUser ? window.currentUser.username : null;
 
                             // If currently chatting with this user:
-                            if (window.activeDmUser && (dm.sender_username === window.activeDmUser || (dm.sender_username === myUsername && dm.receiver_username === window.activeDmUser))) {
+                            const curTarget = window.activeDmUser ? window.activeDmUser.toLowerCase() : null;
+                            const snd = (dm.sender_username || '').toLowerCase();
+                            const rcv = (dm.receiver_username || '').toLowerCase();
+                            const me = myUsername ? myUsername.toLowerCase() : null;
+
+                            if (curTarget && (snd === curTarget || (me && snd === me && rcv === curTarget))) {
                                 renderDmBubble({
+                                    id: dm.id,
                                     sender: dm.sender_username,
                                     receiver: dm.receiver_username,
                                     text: dm.text,
                                     timestamp: dm.timestamp
                                 }, myUsername);
                                 scrollDmToBottom();
-                            } else if (myUsername && dm.receiver_username === myUsername) {
+                            } else if (me && rcv === me) {
                                 showDmToast(dm);
                             }
 
