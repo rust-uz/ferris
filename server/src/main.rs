@@ -73,6 +73,9 @@ pub struct LoginTemplate {}
 pub struct DeviceTemplate {
     pub current_user: Option<UserProfile>,
     pub initial_code: String,
+    pub client_name: Option<String>,
+    pub client_id: Option<String>,
+    pub allowed_scopes: Vec<String>,
 }
 
 #[derive(Clone, Serialize, Deserialize, Debug)]
@@ -849,6 +852,7 @@ async fn main() {
         // Universal SSO (Ferris ID) & Device Flow (RFC 8628)
         .route("/api/v1/oauth/device/code", post(oauth_device_code_handler))
         .route("/api/v1/oauth/device/token", post(oauth_device_token_handler))
+        .route("/api/v1/oauth/device/info", get(oauth_device_info_handler))
         .route("/api/v1/oauth/device/approve", post(oauth_device_approve_handler))
         .route("/api/v1/oauth/device/deny", post(oauth_device_deny_handler))
         .route("/api/v1/oauth/verify", get(oauth_verify_handler))
@@ -1151,10 +1155,39 @@ async fn device_page_handler(
     axum::extract::Query(query): axum::extract::Query<HashMap<String, String>>,
 ) -> impl IntoResponse {
     let current_user = get_authenticated_user(&headers, &state);
-    let initial_code = query.get("code").cloned().unwrap_or_default();
+    let initial_code = query.get("code").cloned().unwrap_or_default().trim().to_uppercase();
+
+    let mut client_name = None;
+    let mut client_id = None;
+    let mut allowed_scopes = Vec::new();
+
+    if !initial_code.is_empty() {
+        if let Some(ref pool) = state.db {
+            if let Ok(Some(row)) = sqlx::query(
+                "SELECT dc.client_id, oc.client_name, oc.allowed_scopes 
+                 FROM oauth_device_codes dc 
+                 LEFT JOIN oauth_clients oc ON dc.client_id = oc.client_id 
+                 WHERE dc.user_code = $1 AND dc.status = 'pending' AND dc.expires_at > NOW()"
+            )
+            .bind(&initial_code)
+            .fetch_optional(pool)
+            .await {
+                let cid: String = row.try_get("client_id").unwrap_or_default();
+                let cname: Option<String> = row.try_get("client_name").ok();
+                let scopes: Vec<String> = row.try_get("allowed_scopes").unwrap_or_default();
+                client_id = Some(cid);
+                client_name = cname;
+                allowed_scopes = scopes;
+            }
+        }
+    }
+
     let template = DeviceTemplate {
         current_user,
         initial_code,
+        client_name,
+        client_id,
+        allowed_scopes,
     };
     match template.render() {
         Ok(html) => axum::response::Html(html).into_response(),
@@ -2298,10 +2331,11 @@ fn sanitize_return_to(url_str: &str) -> String {
     fallback
 }
 
-fn create_oauth_state(return_to: &str, secret: &str) -> String {
+fn create_oauth_state(return_to: &str, bound_user_id: Option<&str>, secret: &str) -> String {
     let now = SystemTime::now().duration_since(UNIX_EPOCH).unwrap_or_default().as_secs();
     let sanitized = sanitize_return_to(return_to);
-    let payload = format!("{}|{}", sanitized, now);
+    let bound = bound_user_id.unwrap_or("");
+    let payload = format!("{}|{}|{}", sanitized, bound, now);
 
     let mut mac = HmacSha256::new_from_slice(secret.as_bytes()).expect("HMAC size");
     mac.update(payload.as_bytes());
@@ -2311,15 +2345,16 @@ fn create_oauth_state(return_to: &str, secret: &str) -> String {
     urlencoding::encode(&raw).to_string()
 }
 
-fn verify_oauth_state(raw_state: &str, secret: &str) -> Option<String> {
+fn verify_oauth_state(raw_state: &str, secret: &str) -> Option<(String, Option<String>)> {
     let decoded = urlencoding::decode(raw_state).ok()?;
     let parts: Vec<&str> = decoded.split('|').collect();
-    if parts.len() != 3 {
+    if parts.len() != 4 {
         return None;
     }
     let return_to = parts[0];
-    let ts_str = parts[1];
-    let sig_hex = parts[2];
+    let bound_user_id = parts[1];
+    let ts_str = parts[2];
+    let sig_hex = parts[3];
 
     let ts = ts_str.parse::<u64>().ok()?;
     let now = SystemTime::now().duration_since(UNIX_EPOCH).unwrap_or_default().as_secs();
@@ -2327,13 +2362,18 @@ fn verify_oauth_state(raw_state: &str, secret: &str) -> Option<String> {
         return None;
     }
 
-    let payload = format!("{}|{}", return_to, ts);
+    let payload = format!("{}|{}|{}", return_to, bound_user_id, ts);
     let mut mac = HmacSha256::new_from_slice(secret.as_bytes()).ok()?;
     mac.update(payload.as_bytes());
 
     if let Ok(sig_bytes) = hex::decode(sig_hex) {
         if mac.verify_slice(&sig_bytes).is_ok() {
-            return Some(sanitize_return_to(return_to));
+            let bound_opt = if bound_user_id.is_empty() {
+                None
+            } else {
+                Some(bound_user_id.to_string())
+            };
+            return Some((sanitize_return_to(return_to), bound_opt));
         }
     }
     None
@@ -2346,10 +2386,14 @@ struct GitHubLoginQuery {
 
 async fn github_login_redirect(
     State(state): State<AppState>,
+    headers: HeaderMap,
     Query(query): Query<GitHubLoginQuery>,
 ) -> impl IntoResponse {
     let return_to = query.return_to.unwrap_or_else(|| "https://ferris.uz".to_string());
-    let signed_state = create_oauth_state(&return_to, &state.github_client_secret);
+    let current_user = get_authenticated_user(&headers, &state);
+    let bound_uid = current_user.as_ref().map(|u| u.id.as_str());
+
+    let signed_state = create_oauth_state(&return_to, bound_uid, &state.github_client_secret);
     let url = format!(
         "https://github.com/login/oauth/authorize?client_id={}&scope=read:user,user:email&state={}",
         state.github_client_id, signed_state
@@ -2376,6 +2420,38 @@ struct GitHubUserResponse {
     avatar_url: Option<String>,
 }
 
+async fn resolve_unique_username(pool: &PgPool, base: &str, user_id: &str) -> String {
+    let clean = base.trim_start_matches('@').trim();
+    let initial = if clean.is_empty() { "user" } else { clean };
+
+    let existing = sqlx::query("SELECT id FROM users WHERE LOWER(username) = LOWER($1)")
+        .bind(initial)
+        .fetch_optional(pool)
+        .await;
+
+    match existing {
+        Ok(Some(row)) => {
+            let existing_id: String = row.try_get("id").unwrap_or_default();
+            if existing_id == user_id {
+                return initial.to_string();
+            }
+            // Username collision with another account! Find next available suffix
+            for counter in 1..=100 {
+                let candidate = format!("{}_{}", initial, counter);
+                let check = sqlx::query("SELECT id FROM users WHERE LOWER(username) = LOWER($1)")
+                    .bind(&candidate)
+                    .fetch_optional(pool)
+                    .await;
+                if let Ok(None) = check {
+                    return candidate;
+                }
+            }
+            format!("{}_{}", initial, &Uuid::new_v4().to_string()[..4])
+        }
+        _ => initial.to_string(),
+    }
+}
+
 async fn github_callback_handler(
     State(state): State<AppState>,
     headers: HeaderMap,
@@ -2385,6 +2461,12 @@ async fn github_callback_handler(
         Some(c) => c,
         None => return Redirect::to("/?error=no_github_code").into_response(),
     };
+
+    let (return_to, bound_user_id) = query
+        .state
+        .as_deref()
+        .and_then(|raw| verify_oauth_state(raw, &state.github_client_secret))
+        .unwrap_or_else(|| ("https://ferris.uz".to_string(), None));
 
     let token_res = state
         .http_client
@@ -2470,27 +2552,36 @@ async fn github_callback_handler(
                 });
             }
         } else {
-            // Not linked yet. Is the user currently logged in on the browser? (Account linking action)
-            let current_auth = get_authenticated_user(&headers, &state);
-            if let Some(cur) = current_auth {
-                // Link this GitHub account to the currently logged in user!
-                let _ = sqlx::query(
-                    "INSERT INTO user_identities (user_id, provider, provider_id, provider_username, avatar_url)
-                     VALUES ($1, 'github', $2, $3, $4)
-                     ON CONFLICT (provider, provider_id) DO UPDATE SET user_id = EXCLUDED.user_id, provider_username = EXCLUDED.provider_username"
-                )
-                .bind(&cur.id)
-                .bind(&gh_id_str)
-                .bind(&gh_username)
-                .bind(&gh_avatar)
-                .execute(pool)
-                .await;
+            // Not linked yet. Is this an authenticated account linking flow?
+            if let Some(ref expected_uid) = bound_user_id {
+                let current_auth = get_authenticated_user(&headers, &state);
+                if let Some(cur) = current_auth {
+                    if &cur.id != expected_uid {
+                        warn!("⚠️ OAuth account linking CSRF detected! Logged in: {}, Expected: {}", cur.id, expected_uid);
+                        return Redirect::to("/profile?error=account_linking_csrf").into_response();
+                    }
+                    // Link this GitHub account to the currently logged in user!
+                    let _ = sqlx::query(
+                        "INSERT INTO user_identities (user_id, provider, provider_id, provider_username, avatar_url)
+                         VALUES ($1, 'github', $2, $3, $4)
+                         ON CONFLICT (provider, provider_id) DO UPDATE SET user_id = EXCLUDED.user_id, provider_username = EXCLUDED.provider_username"
+                    )
+                    .bind(&cur.id)
+                    .bind(&gh_id_str)
+                    .bind(&gh_username)
+                    .bind(&gh_avatar)
+                    .execute(pool)
+                    .await;
 
-                info!("🔗 GitHub account @{} successfully linked to user @{}", gh_username, cur.username);
-                final_profile = Some(cur);
+                    info!("🔗 GitHub account @{} successfully linked to user @{}", gh_username, cur.username);
+                    final_profile = Some(cur);
+                } else {
+                    return Redirect::to("/login?error=account_linking_session_lost").into_response();
+                }
             } else {
                 // Brand new user login via GitHub
                 let user_id = format!("gh:{}", gh_user.id);
+                let clean_username = resolve_unique_username(pool, &gh_username, &user_id).await;
 
                 let _ = sqlx::query(
                     r#"
@@ -2503,7 +2594,7 @@ async fn github_callback_handler(
                     "#
                 )
                 .bind(&user_id)
-                .bind(&gh_username)
+                .bind(&clean_username)
                 .bind(&gh_display_name)
                 .bind(&gh_avatar)
                 .bind(now as i64)
@@ -2525,7 +2616,7 @@ async fn github_callback_handler(
                 final_profile = Some(UserProfile {
                     id: user_id,
                     provider: "github".to_string(),
-                    username: gh_username.clone(),
+                    username: clean_username,
                     display_name: gh_display_name.clone(),
                     avatar_url: gh_avatar.clone(),
                     created_at: now,
@@ -2571,11 +2662,11 @@ async fn github_callback_handler(
 
     info!("✅ GitHub user authenticated/linked: @{} (user: @{})", gh_user.login, profile.username);
 
-    let return_to = query
-        .state
-        .as_deref()
-        .and_then(|raw| verify_oauth_state(raw, &state.github_client_secret))
-        .unwrap_or_else(|| format!("https://ferris.uz/?github_token={}", session_token));
+    let final_return_to = if return_to.is_empty() {
+        format!("https://ferris.uz/?github_token={}", session_token)
+    } else {
+        return_to
+    };
 
     let cookie_val = format!(
         "ferris_session={}; Domain=.ferris.uz; Path=/; Max-Age=2592000; SameSite=Lax; Secure",
@@ -2585,7 +2676,7 @@ async fn github_callback_handler(
     (
         [
             (axum::http::header::SET_COOKIE, cookie_val),
-            (axum::http::header::LOCATION, return_to),
+            (axum::http::header::LOCATION, final_return_to),
         ],
         StatusCode::FOUND,
     )
@@ -2721,6 +2812,8 @@ async fn telegram_auth_handler(
                 final_profile = Some(cur);
             } else {
                 let user_id = format!("tg:{}", payload.id);
+                let clean_username = resolve_unique_username(pool, &username, &user_id).await;
+
                 let _ = sqlx::query(
                     r#"
                     INSERT INTO users (id, provider, username, display_name, avatar_url, created_at)
@@ -2732,7 +2825,7 @@ async fn telegram_auth_handler(
                     "#
                 )
                 .bind(&user_id)
-                .bind(&username)
+                .bind(&clean_username)
                 .bind(&display_name)
                 .bind(&payload.photo_url)
                 .bind(now as i64)
@@ -2754,7 +2847,7 @@ async fn telegram_auth_handler(
                 final_profile = Some(UserProfile {
                     id: user_id,
                     provider: "telegram".to_string(),
-                    username: username.clone(),
+                    username: clean_username,
                     display_name: display_name.clone(),
                     avatar_url: payload.photo_url.clone(),
                     created_at: now,
@@ -2989,8 +3082,21 @@ pub struct DeviceCodeReq {
 
 async fn oauth_device_code_handler(
     State(state): State<AppState>,
+    headers: HeaderMap,
     Json(payload): Json<DeviceCodeReq>,
 ) -> Result<Json<serde_json::Value>, (StatusCode, Json<serde_json::Value>)> {
+    let client_ip = get_client_ip(&headers);
+    let rate_key = format!("device_code_gen:{}", client_ip);
+    if !check_rate_limit(&state.rate_limiter, &rate_key, 10, 60) {
+        return Err((
+            StatusCode::TOO_MANY_REQUESTS,
+            Json(serde_json::json!({
+                "error": "too_many_requests",
+                "error_description": "Juda ko'p qurilma kodi so'raldi. Iltimos, 1 daqiqa kuting."
+            })),
+        ));
+    }
+
     let pool = match state.db.as_ref() {
         Some(p) => p,
         None => {
@@ -3054,6 +3160,67 @@ async fn oauth_device_code_handler(
         "expires_in": expires_in_secs,
         "interval": 5
     })))
+}
+
+#[derive(Deserialize)]
+pub struct DeviceInfoQuery {
+    pub code: String,
+}
+
+async fn oauth_device_info_handler(
+    State(state): State<AppState>,
+    Query(query): Query<DeviceInfoQuery>,
+) -> Result<Json<serde_json::Value>, (StatusCode, Json<serde_json::Value>)> {
+    let pool = match state.db.as_ref() {
+        Some(p) => p,
+        None => {
+            return Err((
+                StatusCode::SERVICE_UNAVAILABLE,
+                Json(serde_json::json!({ "error": "database_unavailable" })),
+            ));
+        }
+    };
+
+    let clean_code = query.code.trim().to_uppercase();
+    let row = sqlx::query(
+        "SELECT dc.client_id, dc.status, dc.expires_at, oc.client_name, oc.allowed_scopes
+         FROM oauth_device_codes dc
+         LEFT JOIN oauth_clients oc ON dc.client_id = oc.client_id
+         WHERE dc.user_code = $1 AND dc.expires_at > NOW()"
+    )
+    .bind(&clean_code)
+    .fetch_optional(pool)
+    .await
+    .map_err(|e| {
+        (
+            StatusCode::INTERNAL_SERVER_ERROR,
+            Json(serde_json::json!({ "error": e.to_string() })),
+        )
+    })?;
+
+    match row {
+        Some(r) => {
+            let status: String = r.try_get("status").unwrap_or_default();
+            let client_id: String = r.try_get("client_id").unwrap_or_default();
+            let client_name: String = r.try_get("client_name").unwrap_or_else(|_| client_id.clone());
+            let scopes: Vec<String> = r.try_get("allowed_scopes").unwrap_or_default();
+
+            Ok(Json(serde_json::json!({
+                "valid": status == "pending",
+                "status": status,
+                "client_id": client_id,
+                "client_name": client_name,
+                "scopes": scopes
+            })))
+        }
+        None => Err((
+            StatusCode::NOT_FOUND,
+            Json(serde_json::json!({
+                "valid": false,
+                "error": "Kod topilmadi yoki muddati o'tgan"
+            })),
+        )),
+    }
 }
 
 #[derive(Deserialize)]
@@ -3137,6 +3304,22 @@ async fn oauth_device_token_handler(
     }
 
     if status == "pending" {
+        // RFC 8628 Section 3.5: Slow Down protection
+        let last_poll: Option<chrono::DateTime<Utc>> = row.try_get("last_poll_at").ok().flatten();
+        if let Some(lp) = last_poll {
+            let diff = Utc::now().signed_duration_since(lp).num_seconds();
+            if diff < 3 {
+                return Err((
+                    StatusCode::BAD_REQUEST,
+                    Json(serde_json::json!({
+                        "error": "slow_down",
+                        "error_description": "So'rovlar juda tez yuborilmoqda. Kamida 5 soniya kuting.",
+                        "interval": 10
+                    })),
+                ));
+            }
+        }
+
         let _ = sqlx::query("UPDATE oauth_device_codes SET last_poll_at = NOW() WHERE device_code = $1")
             .bind(&payload.device_code)
             .execute(pool)
@@ -3229,6 +3412,17 @@ async fn oauth_device_token_handler(
         .execute(pool)
         .await;
 
+        // Persist session into PostgreSQL sessions table so it survives server reboots
+        let now_sec = Utc::now().timestamp();
+        let _ = sqlx::query(
+            "INSERT INTO sessions (token, user_id, created_at) VALUES ($1, $2, $3) ON CONFLICT (token) DO NOTHING",
+        )
+        .bind(&access_token)
+        .bind(&user_id)
+        .bind(now_sec)
+        .execute(pool)
+        .await;
+
         // Also insert into in-memory sessions cache for instant auth
         {
             let mut sessions = state.sessions.write().unwrap();
@@ -3272,6 +3466,18 @@ async fn oauth_device_approve_handler(
     headers: HeaderMap,
     Json(payload): Json<DeviceApproveReq>,
 ) -> Result<Json<serde_json::Value>, (StatusCode, Json<serde_json::Value>)> {
+    let client_ip = get_client_ip(&headers);
+    let rate_key = format!("device_approve:{}", client_ip);
+    if !check_rate_limit(&state.rate_limiter, &rate_key, 6, 60) {
+        return Err((
+            StatusCode::TOO_MANY_REQUESTS,
+            Json(serde_json::json!({
+                "error": "too_many_requests",
+                "message": "Juda ko'p xato urinishlar qilindi. Iltimos, 1 daqiqa kuting!"
+            })),
+        ));
+    }
+
     let user = get_authenticated_user(&headers, &state).ok_or_else(|| {
         (
             StatusCode::UNAUTHORIZED,

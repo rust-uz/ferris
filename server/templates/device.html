@@ -44,6 +44,34 @@
             </span>
         </div>
 
+        <!-- So'rov Yuborgan Ilova (Client Info & Anti-Phishing) -->
+        <div id="clientInfoCard" class="p-4 rounded-2xl bg-zinc-950/70 border border-white/10 flex flex-col gap-3">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-2.5">
+                    <div class="w-8 h-8 rounded-lg bg-brand-orange/10 border border-brand-orange/25 flex items-center justify-center text-brand-orange">
+                        <i data-lucide="app-window" class="w-4 h-4"></i>
+                    </div>
+                    <div>
+                        <div id="clientNameText" class="text-xs font-bold text-white flex items-center gap-1.5">
+                            <span>{{ client_name.as_deref().unwrap_or("Ferris Ekotizim Ilovasi") }}</span>
+                            <i data-lucide="shield-check" class="w-3.5 h-3.5 text-emerald-400"></i>
+                        </div>
+                        <div id="clientIdText" class="text-[10px] font-mono text-zinc-400">client_id: {{ client_id.as_deref().unwrap_or("ferris-cli") }}</div>
+                    </div>
+                </div>
+                <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-zinc-800 text-zinc-300 border border-white/10">OAuth 2.0</span>
+            </div>
+
+            <!-- Xavfsizlik Ogohlantirishi (Anti-Phishing) -->
+            <div class="p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-start gap-2.5 text-[11px] text-amber-200/90 leading-relaxed">
+                <i data-lucide="shield-alert" class="w-4 h-4 text-amber-400 shrink-0 mt-0.5"></i>
+                <div>
+                    <strong class="font-bold text-amber-200">Xavfsizlik ogohlantirishi:</strong>
+                    Ushbu so'rovni o'z terminalingizda boshlaganingizga ishonch hosil qiling! Begona shaxslar yuborgan kodlarni aslo tasdiqlamang.
+                </div>
+            </div>
+        </div>
+
         <!-- Kod kiritish yoki tasdiqlash -->
         <div class="flex flex-col gap-2">
             <label for="deviceCodeInput" class="text-xs font-semibold text-zinc-300 flex items-center justify-between">
@@ -64,7 +92,7 @@
             </div>
             <div class="flex items-center gap-2 text-xs text-zinc-300">
                 <i data-lucide="key" class="w-4 h-4 text-brand-orange flex-shrink-0"></i>
-                <span>ferris-cli va ekotizim CLI buyruqlarini ijro etish</span>
+                <span>CLI yoki platforma orqali buyruqlarni xavfsiz ijro etish</span>
             </div>
         </div>
 
@@ -160,6 +188,32 @@
         }
         statusMessage.textContent = msg;
         if (window.lucide) lucide.createIcons();
+    }
+
+    async function updateClientInfoFromCode() {
+        const code = codeInput ? codeInput.value.trim().toUpperCase() : '';
+        if (code.length < 7) return;
+        try {
+            const res = await fetch(`/api/v1/oauth/device/info?code=${encodeURIComponent(code)}`);
+            if (res.ok) {
+                const data = await res.json();
+                const nameEl = document.getElementById('clientNameText');
+                const idEl = document.getElementById('clientIdText');
+                if (nameEl && data.client_name) {
+                    nameEl.innerHTML = `<span>${data.client_name}</span> <i data-lucide="shield-check" class="w-3.5 h-3.5 text-emerald-400"></i>`;
+                }
+                if (idEl && data.client_id) {
+                    idEl.textContent = `client_id: ${data.client_id}`;
+                }
+                if (window.lucide) lucide.createIcons();
+            }
+        } catch(e) {}
+    }
+
+    if (codeInput) {
+        codeInput.addEventListener('input', () => {
+            updateClientInfoFromCode();
+        });
     }
 
     if (approveBtn) {
