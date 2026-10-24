@@ -16,7 +16,7 @@ mod jail;
 #[derive(Parser)]
 #[command(name = "ferris")]
 #[command(author = "Ferris.uz Hamjamiyati")]
-#[command(version = "0.2.1")]
+#[command(version)]
 #[command(about = "🦀 Ferris.uz rasmiy terminal ilovasi (CLI) — Rust Ekotizimi", long_about = None)]
 struct Cli {
     #[command(subcommand)]
@@ -437,6 +437,7 @@ struct ChatMessageIncoming {
 
 #[derive(Deserialize, Debug)]
 #[serde(tag = "event", content = "data")]
+#[allow(dead_code)]
 enum WsEventIncoming {
     #[serde(rename = "community_chat")]
     CommunityChat(ChatMessageIncoming),

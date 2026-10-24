@@ -1,5 +1,5 @@
 {
-    "version": "0.2.1",
+    "version": "0.2.2",
     "description": "Sovereign Rust developer platform CLI for ferris.uz & doc.ferris.uz",
     "homepage": "https://ferris.uz",
     "license": "MIT OR Apache-2.0",

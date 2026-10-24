@@ -12,7 +12,7 @@ NC='\033[0m'
 echo ""
 echo "${CYAN}${BOLD}    _~^~^~_      🦀 Ferris.uz CLI O'rnatuvchisi${NC}"
 echo "${CYAN}${BOLD}   ) / O O \\ (   O'zbekiston Rustaceanlar Hamjamiyati${NC}"
-echo "${CYAN}${BOLD}  / /       \\ \\  Versiya: 0.2.1 (Landlock LSM + ChaCha20-Poly1305 Vault + PQC)${NC}"
+echo "${CYAN}${BOLD}  / /       \\ \\  Versiya: 0.2.2 (Landlock LSM + ChaCha20-Poly1305 Vault + PQC BLAKE3 + DM)${NC}"
 echo "${CYAN}${BOLD} / /_     _\\ \\   https://ferris.uz${NC}"
 echo "${CYAN}${BOLD}|____)   (____|${NC}"
 echo ""

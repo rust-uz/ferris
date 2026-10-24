@@ -9,7 +9,7 @@ import tempfile
 import subprocess
 import shutil
 
-VERSION = "0.2.1"
+VERSION = "0.2.2"
 ARCH = "amd64"
 PKG_NAME = f"ferris-cli_{VERSION}_{ARCH}"
 OUTPUT_DEB = f"{PKG_NAME}.deb"
