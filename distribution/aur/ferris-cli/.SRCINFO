@@ -1,6 +1,6 @@
 pkgbase = ferris-cli
-	pkgdesc = Sovereign Rust developer platform CLI for ferris.uz
-	pkgver = 0.2.0
+	pkgdesc = Sovereign Rust developer platform CLI for ferris.uz & doc.ferris.uz
+	pkgver = 0.3.0
 	pkgrel = 1
 	url = https://ferris.uz
 	arch = x86_64
@@ -11,7 +11,7 @@ pkgbase = ferris-cli
 	makedepends = rust
 	provides = ferris
 	conflicts = ferris-cli-bin
-	source = https://static.crates.io/crates/ferris-cli/ferris-cli-0.2.0.crate
-	sha256sums = c280aa3c94eb6566e0e1e3728263ff75cb5e39b6f1ef7829adcd272acbd62dcf
+	source = https://static.crates.io/crates/ferris-cli/ferris-cli-0.3.0.crate
+	sha256sums = e605f400a46a98d245c46ea51739ffb4442fa3bb79716762c06c135adf0aedd6
 
 pkgname = ferris-cli

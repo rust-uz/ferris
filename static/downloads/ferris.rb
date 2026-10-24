@@ -1,10 +1,10 @@
 class Ferris < Formula
   desc "Sovereign Rust developer platform CLI for ferris.uz"
   homepage "https://ferris.uz"
-  url "https://static.crates.io/crates/ferris-cli/ferris-cli-0.2.0.crate"
-  sha256 "c280aa3c94eb6566e0e1e3728263ff75cb5e39b6f1ef7829adcd272acbd62dcf"
+  url "https://static.crates.io/crates/ferris-cli/ferris-cli-0.3.0.crate"
+  sha256 "e605f400a46a98d245c46ea51739ffb4442fa3bb79716762c06c135adf0aedd6"
   license any_of: ["MIT", "Apache-2.0"]
-  head "https://github.com/iskurama/ferris-uz.git", branch: "main"
+  head "https://github.com/rust-uz/ferris.git", branch: "main"
 
   depends_on "rust" => :build
 
@@ -13,6 +13,6 @@ class Ferris < Formula
   end
 
   test do
-    assert_match "ferris 0.2.0", shell_output("#{bin}/ferris --version")
+    assert_match "ferris 0.3.0", shell_output("#{bin}/ferris --version")
   end
 end

@@ -306,7 +306,7 @@ fn parse_env_string(content: &str) -> HashMap<String, String> {
 
         // Izohlarni (#) tashlab ketish
         if c == '#' {
-            while let Some(ch) = chars.next() {
+            for ch in chars.by_ref() {
                 if ch == '\n' {
                     break;
                 }
@@ -346,7 +346,7 @@ fn parse_env_string(content: &str) -> HashMap<String, String> {
                     let is_double = quote == '"';
                     let mut escaped = false;
 
-                    while let Some(ch) = chars.next() {
+                    for ch in chars.by_ref() {
                         if escaped {
                             if is_double {
                                 match ch {
@@ -375,14 +375,14 @@ fn parse_env_string(content: &str) -> HashMap<String, String> {
                     }
 
                     // Qatordagi qolgan belgilarni keyingi qatordagacha o'tkazish
-                    while let Some(ch) = chars.next() {
+                    for ch in chars.by_ref() {
                         if ch == '\n' {
                             break;
                         }
                     }
                 } else {
                     // Qo'shtirnoqsiz oddiy qiymat
-                    while let Some(ch) = chars.next() {
+                    for ch in chars.by_ref() {
                         if ch == '\n' {
                             break;
                         }
@@ -398,7 +398,7 @@ fn parse_env_string(content: &str) -> HashMap<String, String> {
                 }
             } else {
                 // Bo'sh qiymat
-                while let Some(ch) = chars.next() {
+                for ch in chars.by_ref() {
                     if ch == '\n' {
                         break;
                     }
@@ -410,7 +410,7 @@ fn parse_env_string(content: &str) -> HashMap<String, String> {
             }
         } else {
             // Noto'g'ri qator bo'lsa, keyingi qatorga o'tish
-            while let Some(ch) = chars.next() {
+            for ch in chars.by_ref() {
                 if ch == '\n' {
                     break;
                 }

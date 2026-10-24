@@ -6,6 +6,7 @@
 // ==============================================================================
 
 use std::path::{Path, PathBuf};
+use crate::i18n::Language;
 
 #[cfg(target_os = "linux")]
 use landlock::{
@@ -35,11 +36,15 @@ impl Default for JailConfig {
 
 /// Linux tizimlarida Landlock, NoNewPrivs, Memory Hardening va Tarmoq Qamali
 #[cfg(target_os = "linux")]
-pub fn apply_sandbox(config: &JailConfig) -> Result<(), String> {
+pub fn apply_sandbox(config: &JailConfig, lang: Language) -> Result<(), String> {
     // 1. Yangi imtiyozlar olishni taqiqlash (NoNewPrivs)
     let res = unsafe { libc::prctl(libc::PR_SET_NO_NEW_PRIVS, 1, 0, 0, 0) };
     if res != 0 {
-        return Err("PR_SET_NO_NEW_PRIVS o'rnatib bo'lmadi".to_string());
+        return Err(if lang.is_uz() {
+            "PR_SET_NO_NEW_PRIVS o'rnatib bo'lmadi".to_string()
+        } else {
+            "Failed to set PR_SET_NO_NEW_PRIVS".to_string()
+        });
     }
 
     // 2. Xotira va Core Dump himoyasi (/proc/<pid>/environ va Core Dump larni bloklash)
@@ -79,9 +84,9 @@ pub fn apply_sandbox(config: &JailConfig) -> Result<(), String> {
                     libc::close(sock);
                 }
             }
-            println!("🌐 [Ferris Net] To'liq tarmoq izolyatsiyasi faol (Tashqi internet uzildi, Localhost faollashtirildi).");
+            println!("{}", lang.net_isolated_active());
         } else {
-            eprintln!("⚠️  [Ferris Net] Network namespace yaratilmadi (yadro ruxsati kerak).");
+            eprintln!("{}", lang.net_isolated_failed());
         }
     }
 
@@ -104,7 +109,7 @@ pub fn apply_sandbox(config: &JailConfig) -> Result<(), String> {
         .handle_access(read_access | write_access) {
             Ok(r) => r,
             Err(_) => {
-                eprintln!("⚠️  [Ferris Jail] Linux yadrosi Landlock LSM ni qo'llab-quvvatlamaydi (Kernel < 5.13). Faqat NoNewPrivs faollashtirildi.");
+                eprintln!("{}", lang.jail_kernel_unsupported());
                 return Ok(());
             }
         };
@@ -112,7 +117,7 @@ pub fn apply_sandbox(config: &JailConfig) -> Result<(), String> {
     let created_ruleset = match ruleset.create() {
         Ok(cr) => cr,
         Err(_) => {
-            eprintln!("⚠️  [Ferris Jail] Landlock qoidalari to'plami yaratilmadi. Standart himoya rejimi faol.");
+            eprintln!("{}", lang.jail_ruleset_failed());
             return Ok(());
         }
     };
@@ -237,7 +242,7 @@ pub fn apply_sandbox(config: &JailConfig) -> Result<(), String> {
     let populated_ruleset = match created_ruleset.add_rules(rules.into_iter().map(Ok::<_, RulesetError>)) {
         Ok(r) => r,
         Err(e) => {
-            eprintln!("⚠️  [Ferris Jail] Qoidalarni yuklashda ogohlantirish: {:?}", e);
+            eprintln!("{} {:?}", if lang.is_uz() { "⚠️  [Ferris Jail] Qoidalarni yuklashda ogohlantirish:" } else { "⚠️  [Ferris Jail] Warning loading ruleset:" }, e);
             return Ok(());
         }
     };
@@ -246,14 +251,14 @@ pub fn apply_sandbox(config: &JailConfig) -> Result<(), String> {
     match populated_ruleset.restrict_self() {
         Ok(_status) => {
             let write_mode = if config.allow_cwd_write {
-                "To'liq yozish (CWD Write)"
+                lang.mode_cwd_write()
             } else {
-                "Faqat o'qish (Read-Only Code Protection)"
+                lang.mode_readonly()
             };
-            println!("🛡️  [Ferris Jail] Yadroviy qamal (Landlock LSM) faollashtirildi [Rejim: {}].", write_mode);
+            println!("{}", lang.jail_activated_msg(write_mode));
         }
         Err(e) => {
-            eprintln!("⚠️  [Ferris Jail] Qamalni cheklashda ogohlantirish: {:?}", e);
+            eprintln!("{} {:?}", if lang.is_uz() { "⚠️  [Ferris Jail] Qamalni cheklashda ogohlantirish:" } else { "⚠️  [Ferris Jail] Warning restricting process:" }, e);
         }
     }
 
@@ -261,7 +266,8 @@ pub fn apply_sandbox(config: &JailConfig) -> Result<(), String> {
 }
 
 #[cfg(not(target_os = "linux"))]
-pub fn apply_sandbox(_config: &JailConfig) -> Result<(), String> {
+pub fn apply_sandbox(_config: &JailConfig, lang: Language) -> Result<(), String> {
     // Linux bo'lmagan tizimlarda (macOS, Windows) xotiradagi sirlar yetarli
+    println!("{}", lang.non_linux_jail_notice());
     Ok(())
 }

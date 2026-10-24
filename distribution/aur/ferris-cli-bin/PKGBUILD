@@ -1,6 +1,6 @@
 # Maintainer: iskurama <iskurama@ferris.uz>
 pkgname=ferris-cli-bin
-pkgver=0.2.2
+pkgver=0.3.0
 pkgrel=1
 pkgdesc="Sovereign Rust developer platform CLI for ferris.uz & doc.ferris.uz (pre-built binary)"
 arch=('x86_64')

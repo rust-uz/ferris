@@ -10,128 +10,38 @@ use tokio::io::{AsyncBufReadExt, BufReader};
 use tokio_tungstenite::connect_async;
 use tokio_tungstenite::tungstenite::protocol::Message as WsMessage;
 
-mod vault;
+mod i18n;
 mod jail;
+mod scanner;
+mod vault;
+
+use i18n::Language;
 
 #[derive(Parser)]
 #[command(name = "ferris")]
 #[command(author = "Ferris.uz Hamjamiyati")]
-#[command(version)]
-#[command(about = "🦀 Ferris.uz rasmiy terminal ilovasi (CLI) — Rust Ekotizimi", long_about = None)]
+#[command(version = "0.3.0")]
+#[command(about = "🦀 Ferris CLI — DevSecOps, Pre-Commit Secret Guardian & Enclave Platform", long_about = None)]
 struct Cli {
     #[command(subcommand)]
     command: Commands,
 
-    /// Backend API manzili (default: https://api.ferris.uz)
-    #[arg(short, long, default_value = "https://api.ferris.uz")]
+    /// Backend API manzili / Backend API URL (default: https://api.ferris.uz)
+    #[arg(short, long, default_value = "https://api.ferris.uz", global = true)]
     api: String,
+
+    /// CLI tili / Language (en | uz) [default: auto-detect from LANG, or en]
+    #[arg(short, long, global = true)]
+    lang: Option<String>,
 }
 
 #[derive(Subcommand)]
 enum Commands {
-    /// 📡 Tizim holati va Cloudflare marshrutlashni tekshirish
-    Ping,
+    // -------------------------------------------------------------------------
+    // Core DevSecOps & Security Tools (Primary)
+    // -------------------------------------------------------------------------
 
-    /// 📌 Mavzularni ko'rish (topics.ferris.uz)
-    Topic {
-        #[command(subcommand)]
-        action: TopicCommands,
-    },
-
-    /// 👥 Jamiyatlarni ko'rish va boshqarish (groups.ferris.uz)
-    Group {
-        #[command(subcommand)]
-        action: GroupCommands,
-    },
-
-    /// 💬 Muhokamalar va yangi postlarni ko'rish, o'qish hamda fikr bildirish
-    Post {
-        #[command(subcommand)]
-        action: PostCommands,
-    },
-
-    /// 📰 Yangi muhokamalar tasmasini ko'rish (ferris post list ga qisqartma)
-    Feed,
-
-    /// 📖 Postni to'liq o'qish (ferris post read ga qisqartma)
-    Read {
-        /// Post ID yoki raqami (masalan: 1 yoki 8ae64e69)
-        id: String,
-    },
-
-    /// ⚡ Jonli Real-Time Hamjamiyat Chati va Yangiliklar (WebSocket)
-    Live {
-        /// Xona nomi (default: general)
-        #[arg(short, long, default_value = "general")]
-        room: String,
-    },
-
-    /// 💬 Jonli chat (ferris live ga qisqartma)
-    Chat {
-        /// Xona nomi (default: general)
-        #[arg(short, long, default_value = "general")]
-        room: String,
-    },
-
-    /// 👤 Profilni ko'rish (profile.ferris.uz/@username)
-    Profile {
-        /// Foydalanuvchi nomi (agar ko'rsatilmasa, shaxsiy hisob)
-        username: Option<String>,
-    },
-
-    /// ✉️ Shaxsiy xabarlar (Direct Messages)
-    Dm {
-        #[command(subcommand)]
-        action: DmCommands,
-    },
-
-    /// 🔐 Ferris.uz hisobiga terminal orqali ulanish
-    Login {
-        /// Sessiya tokeni (ferris.uz/profile dan olinadi)
-        token: Option<String>,
-    },
-
-    /// 🚪 Terminaldagi sessiyadan chiqish
-    Logout,
-
-    /// 🚫 Foydalanuvchini bloklash va bloklanganlar ro'yxati
-    Block {
-        #[command(subcommand)]
-        action: BlockCommands,
-    },
-
-    /// ✅ Foydalanuvchini blokdan chiqarish (ferris block remove ga qisqartma)
-    Unblock {
-        /// Foydalanuvchi nomi (@username)
-        username: String,
-    },
-
-    /// 🛡️ Maxfiylik siyosati (Privacy Policy)
-    Privacy,
-
-    /// 📜 Foydalanish qoidalari (Terms of Service)
-    Terms,
-
-    /// ⚖️ Ochiq kodli litsenziya shartlari (Dual MIT / Apache 2.0)
-    License,
-
-    /// 📚 O‘zbekcha Rasmiy Rust Hujjatlari va Kitobi (doc.ferris.uz)
-    Doc {
-        /// Bob raqami yoki mavzu (masalan: 1, 4, ownership, cargo, glossary)
-        chapter: Option<String>,
-
-        /// Brauzerda doc.ferris.uz portalini ochish
-        #[arg(short, long)]
-        web: bool,
-    },
-
-    /// 🔐 Xavfsiz xotiradagi sirlar ombori (Zero-Disk Secrets Vault)
-    Vault {
-        #[command(subcommand)]
-        action: VaultCommands,
-    },
-
-    /// 🚀 Ilovani xavfsiz qobiqda (Enclave) ishga tushirish
+    /// 🚀 Run application inside Landlock LSM enclave with RAM-only secrets / Xavfsiz qobiqda ishga tushirish
     Run {
         /// Shifrlangan sirlar ombori (.env.ferris) yo'li
         #[arg(short, long, default_value = ".env.ferris")]
@@ -164,6 +74,214 @@ enum Commands {
         /// Bajariladigan buyruq va argumentlari (masalan: ferris run -- python3 bot.py)
         #[arg(required = true, trailing_var_arg = true, allow_hyphen_values = true)]
         command: Vec<String>,
+    },
+
+    /// 🔐 Zero-disk encrypted secrets vault (ChaCha20-Poly1305) / Sirlar ombori
+    Vault {
+        #[command(subcommand)]
+        action: VaultCommands,
+    },
+
+    /// 🛡️ Pre-commit & CI/CD secret guardian (detect leaked API keys) / Sirlar skaneri
+    Scan {
+        /// Skaner qilinadigan yo'l / Target path to scan (default: .)
+        #[arg(default_value = ".")]
+        path: PathBuf,
+
+        /// Faqat git staged fayllarini tekshirish (Pre-commit rejimi)
+        #[arg(short, long)]
+        staged: bool,
+
+        /// .git/hooks/pre-commit fayliga avtomatik skript o'rnatish
+        #[arg(long)]
+        install_hook: bool,
+    },
+
+    /// 📚 Rust book and documentation reader (doc.ferris.uz) / Rasmiy hujjatlar
+    Doc {
+        /// Bob raqami yoki mavzu (masalan: 1, 4, ownership, cargo, glossary)
+        chapter: Option<String>,
+
+        /// Brauzerda doc.ferris.uz portalini ochish
+        #[arg(short, long)]
+        web: bool,
+    },
+
+    /// 🔐 Account authentication & SSO credentials / Tizimga kirish va autentifikatsiya
+    Auth {
+        #[command(subcommand)]
+        action: AuthCommands,
+    },
+
+    /// 🦀 Community hub & forums (topics, groups, feed, live chat, DM) / Hamjamiyat
+    Hub {
+        #[command(subcommand)]
+        action: HubCommands,
+    },
+
+    /// 📡 Check Ferris API status & Cloudflare edge connectivity / Tarmoq holati
+    Ping,
+
+    // -------------------------------------------------------------------------
+    // Backward Compatibility Hidden Aliases
+    // -------------------------------------------------------------------------
+
+    #[command(hide = true)]
+    Topic {
+        #[command(subcommand)]
+        action: TopicCommands,
+    },
+
+    #[command(hide = true)]
+    Group {
+        #[command(subcommand)]
+        action: GroupCommands,
+    },
+
+    #[command(hide = true)]
+    Post {
+        #[command(subcommand)]
+        action: PostCommands,
+    },
+
+    #[command(hide = true)]
+    Feed,
+
+    #[command(hide = true)]
+    Read {
+        id: String,
+    },
+
+    #[command(hide = true)]
+    Live {
+        #[arg(short, long, default_value = "general")]
+        room: String,
+    },
+
+    #[command(hide = true)]
+    Chat {
+        #[arg(short, long, default_value = "general")]
+        room: String,
+    },
+
+    #[command(hide = true)]
+    Profile {
+        username: Option<String>,
+    },
+
+    #[command(hide = true)]
+    Dm {
+        #[command(subcommand)]
+        action: DmCommands,
+    },
+
+    #[command(hide = true)]
+    Login {
+        token: Option<String>,
+    },
+
+    #[command(hide = true)]
+    Logout,
+
+    #[command(hide = true)]
+    Block {
+        #[command(subcommand)]
+        action: BlockCommands,
+    },
+
+    #[command(hide = true)]
+    Unblock {
+        username: String,
+    },
+
+    #[command(hide = true)]
+    Privacy,
+
+    #[command(hide = true)]
+    Terms,
+
+    #[command(hide = true)]
+    License,
+}
+
+#[derive(Subcommand, Clone)]
+enum AuthCommands {
+    /// 🔐 Ferris hisobiga terminal orqali ulanish
+    Login {
+        /// Sessiya tokeni (ferris.uz/profile dan olinadi)
+        token: Option<String>,
+    },
+    /// 🚪 Terminaldagi sessiyadan chiqish
+    Logout,
+    /// 👤 Joriy hisob holatini ko'rish (Whoami)
+    Status,
+}
+
+#[derive(Subcommand, Clone)]
+enum HubCommands {
+    /// 📰 Yangi muhokamalar tasmasini ko'rish
+    Feed,
+
+    /// 💬 Muhokamalar va yangi postlarni ko'rish, o'qish hamda fikr bildirish
+    Post {
+        #[command(subcommand)]
+        action: PostCommands,
+    },
+
+    /// 💬 Jonli chat (WebSocket)
+    Chat {
+        /// Xona nomi (default: general)
+        #[arg(short, long, default_value = "general")]
+        room: String,
+    },
+
+    /// ⚡ Jonli Real-Time Hamjamiyat Chati
+    Live {
+        /// Xona nomi (default: general)
+        #[arg(short, long, default_value = "general")]
+        room: String,
+    },
+
+    /// 📌 Mavzularni ko'rish (topics.ferris.uz)
+    Topic {
+        #[command(subcommand)]
+        action: TopicCommands,
+    },
+
+    /// 👥 Jamiyatlarni ko'rish va boshqarish (groups.ferris.uz)
+    Group {
+        #[command(subcommand)]
+        action: GroupCommands,
+    },
+
+    /// 👤 Profilni ko'rish (profile.ferris.uz/@username)
+    Profile {
+        /// Foydalanuvchi nomi (agar ko'rsatilmasa, shaxsiy hisob)
+        username: Option<String>,
+    },
+
+    /// ✉️ Shaxsiy xabarlar (Direct Messages)
+    Dm {
+        #[command(subcommand)]
+        action: DmCommands,
+    },
+
+    /// 🚫 Foydalanuvchini bloklash va bloklanganlar ro'yxati
+    Block {
+        #[command(subcommand)]
+        action: BlockCommands,
+    },
+
+    /// ✅ Foydalanuvchini blokdan chiqarish
+    Unblock {
+        /// Foydalanuvchi nomi (@username)
+        username: String,
+    },
+
+    /// 📖 Postni to'liq o'qish
+    Read {
+        /// Post ID yoki raqami (masalan: 1 yoki 8ae64e69)
+        id: String,
     },
 }
 
@@ -219,7 +337,7 @@ enum VaultCommands {
     },
 }
 
-#[derive(Subcommand)]
+#[derive(Subcommand, Clone)]
 enum BlockCommands {
     /// Foydalanuvchini bloklash
     Add {
@@ -235,7 +353,7 @@ enum BlockCommands {
     List,
 }
 
-#[derive(Subcommand)]
+#[derive(Subcommand, Clone)]
 enum DmCommands {
     /// Barcha shaxsiy suhbatlar ro'yxati
     List,
@@ -260,13 +378,13 @@ enum DmCommands {
     },
 }
 
-#[derive(Subcommand)]
+#[derive(Subcommand, Clone)]
 enum TopicCommands {
     /// Barcha faol mavzular ro'yxati
     List,
 }
 
-#[derive(Subcommand)]
+#[derive(Subcommand, Clone)]
 enum GroupCommands {
     /// Barcha faol jamiyatlar ro'yxati
     List,
@@ -283,7 +401,7 @@ enum GroupCommands {
     },
 }
 
-#[derive(Subcommand)]
+#[derive(Subcommand, Clone)]
 enum PostCommands {
     /// Barcha yangi muhokamalar va postlar ro'yxati
     List,
@@ -587,311 +705,54 @@ fn format_ts(ts: u64) -> String {
 #[tokio::main(flavor = "current_thread")]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let cli = Cli::parse();
+    let lang = Language::detect(cli.lang.as_deref());
     let client = reqwest::Client::new();
     let config = load_config();
 
     match &cli.command {
         Commands::Ping => {
-            println!("{}", "🦀 Ferris.uz API tekshirilmoqda...".cyan());
+            println!("{}", lang.ping_checking().cyan());
             let res = client.get(format!("{}/api/v1/context", cli.api)).send().await;
             match res {
                 Ok(resp) if resp.status().is_success() => {
                     let body: serde_json::Value = resp.json().await?;
-                    println!("{} {}", "✅ API aloqada:".green().bold(), cli.api.yellow());
+                    println!("{} {}", lang.ping_connected().green().bold(), cli.api.yellow());
                     println!("  Host: {}", body["host"]);
                     println!("  Subdomain: {}", body["subdomain"].to_string().cyan());
                     println!("  SSL: {}", body["ssl_mode"].to_string().green());
                 }
                 Ok(resp) => {
-                    println!("{} Server status: {}", "⚠️ Xatolik:".yellow(), resp.status());
+                    println!("{} Server status: {}", "⚠️ Error:".yellow(), resp.status());
                 }
                 Err(err) => {
-                    println!("{} {}", "❌ API ga ulanib bo'lmadi:".red().bold(), err);
+                    println!("{} {}", "❌ API connection failed:".red().bold(), err);
                 }
             }
         }
 
-        Commands::Topic { action } => match action {
-            TopicCommands::List => {
-                println!("{}", "📌 Ferris.uz Mavzulari (topics.ferris.uz):".yellow().bold());
-                let res = client.get(format!("{}/api/v1/topics", cli.api)).send().await;
-                match res {
-                    Ok(resp) if resp.status().is_success() => {
-                        let topics: Vec<TopicItem> = resp.json().await?;
-                        for t in topics {
-                            let desc = t.description.unwrap_or_default();
-                            println!("  {} {:<14} - {} ({})", t.icon, t.slug.cyan().bold(), t.title.white(), desc.dimmed());
-                        }
-                    }
-                    _ => println!("{}", "Mavzularni yuklab bo'lmadi.".red()),
-                }
-            }
-        },
+        Commands::Topic { action } => {
+            handle_hub_command(&client, &cli.api, &config, &HubCommands::Topic { action: action.clone() }).await?;
+        }
 
-        Commands::Group { action } => match action {
-            GroupCommands::List => {
-                println!("{}", "👥 Faol Jamiyatlar (groups.ferris.uz):".magenta().bold());
-                let res = client.get(format!("{}/api/v1/groups", cli.api)).send().await;
-                match res {
-                    Ok(resp) if resp.status().is_success() => {
-                        let groups: Vec<GroupItem> = resp.json().await?;
-                        for g in groups {
-                            let status = if g.members_count == 0 {
-                                "⚠️ Bo'sh (24h TTL o'chadi)".yellow()
-                            } else {
-                                format!("[A'zolar: {}]", g.members_count).green()
-                            };
-                            println!("  • {:<18} {} - {}", g.slug.cyan().bold(), status, g.name.white());
-                        }
-                    }
-                    _ => println!("{}", "Jamiyatlarni yuklab bo'lmadi.".red()),
-                }
-                println!("\n{}", "ℹ️ Qoida: Agar jamiyatda a'zo 0 ga tushsa, 24 soatda avtomatik o'chiriladi.".dimmed());
-            }
-
-            GroupCommands::Join { slug } => {
-                let token = config.token.as_deref().unwrap_or("");
-                if token.is_empty() {
-                    println!("{}", "⚠️ Jamiyatga a'zo bo'lish uchun avval tizimga kiring:".yellow());
-                    println!("  ferris login <TOKEN>");
-                    return Ok(());
-                }
-
-                println!("{} '{}' jamiyatiga a'zo bo'linmoqda...", "🚀".cyan(), slug.bold());
-                let res = client
-                    .post(format!("{}/api/v1/groups/{}/join", cli.api, slug))
-                    .header("Authorization", format!("Bearer {}", token))
-                    .send()
-                    .await;
-
-                match res {
-                    Ok(resp) if resp.status().is_success() => {
-                        let val: serde_json::Value = resp.json().await?;
-                        let is_member = val["is_member"].as_bool().unwrap_or(true);
-                        if is_member {
-                            println!("{} Tabriklaymiz! Siz f/{} jamiyatiga muvaffaqiyatli a'zo bo'ldingiz! Jami a'zolar: {}", "✅".green().bold(), slug, val["members_count"]);
-                        } else {
-                            println!("{} Siz f/{} jamiyati a'zoligidan chiqdingiz. Qolgan a'zolar: {}", "ℹ️".yellow(), slug, val["members_count"]);
-                        }
-                    }
-                    Ok(resp) => {
-                        let err: serde_json::Value = resp.json().await?;
-                        println!("{} {}", "❌ Xatolik:".red(), err["error"]);
-                    }
-                    Err(e) => println!("{} {}", "❌ Tarmoq xatosi:".red(), e),
-                }
-            }
-
-            GroupCommands::Create { slug, name, description } => {
-                let token = config.token.as_deref().unwrap_or("");
-                if token.is_empty() {
-                    println!("{}", "⚠️ Jamiyat yaratish uchun tizimga kirishingiz shart:".yellow());
-                    println!("  ferris login <TOKEN>");
-                    return Ok(());
-                }
-
-                println!("{} Yangi jamiyat yaratilmoqda: {}", "🛠️".cyan(), slug.bold());
-                let payload = serde_json::json!({
-                    "slug": slug,
-                    "name": name,
-                    "description": description
-                });
-                let res = client
-                    .post(format!("{}/api/v1/groups", cli.api))
-                    .header("Authorization", format!("Bearer {}", token))
-                    .json(&payload)
-                    .send()
-                    .await;
-
-                match res {
-                    Ok(resp) if resp.status().is_success() => {
-                        println!("{} Jamiyat muvaffaqiyatli yaratildi! URL: https://groups.ferris.uz/f/{}", "✅".green().bold(), slug);
-                    }
-                    Ok(resp) => {
-                        let err: serde_json::Value = resp.json().await?;
-                        println!("{} {}", "❌ Xatolik:".red(), err["error"]);
-                    }
-                    Err(e) => println!("{} {}", "❌ Tarmoq xatosi:".red(), e),
-                }
-            }
-        },
+        Commands::Group { action } => {
+            handle_hub_command(&client, &cli.api, &config, &HubCommands::Group { action: action.clone() }).await?;
+        }
 
         Commands::Feed => {
-            render_posts_list(&client, &cli.api).await?;
+            handle_hub_command(&client, &cli.api, &config, &HubCommands::Feed).await?;
         }
 
         Commands::Read { id } => {
-            render_post_detail(&client, &cli.api, id).await?;
+            handle_hub_command(&client, &cli.api, &config, &HubCommands::Read { id: id.clone() }).await?;
         }
 
         Commands::Live { room } | Commands::Chat { room } => {
-            run_live_chat(room, &config).await?;
+            handle_hub_command(&client, &cli.api, &config, &HubCommands::Chat { room: room.clone() }).await?;
         }
 
-        Commands::Post { action } => match action {
-            PostCommands::List => {
-                render_posts_list(&client, &cli.api).await?;
-            }
-
-            PostCommands::Read { id } => {
-                render_post_detail(&client, &cli.api, id).await?;
-            }
-
-            PostCommands::Comment { id, content } => {
-                let token = config.token.as_deref().unwrap_or("");
-                if token.is_empty() {
-                    println!("{}", "⚠️ Fikr yozish uchun avval tizimga kiring:".yellow());
-                    println!("  ferris login <TOKEN>");
-                    return Ok(());
-                }
-
-                let real_id = resolve_post_id(id);
-                println!("{} Fikringiz chop etilmoqda...", "💬".cyan());
-                let payload = serde_json::json!({ "content": content });
-                let res = client
-                    .post(format!("{}/api/v1/posts/{}/comments", cli.api, real_id))
-                    .header("Authorization", format!("Bearer {}", token))
-                    .json(&payload)
-                    .send()
-                    .await;
-
-                match res {
-                    Ok(resp) if resp.status().is_success() => {
-                        println!("{} Fikringiz muvaffaqiyatli qo'shildi! Postni ko'rish: ferris post read {}", "✅".green().bold(), id);
-                    }
-                    Ok(resp) => {
-                        let err: serde_json::Value = resp.json().await?;
-                        println!("{} {}", "❌ Xatolik:".red(), err["error"]);
-                    }
-                    Err(e) => println!("{} {}", "❌ Tarmoq xatosi:".red(), e),
-                }
-            }
-
-            PostCommands::Create { topic, title, content } => {
-                let token = config.token.as_deref().unwrap_or("");
-                if token.is_empty() {
-                    println!("{}", "⚠️ Muhokama ochish uchun tizimga kirish shart:".yellow());
-                    println!("  ferris login <TOKEN>");
-                    return Ok(());
-                }
-
-                println!("{}", "📝 Yangi muhokama chop etilmoqda...".cyan());
-                let payload = serde_json::json!({
-                    "topic_slug": topic,
-                    "title": title,
-                    "content": content
-                });
-                let res = client
-                    .post(format!("{}/api/v1/posts", cli.api))
-                    .header("Authorization", format!("Bearer {}", token))
-                    .json(&payload)
-                    .send()
-                    .await;
-
-                match res {
-                    Ok(resp) if resp.status().is_success() => {
-                        println!("{} Post qabul qilindi va chop etildi! Ko'rish uchun: ferris feed", "✅".green().bold());
-                    }
-                    Ok(resp) => {
-                        let err: serde_json::Value = resp.json().await?;
-                        println!("{} {}", "❌ Xatolik:".red(), err["error"]);
-                    }
-                    Err(e) => println!("{} {}", "❌ Tarmoq xatosi:".red(), e),
-                }
-            }
-
-            PostCommands::Edit { id, title, content } => {
-                let token = config.token.as_deref().unwrap_or("");
-                if token.is_empty() {
-                    println!("{}", "⚠️ Postni tahrirlash uchun tizimga kirish shart:".yellow());
-                    println!("  ferris login <TOKEN>");
-                    return Ok(());
-                }
-
-                let real_id = resolve_post_id(id);
-                println!("{} Post tahrirlanmoqda...", "✏️".cyan());
-                let mut payload = serde_json::Map::new();
-                if let Some(t) = title {
-                    payload.insert("title".to_string(), serde_json::Value::String(t.clone()));
-                }
-                if let Some(c) = content {
-                    payload.insert("content".to_string(), serde_json::Value::String(c.clone()));
-                }
-
-                let res = client
-                    .put(format!("{}/api/v1/posts/{}", cli.api, real_id))
-                    .header("Authorization", format!("Bearer {}", token))
-                    .json(&payload)
-                    .send()
-                    .await;
-
-                match res {
-                    Ok(resp) if resp.status().is_success() => {
-                        println!("{} Post muvaffaqiyatli tahrirlandi! O'qish: ferris post read {}", "✅".green().bold(), id);
-                    }
-                    Ok(resp) => {
-                        let err: serde_json::Value = resp.json().await?;
-                        println!("{} {}", "❌ Xatolik:".red(), err["error"]);
-                    }
-                    Err(e) => println!("{} {}", "❌ Tarmoq xatosi:".red(), e),
-                }
-            }
-
-            PostCommands::Delete { id } => {
-                let token = config.token.as_deref().unwrap_or("");
-                if token.is_empty() {
-                    println!("{}", "⚠️ Postni o'chirish uchun tizimga kirish shart:".yellow());
-                    println!("  ferris login <TOKEN>");
-                    return Ok(());
-                }
-
-                let real_id = resolve_post_id(id);
-                println!("{} Post o'chirilmoqda...", "🗑️".yellow());
-                let res = client
-                    .delete(format!("{}/api/v1/posts/{}", cli.api, real_id))
-                    .header("Authorization", format!("Bearer {}", token))
-                    .send()
-                    .await;
-
-                match res {
-                    Ok(resp) if resp.status().is_success() => {
-                        println!("{} Post va barcha bog'liq izohlar PostgreSQL dan butunlay o'chirildi!", "✅".green().bold());
-                    }
-                    Ok(resp) => {
-                        let err: serde_json::Value = resp.json().await?;
-                        println!("{} {}", "❌ Xatolik:".red(), err["error"]);
-                    }
-                    Err(e) => println!("{} {}", "❌ Tarmoq xatosi:".red(), e),
-                }
-            }
-
-            PostCommands::DeleteComment { id } => {
-                let token = config.token.as_deref().unwrap_or("");
-                if token.is_empty() {
-                    println!("{}", "⚠️ Izohni o'chirish uchun tizimga kirish shart:".yellow());
-                    println!("  ferris login <TOKEN>");
-                    return Ok(());
-                }
-
-                println!("{} Izoh o'chirilmoqda...", "🗑️".yellow());
-                let res = client
-                    .delete(format!("{}/api/v1/comments/{}", cli.api, id))
-                    .header("Authorization", format!("Bearer {}", token))
-                    .send()
-                    .await;
-
-                match res {
-                    Ok(resp) if resp.status().is_success() => {
-                        println!("{} Izoh muvaffaqiyatli o'chirildi!", "✅".green().bold());
-                    }
-                    Ok(resp) => {
-                        let err: serde_json::Value = resp.json().await?;
-                        println!("{} {}", "❌ Xatolik:".red(), err["error"]);
-                    }
-                    Err(e) => println!("{} {}", "❌ Tarmoq xatosi:".red(), e),
-                }
-            }
-        },
+        Commands::Post { action } => {
+            handle_hub_command(&client, &cli.api, &config, &HubCommands::Post { action: action.clone() }).await?;
+        }
 
         Commands::Profile { username } => {
             let target_user = if let Some(u) = username {
@@ -926,123 +787,16 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         }
 
         Commands::Login { token } => {
-            if let Some(t) = token {
-                // Personal Access Token (PAT) yoki Mavjud Sessiya tekshiruvi
-                let check_res = client
-                    .get(format!("{}/api/auth/me", cli.api))
-                    .header("Authorization", format!("Bearer {}", t))
-                    .send()
-                    .await;
-
-                match check_res {
-                    Ok(resp) if resp.status().is_success() => {
-                        let user: serde_json::Value = resp.json().await?;
-                        let uname = user["username"].as_str().unwrap_or("user").to_string();
-                        let new_cfg = CliConfig {
-                            token: Some(t.clone()),
-                            username: Some(uname.clone()),
-                        };
-                        save_config(&new_cfg);
-                        println!("{} Muvaffaqiyatli kirdingiz, @{}!", "✅".green().bold(), uname.cyan().bold());
-                        println!("🔑 Sessiya tokeni ~/.config/ferris/config.toml ga saqlandi.");
-                    }
-                    _ => {
-                        println!("{} Kiritilgan token yaroqsiz yoki muddati o'tgan.", "❌".red());
-                    }
-                }
-            } else {
-                // OAuth 2.0 Device Flow (RFC 8628)
-                match perform_device_login(&client, &cli.api, "ferris-cli").await {
-                    Ok(Some((access_token, uname))) => {
-                        let new_cfg = CliConfig {
-                            token: Some(access_token),
-                            username: Some(uname.clone()),
-                        };
-                        save_config(&new_cfg);
-                        println!("\n{} Muvaffaqiyatli ulandi! Xush kelibsiz, @{}!", "✅".green().bold(), uname.cyan().bold());
-                        println!("🔑 Shaxsiy CLI tokeni (PAT) ~/.config/ferris/config.toml ga saqlandi.");
-                        println!("Terminalda hamjamiyat, postlar, chat va barcha buyruqlar to'liq faollashtirildi.");
-                    }
-                    Ok(None) => {
-                        // Foydalanuvchi bekor qildi yoki xatolik haqida xabar chiqdi
-                    }
-                    Err(e) => {
-                        println!("{} Ulanishda xatolik yuz berdi: {}", "❌".red(), e);
-                    }
-                }
-            }
+            handle_auth_command(&client, &cli.api, &config, &AuthCommands::Login { token: token.clone() }, lang).await?;
         }
 
         Commands::Logout => {
-            let empty_cfg = CliConfig::default();
-            save_config(&empty_cfg);
-            println!("{} Terminaldagi barcha sessiyalar muvaffaqiyatli tozalandi.", "✅".green());
+            handle_auth_command(&client, &cli.api, &config, &AuthCommands::Logout, lang).await?;
         }
 
-        Commands::Block { action } => match action {
-            BlockCommands::Add { username } => {
-                let token = config.token.as_deref().unwrap_or("");
-                if token.is_empty() {
-                    println!("{}", "⚠️ Bloklash uchun tizimga kirish shart: ferris login <TOKEN>".yellow());
-                    return Ok(());
-                }
-                let clean_user = username.trim_start_matches('@');
-                println!("{} @{} bloklanmoqda...", "🚫".yellow(), clean_user);
-                let res = client
-                    .post(format!("{}/api/v1/users/{}/block", cli.api, clean_user))
-                    .header("Authorization", format!("Bearer {}", token))
-                    .send()
-                    .await;
-                match res {
-                    Ok(resp) if resp.status().is_success() => {
-                        println!("{} @{} muvaffaqiyatli bloklandi! U endi sizga DM yubora olmaydi.", "✅".green().bold(), clean_user);
-                    }
-                    Ok(resp) => {
-                        let err: serde_json::Value = resp.json().await.unwrap_or_default();
-                        println!("{} {}", "❌ Xatolik:".red(), err["error"].as_str().unwrap_or("Bloklab bo'lmadi"));
-                    }
-                    Err(e) => println!("{} Tarmoq xatosi: {}", "❌".red(), e),
-                }
-            }
-            BlockCommands::Remove { username } => {
-                handle_unblock(&client, &cli.api, &config, username).await?;
-            }
-            BlockCommands::List => {
-                let token = config.token.as_deref().unwrap_or("");
-                if token.is_empty() {
-                    println!("{}", "⚠️ Bloklanganlar ro'yxatini ko'rish uchun tizimga kirish shart: ferris login <TOKEN>".yellow());
-                    return Ok(());
-                }
-                let res = client
-                    .get(format!("{}/api/v1/blocked-users", cli.api))
-                    .header("Authorization", format!("Bearer {}", token))
-                    .send()
-                    .await;
-                match res {
-                    Ok(resp) if resp.status().is_success() => {
-                        let val: serde_json::Value = resp.json().await?;
-                        let list = val["blocked_users"].as_array();
-                        println!("{}", "🚫 Bloklangan Foydalanuvchilar:".yellow().bold());
-                        if let Some(users) = list {
-                            if users.is_empty() {
-                                println!("  Hozircha hech kim bloklanmagan.");
-                            } else {
-                                for u in users {
-                                    let name = u.as_str().or_else(|| u["username"].as_str()).unwrap_or("");
-                                    println!("  • @{}", name.cyan());
-                                }
-                                println!("\n💡 Blokdan chiqarish: ferris unblock @username");
-                            }
-                        }
-                    }
-                    Ok(resp) => {
-                        let err: serde_json::Value = resp.json().await.unwrap_or_default();
-                        println!("{} {}", "❌ Xatolik:".red(), err["error"].as_str().unwrap_or("Yuklab bo'lmadi"));
-                    }
-                    Err(e) => println!("{} Tarmoq xatosi: {}", "❌".red(), e),
-                }
-            }
-        },
+        Commands::Block { action } => {
+            handle_hub_command(&client, &cli.api, &config, &HubCommands::Block { action: action.clone() }).await?;
+        }
 
         Commands::Unblock { username } => {
             handle_unblock(&client, &cli.api, &config, username).await?;
@@ -1065,7 +819,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         }
 
         Commands::Vault { action } => {
-            handle_vault(action)?;
+            handle_vault(action, lang)?;
         }
 
         Commands::Run {
@@ -1078,44 +832,600 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             socket,
             command,
         } => {
-            handle_run(
-                vault,
-                password.as_deref(),
-                *jail,
-                *allow_cwd_write,
-                *isolated_net,
-                allow_write,
-                socket.as_deref(),
-                command,
-            )?;
+            let options = RunOptions {
+                vault_path: vault,
+                password: password.as_deref(),
+                enable_jail: *jail,
+                allow_cwd_write: *allow_cwd_write,
+                isolated_net: *isolated_net,
+                allow_write_paths: allow_write,
+                socket: socket.as_deref(),
+                cmd_args: command,
+                lang,
+            };
+            handle_run(&options)?;
+        }
+
+        Commands::Scan {
+            path,
+            staged,
+            install_hook,
+        } => {
+            if *install_hook {
+                if let Err(e) = scanner::install_git_hook(lang) {
+                    eprintln!("{} {}", "❌ Error:".red().bold(), e);
+                    std::process::exit(1);
+                }
+                return Ok(());
+            }
+
+            let report_res = if *staged {
+                scanner::scan_staged(lang)
+            } else {
+                scanner::scan_directory(path, lang)
+            };
+
+            match report_res {
+                Ok(report) => {
+                    scanner::print_scan_report(&report, lang);
+                    if report.has_secrets() {
+                        std::process::exit(1);
+                    }
+                }
+                Err(e) => {
+                    eprintln!("{} {}", "❌ Error:".red().bold(), e);
+                    std::process::exit(1);
+                }
+            }
+        }
+
+        Commands::Auth { action } => {
+            handle_auth_command(&client, &cli.api, &config, action, lang).await?;
+        }
+
+        Commands::Hub { action } => {
+            handle_hub_command(&client, &cli.api, &config, action).await?;
         }
     }
 
     Ok(())
 }
 
-fn handle_vault(action: &VaultCommands) -> Result<(), Box<dyn std::error::Error>> {
+async fn handle_group_action(
+    client: &reqwest::Client,
+    api: &str,
+    config: &CliConfig,
+    action: &GroupCommands,
+) -> Result<(), Box<dyn std::error::Error>> {
+    match action {
+        GroupCommands::List => {
+            println!("{}", "👥 Faol Jamiyatlar (groups.ferris.uz):".magenta().bold());
+            let res = client.get(format!("{}/api/v1/groups", api)).send().await;
+            match res {
+                Ok(resp) if resp.status().is_success() => {
+                    let groups: Vec<GroupItem> = resp.json().await?;
+                    for g in groups {
+                        let status = if g.members_count == 0 {
+                            "⚠️ Bo'sh (24h TTL o'chadi)".yellow()
+                        } else {
+                            format!("[A'zolar: {}]", g.members_count).green()
+                        };
+                        println!("  • {:<18} {} - {}", g.slug.cyan().bold(), status, g.name.white());
+                    }
+                }
+                _ => println!("{}", "Jamiyatlarni yuklab bo'lmadi.".red()),
+            }
+            println!("\n{}", "ℹ️ Qoida: Agar jamiyatda a'zo 0 ga tushsa, 24 soatda avtomatik o'chiriladi.".dimmed());
+        }
+
+        GroupCommands::Join { slug } => {
+            let token = config.token.as_deref().unwrap_or("");
+            if token.is_empty() {
+                println!("{}", "⚠️ Jamiyatga a'zo bo'lish uchun avval tizimga kiring:".yellow());
+                println!("  ferris auth login <TOKEN>");
+                return Ok(());
+            }
+
+            println!("{} '{}' jamiyatiga a'zo bo'linmoqda...", "🚀".cyan(), slug.bold());
+            let res = client
+                .post(format!("{}/api/v1/groups/{}/join", api, slug))
+                .header("Authorization", format!("Bearer {}", token))
+                .send()
+                .await;
+
+            match res {
+                Ok(resp) if resp.status().is_success() => {
+                    let val: serde_json::Value = resp.json().await?;
+                    let is_member = val["is_member"].as_bool().unwrap_or(true);
+                    if is_member {
+                        println!("{} Tabriklaymiz! Siz f/{} jamiyatiga muvaffaqiyatli a'zo bo'ldingiz! Jami a'zolar: {}", "✅".green().bold(), slug, val["members_count"]);
+                    } else {
+                        println!("{} Siz f/{} jamiyati a'zoligidan chiqdingiz. Qolgan a'zolar: {}", "ℹ️".yellow(), slug, val["members_count"]);
+                    }
+                }
+                Ok(resp) => {
+                    let err: serde_json::Value = resp.json().await?;
+                    println!("{} {}", "❌ Xatolik:".red(), err["error"]);
+                }
+                Err(e) => println!("{} {}", "❌ Tarmoq xatosi:".red(), e),
+            }
+        }
+
+        GroupCommands::Create { slug, name, description } => {
+            let token = config.token.as_deref().unwrap_or("");
+            if token.is_empty() {
+                println!("{}", "⚠️ Jamiyat yaratish uchun tizimga kirishingiz shart:".yellow());
+                println!("  ferris auth login <TOKEN>");
+                return Ok(());
+            }
+
+            println!("{} Yangi jamiyat yaratilmoqda: {}", "🛠️".cyan(), slug.bold());
+            let payload = serde_json::json!({
+                "slug": slug,
+                "name": name,
+                "description": description
+            });
+            let res = client
+                .post(format!("{}/api/v1/groups", api))
+                .header("Authorization", format!("Bearer {}", token))
+                .json(&payload)
+                .send()
+                .await;
+
+            match res {
+                Ok(resp) if resp.status().is_success() => {
+                    println!("{} Jamiyat muvaffaqiyatli yaratildi! URL: https://groups.ferris.uz/f/{}", "✅".green().bold(), slug);
+                }
+                Ok(resp) => {
+                    let err: serde_json::Value = resp.json().await?;
+                    println!("{} {}", "❌ Xatolik:".red(), err["error"]);
+                }
+                Err(e) => println!("{} {}", "❌ Tarmoq xatosi:".red(), e),
+            }
+        }
+    }
+    Ok(())
+}
+
+async fn handle_post_action(
+    client: &reqwest::Client,
+    api: &str,
+    config: &CliConfig,
+    action: &PostCommands,
+) -> Result<(), Box<dyn std::error::Error>> {
+    match action {
+        PostCommands::List => {
+            render_posts_list(client, api).await?;
+        }
+
+        PostCommands::Read { id } => {
+            render_post_detail(client, api, id).await?;
+        }
+
+        PostCommands::Comment { id, content } => {
+            let token = config.token.as_deref().unwrap_or("");
+            if token.is_empty() {
+                println!("{}", "⚠️ Fikr yozish uchun avval tizimga kiring:".yellow());
+                println!("  ferris auth login <TOKEN>");
+                return Ok(());
+            }
+
+            let real_id = resolve_post_id(id);
+            println!("{} Fikringiz chop etilmoqda...", "💬".cyan());
+            let payload = serde_json::json!({ "content": content });
+            let res = client
+                .post(format!("{}/api/v1/posts/{}/comments", api, real_id))
+                .header("Authorization", format!("Bearer {}", token))
+                .json(&payload)
+                .send()
+                .await;
+
+            match res {
+                Ok(resp) if resp.status().is_success() => {
+                    println!("{} Fikringiz muvaffaqiyatli qo'shildi! Postni ko'rish: ferris hub post read {}", "✅".green().bold(), id);
+                }
+                Ok(resp) => {
+                    let err: serde_json::Value = resp.json().await?;
+                    println!("{} {}", "❌ Xatolik:".red(), err["error"]);
+                }
+                Err(e) => println!("{} {}", "❌ Tarmoq xatosi:".red(), e),
+            }
+        }
+
+        PostCommands::Create { topic, title, content } => {
+            let token = config.token.as_deref().unwrap_or("");
+            if token.is_empty() {
+                println!("{}", "⚠️ Post yaratish uchun avval tizimga kiring:".yellow());
+                println!("  ferris auth login <TOKEN>");
+                return Ok(());
+            }
+
+            println!("{} Muhokama chop etilmoqda...", "📝".cyan());
+            let payload = serde_json::json!({
+                "topic": topic,
+                "title": title,
+                "content": content
+            });
+            let res = client
+                .post(format!("{}/api/v1/posts", api))
+                .header("Authorization", format!("Bearer {}", token))
+                .json(&payload)
+                .send()
+                .await;
+
+            match res {
+                Ok(resp) if resp.status().is_success() => {
+                    let val: serde_json::Value = resp.json().await?;
+                    println!("{} Post muvaffaqiyatli chop etildi!", "✅".green().bold());
+                    if let Some(post_id) = val["id"].as_str() {
+                        println!("🔗 Ko'rish: ferris hub post read {}", post_id);
+                    }
+                }
+                Ok(resp) => {
+                    let err: serde_json::Value = resp.json().await?;
+                    println!("{} {}", "❌ Xatolik:".red(), err["error"]);
+                }
+                Err(e) => println!("{} {}", "❌ Tarmoq xatosi:".red(), e),
+            }
+        }
+
+        PostCommands::Edit { id, title, content } => {
+            let token = config.token.as_deref().unwrap_or("");
+            if token.is_empty() {
+                println!("{}", "⚠️ Postni tahrirlash uchun tizimga kirish shart:".yellow());
+                println!("  ferris auth login <TOKEN>");
+                return Ok(());
+            }
+
+            let real_id = resolve_post_id(id);
+            let mut payload = serde_json::Map::new();
+            if let Some(t) = title {
+                payload.insert("title".to_string(), serde_json::Value::String(t.clone()));
+            }
+            if let Some(c) = content {
+                payload.insert("content".to_string(), serde_json::Value::String(c.clone()));
+            }
+
+            if payload.is_empty() {
+                println!("{}", "⚠️ Yangilash uchun --title yoki --content ko'rsatilishi shart.".yellow());
+                return Ok(());
+            }
+
+            println!("{} Post yangilanmoqda...", "✏️".cyan());
+            let res = client
+                .put(format!("{}/api/v1/posts/{}", api, real_id))
+                .header("Authorization", format!("Bearer {}", token))
+                .json(&serde_json::Value::Object(payload))
+                .send()
+                .await;
+
+            match res {
+                Ok(resp) if resp.status().is_success() => {
+                    println!("{} Post muvaffaqiyatli tahrirlandi!", "✅".green().bold());
+                }
+                Ok(resp) => {
+                    let err: serde_json::Value = resp.json().await?;
+                    println!("{} {}", "❌ Xatolik:".red(), err["error"]);
+                }
+                Err(e) => println!("{} {}", "❌ Tarmoq xatosi:".red(), e),
+            }
+        }
+
+        PostCommands::Delete { id } => {
+            let token = config.token.as_deref().unwrap_or("");
+            if token.is_empty() {
+                println!("{}", "⚠️ Postni o'chirish uchun tizimga kirish shart:".yellow());
+                println!("  ferris auth login <TOKEN>");
+                return Ok(());
+            }
+
+            let real_id = resolve_post_id(id);
+            println!("{} Post o'chirilmoqda...", "🗑️".yellow());
+            let res = client
+                .delete(format!("{}/api/v1/posts/{}", api, real_id))
+                .header("Authorization", format!("Bearer {}", token))
+                .send()
+                .await;
+
+            match res {
+                Ok(resp) if resp.status().is_success() => {
+                    println!("{} Post butunlay o'chirildi!", "✅".green().bold());
+                }
+                Ok(resp) => {
+                    let err: serde_json::Value = resp.json().await?;
+                    println!("{} {}", "❌ Xatolik:".red(), err["error"]);
+                }
+                Err(e) => println!("{} {}", "❌ Tarmoq xatosi:".red(), e),
+            }
+        }
+
+        PostCommands::DeleteComment { id } => {
+            let token = config.token.as_deref().unwrap_or("");
+            if token.is_empty() {
+                println!("{}", "⚠️ Izohni o'chirish uchun tizimga kirish shart:".yellow());
+                println!("  ferris auth login <TOKEN>");
+                return Ok(());
+            }
+
+            println!("{} Izoh o'chirilmoqda...", "🗑️".yellow());
+            let res = client
+                .delete(format!("{}/api/v1/comments/{}", api, id))
+                .header("Authorization", format!("Bearer {}", token))
+                .send()
+                .await;
+
+            match res {
+                Ok(resp) if resp.status().is_success() => {
+                    println!("{} Izoh muvaffaqiyatli o'chirildi!", "✅".green().bold());
+                }
+                Ok(resp) => {
+                    let err: serde_json::Value = resp.json().await?;
+                    println!("{} {}", "❌ Xatolik:".red(), err["error"]);
+                }
+                Err(e) => println!("{} {}", "❌ Tarmoq xatosi:".red(), e),
+            }
+        }
+    }
+    Ok(())
+}
+
+async fn handle_block_action(
+    client: &reqwest::Client,
+    api: &str,
+    config: &CliConfig,
+    action: &BlockCommands,
+) -> Result<(), Box<dyn std::error::Error>> {
+    match action {
+        BlockCommands::Add { username } => {
+            let token = config.token.as_deref().unwrap_or("");
+            if token.is_empty() {
+                println!("{}", "⚠️ Bloklash uchun tizimga kirish shart: ferris auth login <TOKEN>".yellow());
+                return Ok(());
+            }
+            let clean_user = username.trim_start_matches('@');
+            println!("{} @{} bloklanmoqda...", "🚫".yellow(), clean_user);
+            let res = client
+                .post(format!("{}/api/v1/users/{}/block", api, clean_user))
+                .header("Authorization", format!("Bearer {}", token))
+                .send()
+                .await;
+            match res {
+                Ok(resp) if resp.status().is_success() => {
+                    println!("{} @{} muvaffaqiyatli bloklandi! U endi sizga DM yubora olmaydi.", "✅".green().bold(), clean_user);
+                }
+                Ok(resp) => {
+                    let err: serde_json::Value = resp.json().await.unwrap_or_default();
+                    println!("{} {}", "❌ Xatolik:".red(), err["error"].as_str().unwrap_or("Bloklab bo'lmadi"));
+                }
+                Err(e) => println!("{} Tarmoq xatosi: {}", "❌".red(), e),
+            }
+        }
+        BlockCommands::Remove { username } => {
+            handle_unblock(client, api, config, username).await?;
+        }
+        BlockCommands::List => {
+            let token = config.token.as_deref().unwrap_or("");
+            if token.is_empty() {
+                println!("{}", "⚠️ Bloklanganlar ro'yxatini ko'rish uchun tizimga kirish shart: ferris auth login <TOKEN>".yellow());
+                return Ok(());
+            }
+            let res = client
+                .get(format!("{}/api/v1/blocked-users", api))
+                .header("Authorization", format!("Bearer {}", token))
+                .send()
+                .await;
+            match res {
+                Ok(resp) if resp.status().is_success() => {
+                    let val: serde_json::Value = resp.json().await?;
+                    let list = val["blocked_users"].as_array();
+                    println!("{}", "🚫 Bloklangan Foydalanuvchilar:".yellow().bold());
+                    if let Some(users) = list {
+                        if users.is_empty() {
+                            println!("  Hozircha hech kim bloklanmagan.");
+                        } else {
+                            for u in users {
+                                let name = u.as_str().or_else(|| u["username"].as_str()).unwrap_or("");
+                                println!("  • @{}", name.cyan());
+                            }
+                            println!("\n💡 Blokdan chiqarish: ferris hub unblock @username");
+                        }
+                    }
+                }
+                Ok(resp) => {
+                    let err: serde_json::Value = resp.json().await.unwrap_or_default();
+                    println!("{} {}", "❌ Xatolik:".red(), err["error"].as_str().unwrap_or("Yuklab bo'lmadi"));
+                }
+                Err(e) => println!("{} Tarmoq xatosi: {}", "❌".red(), e),
+            }
+        }
+    }
+    Ok(())
+}
+
+async fn handle_auth_command(
+    client: &reqwest::Client,
+    api: &str,
+    config: &CliConfig,
+    action: &AuthCommands,
+    lang: Language,
+) -> Result<(), Box<dyn std::error::Error>> {
+    match action {
+        AuthCommands::Login { token } => {
+            if let Some(t) = token {
+                let check_res = client
+                    .get(format!("{}/api/auth/me", api))
+                    .header("Authorization", format!("Bearer {}", t))
+                    .send()
+                    .await;
+
+                match check_res {
+                    Ok(resp) if resp.status().is_success() => {
+                        let user: serde_json::Value = resp.json().await?;
+                        let uname = user["username"].as_str().unwrap_or("user").to_string();
+                        let new_cfg = CliConfig {
+                            token: Some(t.clone()),
+                            username: Some(uname.clone()),
+                        };
+                        save_config(&new_cfg);
+                        println!("{}", lang.auth_logged_in(&uname).green().bold());
+                        println!("{}", lang.auth_token_saved("~/.config/ferris/config.json"));
+                    }
+                    _ => {
+                        println!("{}", lang.auth_invalid_token().red());
+                    }
+                }
+            } else {
+                match perform_device_login(client, api, "ferris-cli").await {
+                    Ok(Some((access_token, uname))) => {
+                        let new_cfg = CliConfig {
+                            token: Some(access_token),
+                            username: Some(uname.clone()),
+                        };
+                        save_config(&new_cfg);
+                        println!("\n{}", lang.auth_logged_in(&uname).green().bold());
+                        println!("{}", lang.auth_token_saved("~/.config/ferris/config.json"));
+                    }
+                    Ok(None) => {}
+                    Err(e) => {
+                        println!("{} {}", "❌ Error:".red(), e);
+                    }
+                }
+            }
+        }
+        AuthCommands::Logout => {
+            let empty_cfg = CliConfig::default();
+            save_config(&empty_cfg);
+            println!("{}", lang.auth_logged_out().green());
+        }
+        AuthCommands::Status => {
+            if let Some(token) = &config.token {
+                let check_res = client
+                    .get(format!("{}/api/auth/me", api))
+                    .header("Authorization", format!("Bearer {}", token))
+                    .send()
+                    .await;
+
+                match check_res {
+                    Ok(resp) if resp.status().is_success() => {
+                        let user: serde_json::Value = resp.json().await?;
+                        let uname = user["username"].as_str().unwrap_or("user");
+                        println!("{} @{}", "👤 Logged in as:".green().bold(), uname.cyan().bold());
+                        if let Some(email) = user["email"].as_str() {
+                            println!("   Email: {}", email);
+                        }
+                    }
+                    _ => {
+                        let uname = config.username.as_deref().unwrap_or("unknown");
+                        println!("{} @{} (offline/unverified)", "👤 Local session:".yellow().bold(), uname.cyan());
+                    }
+                }
+            } else {
+                println!("{}", "ℹ️ Not logged in. Run `ferris auth login` or `ferris login` to authenticate.".yellow());
+            }
+        }
+    }
+    Ok(())
+}
+
+async fn handle_hub_command(
+    client: &reqwest::Client,
+    api: &str,
+    config: &CliConfig,
+    action: &HubCommands,
+) -> Result<(), Box<dyn std::error::Error>> {
+    match action {
+        HubCommands::Feed => {
+            render_posts_list(client, api).await?;
+        }
+        HubCommands::Read { id } => {
+            render_post_detail(client, api, id).await?;
+        }
+        HubCommands::Live { room } | HubCommands::Chat { room } => {
+            run_live_chat(room, config).await?;
+        }
+        HubCommands::Topic { action } => match action {
+            TopicCommands::List => {
+                println!("{}", "📌 Ferris.uz Mavzulari (topics.ferris.uz):".yellow().bold());
+                let res = client.get(format!("{}/api/v1/topics", api)).send().await;
+                match res {
+                    Ok(resp) if resp.status().is_success() => {
+                        let topics: Vec<TopicItem> = resp.json().await?;
+                        for t in topics {
+                            let desc = t.description.unwrap_or_default();
+                            println!("  {} {:<14} - {} ({})", t.icon, t.slug.cyan().bold(), t.title.white(), desc.dimmed());
+                        }
+                    }
+                    _ => println!("{}", "Mavzularni yuklab bo'lmadi.".red()),
+                }
+            }
+        },
+        HubCommands::Group { action } => {
+            handle_group_action(client, api, config, action).await?;
+        }
+        HubCommands::Post { action } => {
+            handle_post_action(client, api, config, action).await?;
+        }
+        HubCommands::Profile { username } => {
+            let target_user = if let Some(u) = username {
+                u.clone()
+            } else if let Some(cfg_user) = &config.username {
+                cfg_user.clone()
+            } else {
+                "ibrohimkoha".to_string()
+            };
+
+            let res = client.get(format!("{}/api/v1/profile/{}", api, target_user)).send().await;
+            match res {
+                Ok(resp) if resp.status().is_success() => {
+                    let user: serde_json::Value = resp.json().await?;
+                    println!("{} {}", "👤 Profil:".blue().bold(), user["display_name"]);
+                    println!("  Subdomen URL: {}", user["subdomain_url"].to_string().cyan());
+                    println!("  Qiziqishlar: {}", user["interests"]);
+                    if let Some(cfg_user) = &config.username {
+                        if cfg_user == &target_user {
+                            println!("  {} Faol terminal sessiyasi", "🔑".green());
+                        }
+                    }
+                }
+                _ => {
+                    println!("{} Foydalanuvchi topilmadi.", "❌".red());
+                }
+            }
+        }
+        HubCommands::Dm { action } => {
+            handle_dm_command(action, client, api, config).await?;
+        }
+        HubCommands::Block { action } => {
+            handle_block_action(client, api, config, action).await?;
+        }
+        HubCommands::Unblock { username } => {
+            handle_unblock(client, api, config, username).await?;
+        }
+    }
+    Ok(())
+}
+
+fn handle_vault(action: &VaultCommands, lang: Language) -> Result<(), Box<dyn std::error::Error>> {
     match action {
         VaultCommands::Seal { input, output, password, keep } => {
             let in_path = std::path::Path::new(input);
             let out_path = std::path::Path::new(output);
 
-            println!("{}", "🔒 [Ferris Vault] Maxfiylik ombori tayyorlanmoqda...".cyan().bold());
+            println!("{}", lang.vault_sealing().cyan().bold());
             match vault::seal_vault(in_path, out_path, password.as_deref(), *keep) {
                 Ok(count) => {
-                    println!("{} {}", "✅ Muvaffaqiyatli muhrlandi:".green().bold(), output.bold());
-                    println!("   • Aniqlangan va shifrlangan o'zgaruvchilar soni: {}", count.to_string().yellow());
-                    println!("   • Shifrlash algoritmi: {}", "ChaCha20-Poly1305 (256-bit AEAD)".bright_cyan());
+                    println!("{}", lang.vault_sealed_success(output).green().bold());
+                    println!("{}", lang.vault_encrypted_count(count).yellow());
+                    println!("{}", lang.vault_algorithm().bright_cyan());
                     if !*keep {
-                        println!("   • {}", "Asl ochiq fayl diskdan izsiz xavfsiz tozalandi (Zero-Disk Footprint).".green());
+                        println!("{}", lang.vault_wiped_msg().green());
                     } else {
-                        println!("   • {}", "DIQQAT: Asl fayl diskda saqlab qolindi (--keep).".yellow());
+                        println!("{}", lang.vault_kept_msg().yellow());
                     }
-                    println!("\n💡 Endi ilovani ishga tushirishda:");
-                    println!("   {} ferris run -- python3 bot.py", "$".bright_black());
+                    println!("{}", lang.vault_run_hint());
                 }
                 Err(e) => {
-                    eprintln!("{} {}", "❌ Xatolik yuz berdi:".red().bold(), e);
+                    eprintln!("{} {}", "❌ Error:".red().bold(), e);
                 }
             }
         }
@@ -1123,7 +1433,7 @@ fn handle_vault(action: &VaultCommands) -> Result<(), Box<dyn std::error::Error>
             let v_path = std::path::Path::new(vault);
             match vault::inspect_vault(v_path, password.as_deref(), *reveal) {
                 Ok(items) => {
-                    println!("{} {} (Jami: {})", "🔐 Vault tarkibi:".cyan().bold(), vault.bold(), items.len().to_string().yellow());
+                    println!("{}", lang.vault_inspect_header(vault, items.len()).cyan().bold());
                     println!("{}", "────────────────────────────────────────────────────────────".bright_black());
                     for (k, v) in items {
                         if *reveal {
@@ -1134,11 +1444,11 @@ fn handle_vault(action: &VaultCommands) -> Result<(), Box<dyn std::error::Error>
                     }
                     println!("{}", "────────────────────────────────────────────────────────────".bright_black());
                     if !*reveal {
-                        println!("ℹ️  Qiymatlarni ko'rish uchun: {} qo'shing.", "--reveal".yellow());
+                        println!("{}", lang.vault_reveal_hint().yellow());
                     }
                 }
                 Err(e) => {
-                    eprintln!("{} {}", "❌ Xatolik yuz berdi:".red().bold(), e);
+                    eprintln!("{} {}", "❌ Error:".red().bold(), e);
                 }
             }
         }
@@ -1146,16 +1456,16 @@ fn handle_vault(action: &VaultCommands) -> Result<(), Box<dyn std::error::Error>
             let v_path = std::path::Path::new(vault);
             let out_path = std::path::Path::new(output);
 
-            println!("{}", "⚠️  [Ferris Vault] Faylni qayta tiklash (Unseal)...".yellow().bold());
+            println!("{}", lang.vault_unseal_start().yellow().bold());
             match vault::unseal_vault(v_path, out_path, password.as_deref()) {
                 Ok(count) => {
-                    println!("{} {}", "✅ Ochiq fayl tiklandi:".green().bold(), output.bold());
-                    println!("   • Tiklangan o'zgaruvchilar: {}", count.to_string().yellow());
-                    println!("   • Ruxsatlar: {}", "0600 (Faqat joriy foydalanuvchi)".bright_cyan());
-                    println!("   • {}", "DIQQAT: Foydalangach uni yana 'ferris vault seal' qilishni unutmang!".bright_red());
+                    println!("{}", lang.vault_unseal_success(output).green().bold());
+                    println!("{}", lang.vault_unseal_count(count).yellow());
+                    println!("{}", lang.vault_unseal_perms().bright_cyan());
+                    println!("{}", lang.vault_unseal_warning().bright_red());
                 }
                 Err(e) => {
-                    eprintln!("{} {}", "❌ Xatolik yuz berdi:".red().bold(), e);
+                    eprintln!("{} {}", "❌ Error:".red().bold(), e);
                 }
             }
         }
@@ -1163,47 +1473,72 @@ fn handle_vault(action: &VaultCommands) -> Result<(), Box<dyn std::error::Error>
     Ok(())
 }
 
-fn handle_run(
-    vault_path_str: &str,
-    password: Option<&str>,
+struct RunOptions<'a> {
+    vault_path: &'a str,
+    password: Option<&'a str>,
     enable_jail: bool,
     allow_cwd_write: bool,
     isolated_net: bool,
-    allow_write_paths: &[String],
-    socket: Option<&str>,
-    cmd_args: &[String],
-) -> Result<(), Box<dyn std::error::Error>> {
-    if cmd_args.is_empty() {
-        eprintln!("{}", "❌ Ishga tushirish uchun buyruq ko'rsatilmadi (masalan: ferris run -- python3 bot.py)".red());
+    allow_write_paths: &'a [String],
+    socket: Option<&'a str>,
+    cmd_args: &'a [String],
+    lang: Language,
+}
+
+fn handle_run(options: &RunOptions) -> Result<(), Box<dyn std::error::Error>> {
+    if options.cmd_args.is_empty() {
+        if options.lang.is_uz() {
+            eprintln!("{}", "❌ Ishga tushirish uchun buyruq ko'rsatilmadi (masalan: ferris run -- python3 bot.py)".red());
+        } else {
+            eprintln!("{}", "❌ No command specified to run (e.g. ferris run -- python3 bot.py)".red());
+        }
         return Ok(());
     }
 
-    println!("{}", "🛡️  [Ferris Enclave] Universal xavfsiz qobiq ishga tushirilmoqda...".cyan().bold());
+    if options.lang.is_uz() {
+        println!("{}", "🛡️  [Ferris Enclave] Universal xavfsiz qobiq ishga tushirilmoqda...".cyan().bold());
+    } else {
+        println!("{}", "🛡️  [Ferris Enclave] Universal secure enclave starting...".cyan().bold());
+    }
 
     // 1. Vault'ni xotirada ochish
     let mut env_vars = std::collections::HashMap::new();
-    let v_path = std::path::Path::new(vault_path_str);
+    let v_path = std::path::Path::new(options.vault_path);
     if v_path.exists() {
-        match vault::load_vault_to_env(v_path, password) {
+        match vault::load_vault_to_env(v_path, options.password) {
             Ok(map) => {
                 let count = map.len();
                 env_vars = map;
-                println!("{} {} {}", "   • Sirlar ombori:".green(), count.to_string().yellow().bold(), "ta maxfiy kalit operativ xotiraga (RAM) yuklandi.".green());
+                if options.lang.is_uz() {
+                    println!("{} {} {}", "   • Sirlar ombori:".green(), count.to_string().yellow().bold(), "ta maxfiy kalit operativ xotiraga (RAM) yuklandi.".green());
+                } else {
+                    println!("{} {} {}", "   • Secret Vault:".green(), count.to_string().yellow().bold(), "secrets loaded into RAM (Zero-Disk Footprint).".green());
+                }
             }
             Err(e) => {
-                eprintln!("{} {}", "⚠️  Vaultni ochishda xatolik:".yellow().bold(), e);
+                if options.lang.is_uz() {
+                    eprintln!("{} {}", "⚠️  Vaultni ochishda xatolik:".yellow().bold(), e);
+                } else {
+                    eprintln!("{} {}", "⚠️  Failed to decrypt vault:".yellow().bold(), e);
+                }
             }
         }
+    } else if options.lang.is_uz() {
+        println!("   • Sirlar ombori: {} topilmadi (standart muhit ishlatiladi).", options.vault_path.bright_black());
     } else {
-        println!("   • Sirlar ombori: {} topilmadi (standart muhit ishlatiladi).", vault_path_str.bright_black());
+        println!("   • Secret Vault: {} not found (running with host environment).", options.vault_path.bright_black());
     }
 
     // 2. Soket muhitini ineksiya qilish
     let mut socket_parent_dir: Option<std::path::PathBuf> = None;
-    if let Some(sock_path) = socket {
+    if let Some(sock_path) = options.socket {
         env_vars.insert("FERRIS_SOCKET".to_string(), sock_path.to_string());
         env_vars.insert("PORT".to_string(), sock_path.to_string());
-        println!("   • Tarmoq kanali: {} (Unix Domain Socket faol)", sock_path.bright_cyan());
+        if options.lang.is_uz() {
+            println!("   • Tarmoq kanali: {} (Unix Domain Socket faol)", sock_path.bright_cyan());
+        } else {
+            println!("   • Network channel: {} (Unix Domain Socket active)", sock_path.bright_cyan());
+        }
 
         let sock_p = std::path::Path::new(sock_path);
         if let Some(parent) = sock_p.parent() {
@@ -1213,32 +1548,34 @@ fn handle_run(
         }
     }
 
-    if !allow_cwd_write {
+    if !options.allow_cwd_write {
         // Python kod papkasiga __pycache__ yozishga urinib xatolik bermasligi uchun
         env_vars.insert("PYTHONDONTWRITEBYTECODE".to_string(), "1".to_string());
     }
 
     // 3. Yadroviy qamal (Landlock LSM, Memory Hardening & Network Isolation)
-    if enable_jail {
-        let mut jail_config = jail::JailConfig::default();
-        jail_config.allow_cwd_write = allow_cwd_write;
-        jail_config.isolate_network = isolated_net;
-        for p in allow_write_paths {
+    if options.enable_jail {
+        let mut jail_config = jail::JailConfig {
+            allow_cwd_write: options.allow_cwd_write,
+            isolate_network: options.isolated_net,
+            ..Default::default()
+        };
+        for p in options.allow_write_paths {
             jail_config.extra_write_paths.push(std::path::PathBuf::from(p));
         }
         if let Some(parent) = socket_parent_dir {
             jail_config.extra_write_paths.push(parent);
         }
 
-        if let Err(e) = jail::apply_sandbox(&jail_config) {
-            eprintln!("{} {}", "⚠️  Qamalni qo'llashda xatolik:".yellow(), e);
+        if let Err(e) = jail::apply_sandbox(&jail_config, options.lang) {
+            eprintln!("{} {}", "⚠️  Jail error:".yellow(), e);
         }
     }
 
-    let program = &cmd_args[0];
-    let args = &cmd_args[1..];
+    let program = &options.cmd_args[0];
+    let args = &options.cmd_args[1..];
 
-    println!("{} {} {}\n", "🚀 [Boshlandi]:".green().bold(), program.bright_yellow(), args.join(" "));
+    println!("{}", options.lang.run_started(program, &args.join(" ")).green().bold());
 
     let mut command = std::process::Command::new(program);
     command.args(args);
@@ -1248,7 +1585,7 @@ fn handle_run(
     {
         use std::os::unix::process::CommandExt;
         let err = command.exec();
-        eprintln!("{} {}", "❌ Dasturni ishga tushirib bo'lmadi:".red().bold(), err);
+        eprintln!("{}", options.lang.run_exec_failed(&err.to_string()).red().bold());
         std::process::exit(1);
     }
 
@@ -1608,7 +1945,7 @@ async fn render_post_detail(client: &reqwest::Client, api: &str, raw_id: &str) -
                 format!("@{}", author).cyan(),
                 date.dimmed(),
                 detail.views_count.to_string().green(),
-                &detail.id[..8].dimmed()
+                detail.id[..8].dimmed()
             );
             println!("{}\n", "═".repeat(78).cyan());
 
