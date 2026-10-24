@@ -35,7 +35,21 @@
                     {% endfor %}
                 </div>
                 <span class="text-sm font-mono text-brand-orange font-medium">@{{ user.username }}</span>
-                <p class="text-xs text-zinc-400 mt-1">Ferris.uz hamjamiyati a'zosi &bull; Rust Tizimli Dasturlash</p>
+                <!-- Badges & Achievements -->
+                <div class="flex items-center gap-1.5 flex-wrap mt-1">
+                    <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-mono font-semibold bg-amber-500/10 border border-amber-500/30 text-amber-400" title="Rust Hamjamiyati Kashshofi">
+                        <i data-lucide="award" class="w-3 h-3"></i> 🦀 Rust Pioneer
+                    </span>
+                    <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-mono font-semibold bg-cyan-950/40 border border-cyan-500/30 text-cyan-400" title="BLAKE3 Kvantdan Himoyalangan Identifikator">
+                        <i data-lucide="shield-check" class="w-3 h-3"></i> 🛡️ PQC Verified
+                    </span>
+                    {% if user_posts.len() >= 2 %}
+                    <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-mono font-semibold bg-purple-500/10 border border-purple-500/30 text-purple-400" title="2+ Tizimli Muhokamalar Muallifi">
+                        <i data-lucide="cpu" class="w-3 h-3"></i> ⚡ Systems Architect
+                    </span>
+                    {% endif %}
+                </div>
+                <p class="text-xs text-zinc-400 mt-1">Ferris.uz suveren a'zosi &bull; Rust Tizimli Dasturlash Ekotizimi</p>
             </div>
         </div>
 
@@ -58,23 +72,60 @@
         </div>
     </div>
 
-    <!-- Profile Stats Row -->
-    <div class="grid grid-cols-2 sm:grid-cols-3 gap-4">
+    <!-- Profile Stats Row (including Karma) -->
+    <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
         <div class="p-5 rounded-2xl bg-zinc-900/30 border border-white/10 flex flex-col gap-1">
-            <span class="text-xs font-mono text-zinc-500">A'zo bo'lgan jamiyatlar</span>
+            <span class="text-xs font-mono text-zinc-500">A'zo jamiyatlar</span>
             <span class="text-2xl font-extrabold text-emerald-400 font-mono">{{ joined_groups.len() }}</span>
         </div>
         <div class="p-5 rounded-2xl bg-zinc-900/30 border border-white/10 flex flex-col gap-1">
-            <span class="text-xs font-mono text-zinc-500">Chop etgan muhokamalar</span>
+            <span class="text-xs font-mono text-zinc-500">Muhokamalar</span>
             <span class="text-2xl font-extrabold text-brand-orange font-mono">{{ user_posts.len() }}</span>
         </div>
-        <div class="p-5 rounded-2xl bg-zinc-900/30 border border-white/10 flex flex-col gap-1 col-span-2 sm:col-span-1">
+        <div class="p-5 rounded-2xl bg-zinc-900/30 border border-white/10 flex flex-col gap-1">
+            <span class="text-xs font-mono text-amber-400 flex items-center gap-1">
+                <i data-lucide="zap" class="w-3.5 h-3.5 fill-current"></i> Karma Obro'si
+            </span>
+            <span class="text-2xl font-extrabold text-amber-400 font-mono">{{ user_posts.len() * 15 + 10 }}</span>
+        </div>
+        <div class="p-5 rounded-2xl bg-zinc-900/30 border border-white/10 flex flex-col gap-1">
             <span class="text-xs font-mono text-zinc-500">Holat</span>
             <span class="text-sm font-bold text-emerald-400 flex items-center gap-1.5 mt-1.5">
                 <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span> Faol Dasturchi
             </span>
         </div>
     </div>
+
+    <!-- Sovereign Username (Ferris ID) Card -->
+    {% if is_own_profile %}
+    <div class="p-6 sm:p-7 rounded-3xl bg-zinc-900/40 border border-white/10 backdrop-blur-md flex flex-col gap-5 shadow-lg">
+        <div class="flex items-center justify-between pb-3 border-b border-white/10 flex-wrap gap-2">
+            <div class="flex items-center gap-2">
+                <i data-lucide="at-sign" class="w-5 h-5 text-brand-orange"></i>
+                <h2 class="text-base sm:text-lg font-bold text-white">Suveren Ferris ID (@username)</h2>
+            </div>
+            <span class="text-xs font-mono text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2.5 py-0.5 rounded-full">Sovereign Identity</span>
+        </div>
+
+        <p class="text-xs text-zinc-400 leading-relaxed">
+            Sizning Ferris ekotizimidagi asosiy va suveren identifikatoringiz. Barcha provayderlar (GitHub, Telegram) aynan shu hisobingizga bog'lanadi.
+            Faqat kichik lotin harflari, raqamlar va pastki chiziqdan iborat bo'lishi kerak (3–20 ta belgi).
+        </p>
+
+        <form onsubmit="handleUpdateUsername(event)" class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+            <div class="relative flex-grow">
+                <span class="absolute left-3.5 top-1/2 -translate-y-1/2 text-brand-orange font-mono font-bold text-sm">@</span>
+                <input type="text" id="sovereignUsernameInput" value="{{ user.username }}" maxlength="20" required autocomplete="off" class="w-full pl-8 pr-10 py-2.5 rounded-xl bg-zinc-950 border border-white/10 text-white font-mono text-sm placeholder-zinc-500 focus:outline-none focus:border-brand-orange transition-colors" oninput="debounceCheckUsername(this.value)">
+                <span id="usernameCheckIcon" class="absolute right-3.5 top-1/2 -translate-y-1/2"></span>
+            </div>
+            <button type="submit" id="saveUsernameBtn" class="px-5 py-2.5 rounded-xl bg-brand-orange hover:bg-orange-600 text-white font-semibold text-xs transition-all shadow-md active:scale-95 shrink-0 flex items-center justify-center gap-1.5 cursor-pointer">
+                <i data-lucide="check" class="w-4 h-4"></i>
+                <span>Saqlash</span>
+            </button>
+        </form>
+        <div id="usernameCheckMsg" class="text-xs font-mono text-zinc-400 hidden"></div>
+    </div>
+    {% endif %}
 
     <!-- Linked Accounts (Multi-Provider Unified Identity) -->
     {% if is_own_profile %}
@@ -502,6 +553,101 @@
                 alert("Xatolik: " + e);
             }
         });
+    }
+
+    // Sovereign Username Debounced Check & Update
+    let usernameDebounceTimer = null;
+    function debounceCheckUsername(val) {
+        clearTimeout(usernameDebounceTimer);
+        const clean = val.trim().toLowerCase();
+        const icon = document.getElementById('usernameCheckIcon');
+        const msg = document.getElementById('usernameCheckMsg');
+
+        if (!clean) {
+            if (icon) icon.innerHTML = '';
+            if (msg) msg.classList.add('hidden');
+            return;
+        }
+
+        if (clean === '{{ user.username }}'.toLowerCase()) {
+            if (icon) icon.innerHTML = '<i data-lucide="check-circle" class="w-4 h-4 text-zinc-500"></i>';
+            if (msg) {
+                msg.classList.remove('hidden');
+                msg.className = 'text-xs font-mono text-zinc-500';
+                msg.innerText = 'Hozirgi faol username';
+            }
+            if (window.lucide) lucide.createIcons();
+            return;
+        }
+
+        if (icon) icon.innerHTML = '<span class="w-3.5 h-3.5 border-2 border-brand-orange border-t-transparent rounded-full animate-spin inline-block"></span>';
+
+        usernameDebounceTimer = setTimeout(async () => {
+            try {
+                const res = await fetch(`/api/v1/users/check-username?u=${encodeURIComponent(clean)}`);
+                const data = await res.json();
+                if (msg) msg.classList.remove('hidden');
+                if (data.available) {
+                    if (icon) icon.innerHTML = '<i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-400"></i>';
+                    if (msg) {
+                        msg.className = 'text-xs font-mono text-emerald-400';
+                        msg.innerText = '✅ ' + data.message;
+                    }
+                } else {
+                    if (icon) icon.innerHTML = '<i data-lucide="alert-circle" class="w-4 h-4 text-rose-400"></i>';
+                    if (msg) {
+                        msg.className = 'text-xs font-mono text-rose-400';
+                        msg.innerText = '❌ ' + data.message;
+                    }
+                }
+                if (window.lucide) lucide.createIcons();
+            } catch(e) {
+                if (icon) icon.innerHTML = '';
+            }
+        }, 250);
+    }
+
+    async function handleUpdateUsername(e) {
+        e.preventDefault();
+        const token = window.getAuthToken();
+        if (!token) return alert("Avval tizimga kiring!");
+
+        const input = document.getElementById('sovereignUsernameInput');
+        const newUsername = input.value.trim().toLowerCase();
+        if (!newUsername) return;
+
+        const btn = document.getElementById('saveUsernameBtn');
+        const oldBtnText = btn.innerHTML;
+        btn.disabled = true;
+        btn.innerHTML = '<span class="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin inline-block"></span> Saqlanmoqda...';
+
+        try {
+            const res = await fetch('/api/v1/profile/username', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({ username: newUsername })
+            });
+            const data = await res.json();
+            btn.disabled = false;
+            btn.innerHTML = oldBtnText;
+
+            if (res.ok && data.success) {
+                const cached = JSON.parse(localStorage.getItem('ferris_user_cache') || '{}');
+                cached.username = data.username;
+                localStorage.setItem('ferris_user_cache', JSON.stringify(cached));
+                alert("Tabriklaymiz! Sizning suveren Ferris username'ingiz muvaffaqiyatli saqlandi: @" + data.username);
+                window.location.href = '/@' + data.username;
+            } else {
+                alert(data.error || "Username'ni o'zgartirib bo'lmadi");
+            }
+        } catch(err) {
+            btn.disabled = false;
+            btn.innerHTML = oldBtnText;
+            alert("Xatolik: " + err);
+        }
     }
 
     window.onUserLoaded = function(user) {

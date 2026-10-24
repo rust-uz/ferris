@@ -267,45 +267,57 @@
         </div>
     </section>
 
-    <!-- 4. INTERACTIVE RUST PLAYGROUND -->
+    <!-- 4. REAL INTERACTIVE RUST PLAYGROUND (RUSTC 1.85+) -->
     <section id="playground" class="glass-card p-6 sm:p-10 md:p-12 rounded-3xl relative overflow-hidden">
         <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-6">
             <div>
                 <span class="text-xs font-mono font-semibold text-brand-orange uppercase flex items-center gap-1.5"><i data-lucide="terminal" class="w-3.5 h-3.5"></i> Interactive Lab</span>
                 <h2 class="text-2xl sm:text-3xl md:text-4xl font-bold tracking-tight text-white mt-1">Rust Kod Laboratoriyasi</h2>
-                <p class="text-xs sm:text-sm text-zinc-400 mt-2">Brauzerda Rust sintaksisi, xotira xavfsizligi va Tokio asinxronligini sinang</p>
+                <p class="text-xs sm:text-sm text-zinc-400 mt-2">Brauzeringizda real <code class="text-amber-400 font-mono">rustc</code> kompilyatorida kod yozing va ishga tushiring</p>
             </div>
-            <button id="runPlaygroundBtn" class="px-5 py-2.5 rounded-2xl bg-brand-orange hover:bg-orange-600 text-white font-semibold text-xs transition-all shadow-lg shadow-orange-950/40 hover:scale-105 active:scale-95 self-start sm:self-auto flex items-center gap-2">
-                <i data-lucide="play" class="w-3.5 h-3.5 fill-current"></i>
-                <span>Kodni Sinash</span>
+            <button id="runPlaygroundBtn" onclick="runRealRustPlayground()" class="px-5 py-2.5 rounded-2xl bg-brand-orange hover:bg-orange-600 text-white font-semibold text-xs transition-all shadow-lg shadow-orange-950/40 hover:scale-105 active:scale-95 self-start sm:self-auto flex items-center gap-2 cursor-pointer">
+                <i id="runPlaygroundIcon" data-lucide="play" class="w-3.5 h-3.5 fill-current"></i>
+                <span id="runPlaygroundText">Kodni Sinash</span>
             </button>
         </div>
 
         <div class="rounded-2xl bg-black border border-white/15 overflow-hidden font-mono text-xs shadow-2xl">
-            <div class="flex items-center justify-between px-4 py-2.5 bg-zinc-900/90 border-b border-white/10">
-                <span class="text-zinc-300 font-semibold flex items-center gap-2">
-                    <span class="w-2 h-2 rounded-full bg-brand-orange"></span> async_tokio.rs
-                </span>
-                <span class="text-zinc-500 font-mono text-[11px]">Rust 2021 Edition</span>
+            <!-- Header bar with Template Selector & Compiler Badge -->
+            <div class="flex items-center justify-between px-4 py-2.5 bg-zinc-900/90 border-b border-white/10 flex-wrap gap-2">
+                <div class="flex items-center gap-3">
+                    <span class="text-zinc-300 font-semibold flex items-center gap-2 text-xs">
+                        <span class="w-2 h-2 rounded-full bg-brand-orange animate-pulse"></span> main.rs
+                    </span>
+                    <select id="playgroundTemplateSelect" onchange="loadPlaygroundTemplate(this.value)" class="px-2.5 py-1 rounded-lg bg-zinc-950 border border-white/10 text-xs text-zinc-300 font-mono focus:outline-none focus:border-brand-orange cursor-pointer">
+                        <option value="tokio" selected>⚡ Tokio Asinxron Dvigateli</option>
+                        <option value="hello">👋 Salom, Rustacean!</option>
+                        <option value="ownership">🛡️ Egalik va Qarz Olish (Ownership)</option>
+                        <option value="concurrency">🧵 Multi-threading & Oqimlar</option>
+                    </select>
+                </div>
+                <div class="flex items-center gap-2 text-zinc-400 font-mono text-[11px]">
+                    <span class="inline-flex items-center gap-1 text-emerald-400"><span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span> rustc 1.85 (Stable)</span>
+                    <span>&bull;</span>
+                    <span class="text-zinc-500">Edition 2021</span>
+                </div>
             </div>
-            <pre class="p-4 sm:p-6 text-zinc-200 overflow-x-auto leading-relaxed"><code id="codeText">// Tokio Asinxron Vazifa Namunasi
-use tokio::time::{sleep, Duration};
 
-#[tokio::main]
-async fn main() {
-    println!("Ferris: Tokio dvigateli ishga tushdi...");
-    
-    let handle = tokio::spawn(async {
-        sleep(Duration::from_millis(50)).await;
-        "10,000+ so'rovlar nol GC pauzalarisiz bajarildi!"
-    });
+            <!-- Real Editable Code Area with Tab support -->
+            <div class="relative bg-zinc-950/80">
+                <textarea id="playgroundCodeEditor" rows="14" spellcheck="false" class="w-full p-4 sm:p-6 text-zinc-100 font-mono text-xs sm:text-sm bg-transparent border-none focus:outline-none leading-relaxed resize-y" placeholder="Rust kodingizni bu yerga yozing..." onkeydown="handlePlaygroundTab(event)"></textarea>
+            </div>
 
-    let result = handle.await.unwrap();
-    println!("{}", result);
-}</code></pre>
-            <div class="px-4 py-3.5 bg-zinc-950/95 border-t border-white/10 text-xs">
-                <span class="text-zinc-500 font-bold block mb-1">Konsol Chiqishi:</span>
-                <div id="consoleOut" class="text-emerald-400 font-mono">[INFO] Kod tayyor. "Kodni Sinash" tugmasini bosing...</div>
+            <!-- Console Output Area -->
+            <div class="px-4 sm:px-6 py-4 bg-black border-t border-white/10 text-xs">
+                <div class="flex items-center justify-between mb-2">
+                    <span class="text-zinc-400 font-mono font-bold flex items-center gap-1.5 uppercase text-[11px] tracking-wider">
+                        <i data-lucide="terminal" class="w-3.5 h-3.5 text-brand-orange"></i> Konsol Chiqishi:
+                    </span>
+                    <span id="consoleStatusBadge" class="text-[10px] font-mono text-zinc-500">Kutish rejimida</span>
+                </div>
+                <div id="consoleOut" class="font-mono text-xs leading-relaxed max-h-60 overflow-y-auto whitespace-pre-wrap text-zinc-400">
+[INFO] Kod laboratoriyasi tayyor. O'zgartirish kiriting yoki "Kodni Sinash" tugmasini bosing...
+                </div>
             </div>
         </div>
     </section>
@@ -338,12 +350,177 @@ async fn main() {
         document.getElementById(`tab-content-${os}`).classList.remove('hidden');
     }
 
-    document.getElementById('runPlaygroundBtn')?.addEventListener('click', () => {
+    // REAL RUST PLAYGROUND CODE TEMPLATES
+    const PLAYGROUND_TEMPLATES = {
+        tokio: `// ⚡ Tokio Asinxron Runtime Namunasi
+use std::time::Duration;
+
+#[tokio::main]
+async fn main() {
+    println!("🦀 [Ferris Engine] Tokio asinxron dvigateli ishga tushdi...");
+
+    let task1 = tokio::spawn(async {
+        tokio::time::sleep(Duration::from_millis(40)).await;
+        "Vazifa #1: Bloklanmagan tarmoq so'rovi muvaffaqiyatli bajarildi!"
+    });
+
+    let task2 = tokio::spawn(async {
+        tokio::time::sleep(Duration::from_millis(20)).await;
+        "Vazifa #2: 10,000+ mikrotasklar nol GC pauzalari bilan yakunlandi!"
+    });
+
+    let (res1, res2) = tokio::join!(task1, task2);
+    println!("✅ {}", res1.unwrap());
+    println!("⚡ {}", res2.unwrap());
+    println!("🎉 Barcha asinxron jarayonlar muvaffaqiyatli yakunlandi.");
+}`,
+        hello: `// 👋 Salom Dunyo va Ferris ID
+fn main() {
+    let community = "O'zbekiston Rustaceanlar Hamjamiyati";
+    let version = "v0.2.1";
+    println!("Salom, {}! 🦀", community);
+    println!("Ferris.uz va ferris-cli ({}) 100% toza Rust tilida ishlaydi.", version);
+
+    let numbers = vec![1, 2, 3, 4, 5];
+    let doubled: Vec<i32> = numbers.iter().map(|x| x * 2).collect();
+    println!("Iteratsiyalar natijasi: {:?}", doubled);
+}`,
+        ownership: `// 🛡️ Egalik va Qarz Olish (Ownership & Borrowing)
+fn main() {
+    let mut message = String::from("Ferris");
+    
+    // O'zgaruvchan qarz olish (&mut)
+    append_world(&mut message);
+    
+    // O'zgarmas qarz olish (&)
+    let len = calculate_length(&message);
+    
+    println!("Xabar: '{}' (Uzunligi: {} bayt)", message, len);
+    println!("✨ Xotira tozalagich (GC) yo'q: qamrov tugagach xotira avtomatik ozod bo'ladi!");
+}
+
+fn append_world(s: &mut String) {
+    s.push_str(" — Suveren Rust Ekotizimi!");
+}
+
+fn calculate_length(s: &str) -> usize {
+    s.len()
+}`,
+        concurrency: `// 🧵 Ko'p Oqimli Xavfsiz Concurrency
+use std::thread;
+use std::sync::mpsc;
+use std::time::Duration;
+
+fn main() {
+    let (tx, rx) = mpsc::channel();
+
+    let producer = thread::spawn(move || {
+        for i in 1..=3 {
+            thread::sleep(Duration::from_millis(30));
+            tx.send(format!("Paket #{} uzatildi (Xavfsiz Concurrency)", i)).unwrap();
+        }
+    });
+
+    for msg in rx {
+        println!("📩 Qabul qilindi: {}", msg);
+    }
+
+    producer.join().unwrap();
+    println!("🚀 Oqimlar ma'lumotlar poygasisiz (data-race-free) yakunlandi!");
+}`
+    };
+
+    function loadPlaygroundTemplate(key) {
+        const editor = document.getElementById('playgroundCodeEditor');
+        if (editor && PLAYGROUND_TEMPLATES[key]) {
+            editor.value = PLAYGROUND_TEMPLATES[key];
+        }
+    }
+
+    function handlePlaygroundTab(e) {
+        if (e.key === 'Tab') {
+            e.preventDefault();
+            const start = e.target.selectionStart;
+            const end = e.target.selectionEnd;
+            e.target.value = e.target.value.substring(0, start) + "    " + e.target.value.substring(end);
+            e.target.selectionStart = e.target.selectionEnd = start + 4;
+        }
+    }
+
+    async function runRealRustPlayground() {
+        const editor = document.getElementById('playgroundCodeEditor');
+        const code = editor ? editor.value.trim() : "";
         const out = document.getElementById('consoleOut');
-        out.innerHTML = '<span class="text-zinc-400">Compiling (rustc --release)...</span>';
-        setTimeout(() => {
-            out.innerHTML = '<span class="text-zinc-200">[ferris-engine] Tokio async runtime online...</span><br/><span class="text-emerald-400">[OK] 10,000+ requests executed with 0ms GC pauses.</span>';
-        }, 300);
+        const btn = document.getElementById('runPlaygroundBtn');
+        const btnText = document.getElementById('runPlaygroundText');
+        const badge = document.getElementById('consoleStatusBadge');
+
+        if (!code) {
+            alert("Iltimos, avval kod yozing!");
+            return;
+        }
+
+        btn.disabled = true;
+        btnText.innerText = "Kompilyatsiya...";
+        badge.innerText = "rustc 1.85 ishlamoqda...";
+        badge.className = "text-[10px] font-mono text-amber-400 animate-pulse";
+        out.innerHTML = '<span class="text-zinc-500">[rustc stable] Dastur komplyatsiya qilinmoqda...</span>';
+
+        const startTime = performance.now();
+
+        try {
+            const res = await fetch('/api/v1/playground/execute', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ code, channel: "stable", edition: "2021" })
+            });
+            const data = await res.json();
+            const elapsed = Math.round(performance.now() - startTime);
+
+            btn.disabled = false;
+            btnText.innerText = "Kodni Sinash";
+
+            if (data.success) {
+                badge.innerText = `✅ Bajarildi (${elapsed}ms)`;
+                badge.className = "text-[10px] font-mono text-emerald-400";
+
+                let html = '';
+                if (data.stderr && data.stderr.trim()) {
+                    html += `<span class="text-zinc-500">${escapeHtml(data.stderr)}</span>\n`;
+                }
+                if (data.stdout && data.stdout.trim()) {
+                    html += `<span class="text-emerald-400 font-bold">${escapeHtml(data.stdout)}</span>`;
+                } else {
+                    html += `<span class="text-zinc-400 italic">(Dastur hech qanday stdout chiqarmadi)</span>`;
+                }
+                out.innerHTML = html;
+            } else {
+                badge.innerText = `❌ Kompilyatsiya xatosi (${elapsed}ms)`;
+                badge.className = "text-[10px] font-mono text-rose-400";
+                out.innerHTML = `<span class="text-rose-400">${escapeHtml(data.stderr || data.error || 'Noma\'lum xatolik')}</span>`;
+            }
+        } catch(e) {
+            btn.disabled = false;
+            btnText.innerText = "Kodni Sinash";
+            badge.innerText = "❌ Tarmoq xatosi";
+            badge.className = "text-[10px] font-mono text-rose-400";
+            out.innerHTML = `<span class="text-rose-400">Xatolik yuz berdi: ${escapeHtml(e.message || String(e))}</span>`;
+        }
+    }
+
+    function escapeHtml(str) {
+        if (!str) return '';
+        return str.replace(/[&<>'"]/g, tag => ({
+            '&': '&amp;',
+            '<': '&lt;',
+            '>': '&gt;',
+            "'": '&#39;',
+            '"': '&quot;'
+        }[tag] || tag));
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+        loadPlaygroundTemplate('tokio');
     });
 </script>
 {% endblock %}

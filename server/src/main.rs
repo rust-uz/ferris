@@ -857,8 +857,14 @@ async fn main() {
         .route("/api/v1/posts/:id/view", post(post_record_view_handler))
         .route("/api/v1/posts/:id/comments", get(get_comments_handler).post(add_comment_handler))
         .route("/api/v1/comments/:id", delete(comment_delete_handler))
-        // Foydalanuvchi Profili
+        // Foydalanuvchi Profili va Suveren Username
         .route("/api/v1/profile/:username", get(profile_handler))
+        .route("/api/v1/users/check-username", get(check_username_handler))
+        .route("/api/v1/profile/username", post(update_username_handler))
+        // Real Rust Playground API
+        .route("/api/v1/playground/execute", post(playground_execute_handler))
+        // Rustacean Leaderboard & Badges
+        .route("/api/v1/leaderboard", get(leaderboard_handler))
         // Autentifikatsiya
         .route("/api/auth/telegram", post(telegram_auth_handler))
         .route("/api/auth/github", get(github_login_redirect))
@@ -1716,6 +1722,408 @@ async fn search_handler(
         posts,
         groups,
         users,
+    })
+}
+
+// ==============================================================================
+// SOVEREIGN USERNAME (FERRIS ID) VALIDATION & HANDLERS
+// ==============================================================================
+
+pub const RESERVED_USERNAMES: &[&str] = &[
+    "admin", "administrator", "root", "system", "ferris", "ferrisuz", "rust", "rustuz",
+    "official", "support", "help", "mod", "moderator", "bot", "security", "staff",
+    "topics", "groups", "profile", "privacy", "terms", "auth", "oauth", "device",
+    "settings", "static", "public", "install", "ping", "stats", "context", "dm",
+    "chat", "live", "ws", "search", "api", "doc", "book", "playground", "leaderboard",
+];
+
+pub fn validate_sovereign_username(u: &str) -> Result<String, &'static str> {
+    let clean = u.trim().to_lowercase();
+    if clean.len() < 3 {
+        return Err("Username kamida 3 ta belgidan iborat bo'lishi kerak");
+    }
+    if clean.len() > 20 {
+        return Err("Username ko'pi bilan 20 ta belgidan oshmasligi kerak");
+    }
+    let chars: Vec<char> = clean.chars().collect();
+    if !chars[0].is_ascii_alphanumeric() || !chars.last().unwrap().is_ascii_alphanumeric() {
+        return Err("Username harf yoki raqam bilan boshlanishi va tugashi kerak");
+    }
+    for c in &chars {
+        if !c.is_ascii_alphanumeric() && *c != '_' {
+            return Err("Faqat kichik lotin harflari, raqamlar va pastki chiziqdan foydalaning");
+        }
+    }
+    if clean.contains("__") {
+        return Err("Ketma-ket ikkita pastki chiziq qo'llash mumkin emas");
+    }
+    if RESERVED_USERNAMES.contains(&clean.as_str()) {
+        return Err("Ushbu nom tizim tomonidan band qilingan");
+    }
+    Ok(clean)
+}
+
+#[derive(Debug, Deserialize)]
+pub struct CheckUsernameQuery {
+    pub u: Option<String>,
+}
+
+#[derive(Debug, Serialize)]
+pub struct CheckUsernameResponse {
+    pub username: String,
+    pub available: bool,
+    pub message: String,
+}
+
+async fn check_username_handler(
+    State(state): State<AppState>,
+    Query(params): Query<CheckUsernameQuery>,
+) -> impl IntoResponse {
+    let raw = params.u.unwrap_or_default();
+    let clean = match validate_sovereign_username(&raw) {
+        Ok(c) => c,
+        Err(err_msg) => {
+            return Json(CheckUsernameResponse {
+                username: raw,
+                available: false,
+                message: err_msg.to_string(),
+            });
+        }
+    };
+
+    // Check PostgreSQL
+    if let Some(pool) = &state.db {
+        let exists = sqlx::query("SELECT id FROM users WHERE LOWER(username) = LOWER($1)")
+            .bind(&clean)
+            .fetch_optional(pool)
+            .await
+            .unwrap_or(None);
+
+        if exists.is_some() {
+            return Json(CheckUsernameResponse {
+                username: clean,
+                available: false,
+                message: "Ushbu username allaqachon band qilingan".to_string(),
+            });
+        }
+    } else {
+        let sessions = state.sessions.read().unwrap();
+        for (_, profile) in sessions.iter() {
+            if profile.username.to_lowercase() == clean {
+                return Json(CheckUsernameResponse {
+                    username: clean,
+                    available: false,
+                    message: "Ushbu username allaqachon band qilingan".to_string(),
+                });
+            }
+        }
+    }
+
+    Json(CheckUsernameResponse {
+        username: clean,
+        available: true,
+        message: "Ushbu username bo'sh va foydalanishga tayyor!".to_string(),
+    })
+}
+
+#[derive(Debug, Deserialize)]
+pub struct UpdateUsernameRequest {
+    pub username: String,
+}
+
+#[derive(Debug, Serialize)]
+pub struct UpdateUsernameResponse {
+    pub success: bool,
+    pub username: String,
+    pub message: String,
+}
+
+async fn update_username_handler(
+    State(state): State<AppState>,
+    headers: HeaderMap,
+    Json(payload): Json<UpdateUsernameRequest>,
+) -> Result<Json<UpdateUsernameResponse>, (StatusCode, Json<serde_json::Value>)> {
+    let current_user = get_authenticated_user(&headers, &state).ok_or_else(|| {
+        (
+            StatusCode::UNAUTHORIZED,
+            Json(serde_json::json!({ "error": "Avval tizimga kiring" })),
+        )
+    })?;
+
+    let clean = validate_sovereign_username(&payload.username).map_err(|err_msg| {
+        (
+            StatusCode::BAD_REQUEST,
+            Json(serde_json::json!({ "error": err_msg })),
+        )
+    })?;
+
+    if current_user.username.to_lowercase() == clean {
+        return Ok(Json(UpdateUsernameResponse {
+            success: true,
+            username: current_user.username,
+            message: "Username o'zgarishsiz qoldi".to_string(),
+        }));
+    }
+
+    let old_username = current_user.username.clone();
+
+    // Check collision in PostgreSQL
+    if let Some(pool) = &state.db {
+        let collision = sqlx::query(
+            "SELECT id FROM users WHERE LOWER(username) = LOWER($1) AND id != $2"
+        )
+        .bind(&clean)
+        .bind(&current_user.id)
+        .fetch_optional(pool)
+        .await
+        .map_err(|e| {
+            (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                Json(serde_json::json!({ "error": format!("Baza xatoligi: {}", e) })),
+            )
+        })?;
+
+        if collision.is_some() {
+            return Err((
+                StatusCode::CONFLICT,
+                Json(serde_json::json!({ "error": "Ushbu username boshqa foydalanuvchi tomonidan band qilingan" })),
+            ));
+        }
+
+        // Update database (users, posts, comments)
+        let _ = sqlx::query("UPDATE users SET username = $1 WHERE id = $2")
+            .bind(&clean)
+            .bind(&current_user.id)
+            .execute(pool)
+            .await;
+
+        let _ = sqlx::query("UPDATE posts SET author_name = $1 WHERE author_name = $2")
+            .bind(&clean)
+            .bind(&old_username)
+            .execute(pool)
+            .await;
+
+        let _ = sqlx::query("UPDATE comments SET author_name = $1 WHERE author_name = $2")
+            .bind(&clean)
+            .bind(&old_username)
+            .execute(pool)
+            .await;
+    }
+
+    // Update in-memory sessions
+    {
+        let mut sessions = state.sessions.write().unwrap();
+        for (_, profile) in sessions.iter_mut() {
+            if profile.id == current_user.id {
+                profile.username = clean.clone();
+            }
+        }
+    }
+
+    // Update in-memory posts
+    {
+        let mut posts = state.posts.write().unwrap();
+        for p in posts.iter_mut() {
+            if p.author_id.to_string() == current_user.id {
+                p.author_name = Some(clean.clone());
+            }
+        }
+    }
+
+    Ok(Json(UpdateUsernameResponse {
+        success: true,
+        username: clean,
+        message: "Sizning suveren Ferris username'ingiz muvaffaqiyatli saqlandi!".to_string(),
+    }))
+}
+
+// ==============================================================================
+// REAL RUST PLAYGROUND API (RUSTC 1.85+ PROXY)
+// ==============================================================================
+
+#[derive(Debug, Deserialize)]
+pub struct PlaygroundExecuteRequest {
+    pub code: String,
+    #[serde(default = "default_channel")]
+    pub channel: String,
+    #[serde(default = "default_edition")]
+    pub edition: String,
+}
+
+fn default_channel() -> String {
+    "stable".to_string()
+}
+fn default_edition() -> String {
+    "2021".to_string()
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct PlaygroundExecuteResponse {
+    pub success: bool,
+    pub stdout: String,
+    pub stderr: String,
+    #[serde(rename = "exitDetail")]
+    pub exit_detail: Option<String>,
+}
+
+async fn playground_execute_handler(
+    State(state): State<AppState>,
+    Json(payload): Json<PlaygroundExecuteRequest>,
+) -> impl IntoResponse {
+    if payload.code.trim().is_empty() {
+        return (
+            StatusCode::BAD_REQUEST,
+            Json(serde_json::json!({ "error": "Kod bo'sh bo'lishi mumkin emas" })),
+        )
+            .into_response();
+    }
+
+    if payload.code.len() > 65_536 {
+        return (
+            StatusCode::BAD_REQUEST,
+            Json(serde_json::json!({ "error": "Kod hajmi 64KB dan oshmasligi kerak" })),
+        )
+            .into_response();
+    }
+
+    let body = serde_json::json!({
+        "channel": payload.channel,
+        "mode": "debug",
+        "edition": payload.edition,
+        "crateType": "bin",
+        "tests": false,
+        "code": payload.code,
+        "backtrace": false
+    });
+
+    let resp = match state
+        .http_client
+        .post("https://play.rust-lang.org/execute")
+        .json(&body)
+        .timeout(Duration::from_secs(15))
+        .send()
+        .await
+    {
+        Ok(r) => r,
+        Err(e) => {
+            return (
+                StatusCode::BAD_GATEWAY,
+                Json(serde_json::json!({ "error": format!("Rust Playground dvigateliga ulanishda xatolik: {}", e) })),
+            )
+                .into_response();
+        }
+    };
+
+    match resp.json::<PlaygroundExecuteResponse>().await {
+        Ok(data) => Json(data).into_response(),
+        Err(e) => (
+            StatusCode::INTERNAL_SERVER_ERROR,
+            Json(serde_json::json!({ "error": format!("Natijani tahlil qilib bo'lmadi: {}", e) })),
+        )
+            .into_response(),
+    }
+}
+
+// ==============================================================================
+// RUSTACEAN LEADERBOARD & BADGES (KARMA SYSTEM)
+// ==============================================================================
+
+#[derive(Debug, Serialize)]
+pub struct LeaderboardUserItem {
+    pub rank: usize,
+    pub username: String,
+    pub display_name: String,
+    pub avatar_url: String,
+    pub karma: i64,
+    pub posts_count: i64,
+    pub comments_count: i64,
+    pub total_views: i64,
+    pub badges: Vec<String>,
+}
+
+#[derive(Debug, Serialize)]
+pub struct LeaderboardResponse {
+    pub users: Vec<LeaderboardUserItem>,
+    pub total_count: usize,
+}
+
+async fn leaderboard_handler(State(state): State<AppState>) -> impl IntoResponse {
+    let mut leaderboard_users = Vec::new();
+
+    if let Some(pool) = &state.db {
+        let query = r#"
+            SELECT 
+                u.id, 
+                u.username, 
+                u.display_name, 
+                u.avatar_url, 
+                u.created_at,
+                COALESCE(p.posts_count, 0) as posts_count,
+                COALESCE(p.total_views, 0) as total_views,
+                COALESCE(c.comments_count, 0) as comments_count
+            FROM users u
+            LEFT JOIN (
+                SELECT author_name, COUNT(*) as posts_count, SUM(views_count) as total_views 
+                FROM posts 
+                GROUP BY author_name
+            ) p ON LOWER(p.author_name) = LOWER(u.username)
+            LEFT JOIN (
+                SELECT author_name, COUNT(*) as comments_count 
+                FROM comments 
+                GROUP BY author_name
+            ) c ON LOWER(c.author_name) = LOWER(u.username)
+            WHERE u.username IS NOT NULL
+            ORDER BY (COALESCE(p.posts_count, 0) * 15 + COALESCE(c.comments_count, 0) * 5 + COALESCE(p.total_views, 0) / 10) DESC
+            LIMIT 20
+        "#;
+
+        if let Ok(rows) = sqlx::query(query).fetch_all(pool).await {
+            for (idx, r) in rows.into_iter().enumerate() {
+                let uname: Option<String> = r.try_get("username").ok().flatten();
+                if let Some(username) = uname {
+                    let user_id: String = r.try_get("id").unwrap_or_default();
+                    let display_name: String = r.try_get("display_name").unwrap_or_else(|_| "Rustacean".to_string());
+                    let avatar_url: String = r.try_get("avatar_url").unwrap_or_else(|_| "/logo.png".to_string());
+                    let posts_count: i64 = r.try_get("posts_count").unwrap_or(0);
+                    let comments_count: i64 = r.try_get("comments_count").unwrap_or(0);
+                    let total_views: i64 = r.try_get("total_views").unwrap_or(0);
+                    let is_admin = user_id == "tg:5415350162" || user_id.contains("ibrohimkoha") || username.to_lowercase() == "iskurama";
+
+                    let karma = (posts_count * 15) + (comments_count * 5) + (total_views / 10);
+
+                    let mut badges = Vec::new();
+                    badges.push("🦀 Rust Pioneer".to_string());
+                    badges.push("🛡️ PQC Verified".to_string());
+                    if posts_count >= 2 {
+                        badges.push("⚡ Systems Architect".to_string());
+                    }
+                    if comments_count >= 1 {
+                        badges.push("💬 Core Contributor".to_string());
+                    }
+                    if is_admin {
+                        badges.push("👑 Community Founder".to_string());
+                    }
+
+                    leaderboard_users.push(LeaderboardUserItem {
+                        rank: idx + 1,
+                        username,
+                        display_name,
+                        avatar_url,
+                        karma,
+                        posts_count,
+                        comments_count,
+                        total_views,
+                        badges,
+                    });
+                }
+            }
+        }
+    }
+
+    let total = leaderboard_users.len();
+    Json(LeaderboardResponse {
+        users: leaderboard_users,
+        total_count: total,
     })
 }
 
