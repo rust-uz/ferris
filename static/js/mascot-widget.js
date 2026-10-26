@@ -1,10 +1,7 @@
 /**
- * FERRIS.UZ — MINIMALIST DEV COMPANION ENGINE (v4.3)
- * Triple-Lock Subdomain State Persistence:
- * 1. URL Navigation Bridge (mascot=docked parameter)
- * 2. Cross-Subdomain Cookies (domain=.ferris.uz)
- * 3. LocalStorage
- * Guaranteed persistent 'peek' pose across ferris.uz, topics.ferris.uz, groups.ferris.uz.
+ * FERRIS.UZ — MINIMALIST DEV COMPANION ENGINE (v4.4)
+ * Pure, non-invasive cross-subdomain cookie persistence (.ferris.uz).
+ * Absolutely ZERO DOM link mutation.
  */
 
 (function () {
@@ -55,6 +52,7 @@
             const maxAge = days * 86400;
             const host = window.location.hostname;
             const secure = window.location.protocol === 'https:' ? '; Secure' : '';
+            // Set on root domain .ferris.uz so all subdomains share it seamlessly
             if (host.includes('ferris.uz')) {
                 document.cookie = `${name}=${encodeURIComponent(value)}; max-age=${maxAge}; path=/; domain=.ferris.uz; SameSite=Lax${secure}`;
             }
@@ -74,35 +72,21 @@
         loadState() {
             let isDocked = false;
 
-            // 1. Check URL bridge parameter first
-            try {
-                const urlParams = new URLSearchParams(window.location.search);
-                const mascotParam = urlParams.get('mascot');
-                if (mascotParam === 'docked') {
-                    isDocked = true;
-                    urlParams.delete('mascot');
-                    const newQuery = urlParams.toString() ? '?' + urlParams.toString() : '';
-                    window.history.replaceState({}, '', window.location.pathname + newQuery + window.location.hash);
-                }
-            } catch (e) {}
-
-            // 2. Check cross-subdomain cookie if not already set by URL
-            if (!isDocked) {
-                const cookieVal = getCookie(COOKIE_KEY);
-                if (cookieVal !== null) {
-                    isDocked = cookieVal === '1';
-                } else {
-                    // 3. Fallback to localStorage
-                    try {
-                        const saved = localStorage.getItem(STORAGE_KEY);
-                        if (saved) {
-                            const parsed = JSON.parse(saved);
-                            if (typeof parsed.isDocked === 'boolean') {
-                                isDocked = parsed.isDocked;
-                            }
+            // 1. Cross-subdomain cookie (.ferris.uz)
+            const cookieVal = getCookie(COOKIE_KEY);
+            if (cookieVal !== null) {
+                isDocked = cookieVal === '1';
+            } else {
+                // 2. Fallback to localStorage
+                try {
+                    const saved = localStorage.getItem(STORAGE_KEY);
+                    if (saved) {
+                        const parsed = JSON.parse(saved);
+                        if (typeof parsed.isDocked === 'boolean') {
+                            isDocked = parsed.isDocked;
                         }
-                    } catch (e) {}
-                }
+                    }
+                } catch (e) {}
             }
 
             return { isDocked };
@@ -114,33 +98,12 @@
             try {
                 localStorage.setItem(STORAGE_KEY, JSON.stringify(this.state));
             } catch (e) {}
-            this.syncLinks();
-        }
-
-        syncLinks() {
-            try {
-                document.querySelectorAll('a[href]').forEach(a => {
-                    const href = a.getAttribute('href');
-                    if (href && (href.includes('ferris.uz') || href.startsWith('/'))) {
-                        const url = new URL(href, window.location.href);
-                        if (url.hostname.includes('ferris.uz') || url.hostname === window.location.hostname) {
-                            if (this.state.isDocked) {
-                                url.searchParams.set('mascot', 'docked');
-                            } else {
-                                url.searchParams.delete('mascot');
-                            }
-                            a.setAttribute('href', url.pathname + (url.search ? url.search : '') + url.hash);
-                        }
-                    }
-                });
-            } catch (e) {}
         }
 
         init() {
             this.injectStyles();
             this.createDOM();
             this.bindEvents();
-            this.syncLinks();
         }
 
         injectStyles() {
@@ -271,7 +234,7 @@
 
         dock() {
             this.state.isDocked = true;
-            this.setPose('peek'); // Dedicated peeking mascot image!
+            this.setPose('peek');
             this.container.classList.add('docked');
             this.hideBubble();
             this.saveState();
@@ -279,7 +242,7 @@
 
         undock() {
             this.state.isDocked = false;
-            this.setPose('main'); // Return to main mascot image!
+            this.setPose('main');
             this.container.classList.remove('docked');
             this.pulse();
             this.speak("Qaytganingizdan xursandman! Yana biror fikr kerakmi? 🦀", 'Hamjamiyat', 'main', 5000);
