@@ -66,6 +66,11 @@
     <main class="main-content">
         <!-- 1. HERO SECTION -->
         <section class="hero-section">
+            <!-- Ferris Anime Mascot (Transparent PNG) -->
+            <div class="hero-mascot-box">
+                <img src="./mascot/ferris_main.png" alt="Ferris.uz Anime Mascot" class="hero-mascot-visual" onclick="if(window.ferrisWidget){window.ferrisWidget.wiggle();window.ferrisWidget.nextDialogue();}" title="Salom! Meni bosing 🦀" />
+            </div>
+
             <div class="hero-badge">
                 <span class="badge-dot"></span>
                 <span>O'ZBEKISTON RUSTACEANLAR EKOTIZIMI &bull; 100% OCHIQ MANBALI</span>
@@ -279,6 +284,7 @@ async fn main() {
     </footer>
 
     <!-- Scripts -->
-    <script src="/app.js?v=6.0"></script>
+    <script src="./app.js?v=6.0"></script>
+    <script src="./js/mascot-widget.js" defer></script>
 </body>
 </html>
