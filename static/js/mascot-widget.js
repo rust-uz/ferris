@@ -1,11 +1,12 @@
 /**
- * FERRIS.UZ — MINIMALIST DEV COMPANION ENGINE (v4.0)
- * Designed for Vercel/Linear Monochrome aesthetic.
- * Features state persistence (localStorage), discrete speech, and refined micro-interactions.
+ * FERRIS.UZ — MINIMALIST DEV COMPANION ENGINE (v4.1)
+ * Cross-Subdomain State Persistence (Cookies + LocalStorage across .ferris.uz)
+ * Discrete on-demand interactions, zero layout shifts.
  */
 
 (function () {
     const STORAGE_KEY = 'ferris_companion_v4_state';
+    const COOKIE_KEY = 'ferris_docked';
     const isFile = window.location.protocol === 'file:';
     const MASCOT_BASE = isFile ? './mascot/' : '/mascot/';
 
@@ -20,7 +21,6 @@
         error: MASCOT_BASE + 'ferris_404.png',
     };
 
-    // Concise, insightful technical and community tips:
     const DEV_TIPS = [
         { tag: 'Memory Safety', pose: 'shield', text: "Rust'da 'Null Pointer Exception' yo'q: Option<T> turlari orqali bo'sh qiymatlar xavfsiz boshqariladi." },
         { tag: 'Borrow Checker', pose: 'coding', text: "Aliasing XOR Mutability: bir vaqtning o'zida yoki bir nechta o'qish, yoki faqat 1 ta yozish ruxsat etiladi." },
@@ -37,6 +37,28 @@
         { tag: 'Hamjamiyat', pose: 'welcome', text: "Ferris.uz — O'zbekiston tizimli dasturchilari va Rustaceanlari rasmiy ekotizimi 🦀🇺🇿" }
     ];
 
+    function getCookie(name) {
+        try {
+            const match = document.cookie.match(new RegExp('(^|;\\s*)' + name + '=([^;]+)'));
+            return match ? decodeURIComponent(match[2]) : null;
+        } catch (e) {
+            return null;
+        }
+    }
+
+    function setCookie(name, value, days = 365) {
+        try {
+            const expires = new Date(Date.now() + days * 864e5).toUTCString();
+            const host = window.location.hostname;
+            let domainStr = '';
+            // Share cookie across all subdomains (*.ferris.uz)
+            if (host.endsWith('ferris.uz')) {
+                domainStr = '; domain=.ferris.uz';
+            }
+            document.cookie = `${name}=${encodeURIComponent(value)}; expires=${expires}; path=/${domainStr}; SameSite=Lax`;
+        } catch (e) {}
+    }
+
     class FerrisDevCompanion {
         constructor() {
             this.state = this.loadState();
@@ -47,14 +69,32 @@
         }
 
         loadState() {
-            try {
-                const saved = localStorage.getItem(STORAGE_KEY);
-                if (saved) return JSON.parse(saved);
-            } catch (e) {}
-            return { isDocked: false, soundEnabled: false };
+            let isDocked = false;
+
+            // 1. Check cross-subdomain cookie first
+            const cookieVal = getCookie(COOKIE_KEY);
+            if (cookieVal !== null) {
+                isDocked = cookieVal === '1';
+            } else {
+                // 2. Fallback to localStorage
+                try {
+                    const saved = localStorage.getItem(STORAGE_KEY);
+                    if (saved) {
+                        const parsed = JSON.parse(saved);
+                        if (typeof parsed.isDocked === 'boolean') {
+                            isDocked = parsed.isDocked;
+                        }
+                    }
+                } catch (e) {}
+            }
+
+            return { isDocked };
         }
 
         saveState() {
+            const val = this.state.isDocked ? '1' : '0';
+            // Save to both cross-subdomain cookie and local storage
+            setCookie(COOKIE_KEY, val);
             try {
                 localStorage.setItem(STORAGE_KEY, JSON.stringify(this.state));
             } catch (e) {}
@@ -63,7 +103,6 @@
         init() {
             this.injectStyles();
             this.createDOM();
-            this.applyInitialState();
             this.bindEvents();
         }
 
@@ -83,7 +122,8 @@
             }
 
             const container = document.createElement('div');
-            container.className = 'ferris-mascot-container';
+            // Instant initial position to prevent flash of unstyled position
+            container.className = 'ferris-mascot-container' + (this.state.isDocked ? ' docked' : '');
             container.id = 'ferrisMascot';
 
             container.innerHTML = `
@@ -117,12 +157,6 @@
             this.avatarBox = document.getElementById('ferrisAvatarBox');
             this.img = document.getElementById('ferrisImg');
             this.dockIndicator = document.getElementById('ferrisDockIndicator');
-        }
-
-        applyInitialState() {
-            if (this.state.isDocked) {
-                this.container.classList.add('docked');
-            }
         }
 
         bindEvents() {
@@ -218,7 +252,6 @@
         }
     }
 
-    // Launch cleanly
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', () => {
             window.ferrisCompanion = new FerrisDevCompanion();
