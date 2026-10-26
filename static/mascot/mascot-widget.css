@@ -196,11 +196,11 @@
 
 /* MINIMIZED (DOCKED / PEEKING) STATE */
 .ferris-mascot-container.docked {
-    transform: translateX(-42px);
+    transform: translateX(-24px);
 }
 
 .ferris-mascot-container.docked:hover {
-    transform: translateX(-16px);
+    transform: translateX(-6px);
 }
 
 .ferris-mascot-container.docked .ferris-bubble {
