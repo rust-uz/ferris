@@ -1,7 +1,10 @@
 /**
- * FERRIS.UZ — MINIMALIST DEV COMPANION ENGINE (v4.2)
- * Cross-Subdomain State Persistence (Cookies + LocalStorage across *.ferris.uz)
- * Distinct Peeking Mascot image in Docked state.
+ * FERRIS.UZ — MINIMALIST DEV COMPANION ENGINE (v4.3)
+ * Triple-Lock Subdomain State Persistence:
+ * 1. URL Navigation Bridge (mascot=docked parameter)
+ * 2. Cross-Subdomain Cookies (domain=.ferris.uz)
+ * 3. LocalStorage
+ * Guaranteed persistent 'peek' pose across ferris.uz, topics.ferris.uz, groups.ferris.uz.
  */
 
 (function () {
@@ -40,8 +43,8 @@
 
     function getCookie(name) {
         try {
-            const match = document.cookie.match(new RegExp('(^|;\\s*)' + name + '=([^;]+)'));
-            return match ? decodeURIComponent(match[2]) : null;
+            const match = document.cookie.match(new RegExp('(?:^|;\\s*)' + name + '=([^;]+)'));
+            return match ? decodeURIComponent(match[1]) : null;
         } catch (e) {
             return null;
         }
@@ -49,13 +52,13 @@
 
     function setCookie(name, value, days = 365) {
         try {
-            const expires = new Date(Date.now() + days * 864e5).toUTCString();
+            const maxAge = days * 86400;
             const host = window.location.hostname;
-            let domainStr = '';
-            if (host.endsWith('ferris.uz')) {
-                domainStr = '; domain=.ferris.uz';
+            const secure = window.location.protocol === 'https:' ? '; Secure' : '';
+            if (host.includes('ferris.uz')) {
+                document.cookie = `${name}=${encodeURIComponent(value)}; max-age=${maxAge}; path=/; domain=.ferris.uz; SameSite=Lax${secure}`;
             }
-            document.cookie = `${name}=${encodeURIComponent(value)}; expires=${expires}; path=/${domainStr}; SameSite=Lax`;
+            document.cookie = `${name}=${encodeURIComponent(value)}; max-age=${maxAge}; path=/; SameSite=Lax${secure}`;
         } catch (e) {}
     }
 
@@ -70,20 +73,38 @@
 
         loadState() {
             let isDocked = false;
-            const cookieVal = getCookie(COOKIE_KEY);
-            if (cookieVal !== null) {
-                isDocked = cookieVal === '1';
-            } else {
-                try {
-                    const saved = localStorage.getItem(STORAGE_KEY);
-                    if (saved) {
-                        const parsed = JSON.parse(saved);
-                        if (typeof parsed.isDocked === 'boolean') {
-                            isDocked = parsed.isDocked;
+
+            // 1. Check URL bridge parameter first
+            try {
+                const urlParams = new URLSearchParams(window.location.search);
+                const mascotParam = urlParams.get('mascot');
+                if (mascotParam === 'docked') {
+                    isDocked = true;
+                    urlParams.delete('mascot');
+                    const newQuery = urlParams.toString() ? '?' + urlParams.toString() : '';
+                    window.history.replaceState({}, '', window.location.pathname + newQuery + window.location.hash);
+                }
+            } catch (e) {}
+
+            // 2. Check cross-subdomain cookie if not already set by URL
+            if (!isDocked) {
+                const cookieVal = getCookie(COOKIE_KEY);
+                if (cookieVal !== null) {
+                    isDocked = cookieVal === '1';
+                } else {
+                    // 3. Fallback to localStorage
+                    try {
+                        const saved = localStorage.getItem(STORAGE_KEY);
+                        if (saved) {
+                            const parsed = JSON.parse(saved);
+                            if (typeof parsed.isDocked === 'boolean') {
+                                isDocked = parsed.isDocked;
+                            }
                         }
-                    }
-                } catch (e) {}
+                    } catch (e) {}
+                }
             }
+
             return { isDocked };
         }
 
@@ -93,12 +114,33 @@
             try {
                 localStorage.setItem(STORAGE_KEY, JSON.stringify(this.state));
             } catch (e) {}
+            this.syncLinks();
+        }
+
+        syncLinks() {
+            try {
+                document.querySelectorAll('a[href]').forEach(a => {
+                    const href = a.getAttribute('href');
+                    if (href && (href.includes('ferris.uz') || href.startsWith('/'))) {
+                        const url = new URL(href, window.location.href);
+                        if (url.hostname.includes('ferris.uz') || url.hostname === window.location.hostname) {
+                            if (this.state.isDocked) {
+                                url.searchParams.set('mascot', 'docked');
+                            } else {
+                                url.searchParams.delete('mascot');
+                            }
+                            a.setAttribute('href', url.pathname + (url.search ? url.search : '') + url.hash);
+                        }
+                    }
+                });
+            } catch (e) {}
         }
 
         init() {
             this.injectStyles();
             this.createDOM();
             this.bindEvents();
+            this.syncLinks();
         }
 
         injectStyles() {
@@ -229,19 +271,19 @@
 
         dock() {
             this.state.isDocked = true;
-            this.saveState();
-            this.hideBubble();
-            this.setPose('peek'); // Dedicated hiding/peeking mascot image!
+            this.setPose('peek'); // Dedicated peeking mascot image!
             this.container.classList.add('docked');
+            this.hideBubble();
+            this.saveState();
         }
 
         undock() {
             this.state.isDocked = false;
-            this.saveState();
+            this.setPose('main'); // Return to main mascot image!
             this.container.classList.remove('docked');
-            this.setPose('main'); // Return to full main mascot image!
             this.pulse();
             this.speak("Qaytganingizdan xursandman! Yana biror fikr kerakmi? 🦀", 'Hamjamiyat', 'main', 5000);
+            this.saveState();
         }
     }
 
