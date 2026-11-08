@@ -1257,11 +1257,11 @@ async fn security_headers(
     let mut res = next.run(req).await;
     let h = res.headers_mut();
     let csp = "default-src 'self'; \
-        script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.tailwindcss.com https://telegram.org; \
+        script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.tailwindcss.com https://telegram.org https://static.cloudflareinsights.com; \
         style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; \
         font-src 'self' https://fonts.gstatic.com data:; \
         img-src 'self' data: blob: https:; \
-        connect-src 'self' https://*.ferris.uz wss://*.ferris.uz https://cdn.tailwindcss.com; \
+        connect-src 'self' https://*.ferris.uz wss://*.ferris.uz https://cdn.tailwindcss.com https://cloudflareinsights.com; \
         frame-src https://oauth.telegram.org https://telegram.org https://t.me; \
         object-src 'none'; base-uri 'self'; form-action 'self' https://*.ferris.uz; frame-ancestors 'self'";
     if !h.contains_key("content-security-policy") {
