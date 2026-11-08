@@ -3,9 +3,22 @@
 <head>
     <meta charset="UTF-8">
     <script>
+        // Preferences (theme, language) are stored in a cookie on .ferris.uz so every
+        // subdomain shares them; localStorage is only a fallback (it is per-origin).
+        window.ferrisGetPref = function (key) {
+            var m = document.cookie.match(new RegExp('(?:^|; )ferris_' + key + '=([^;]*)'));
+            if (m) return decodeURIComponent(m[1]);
+            try { return localStorage.getItem('ferris_' + key); } catch (e) { return null; }
+        };
+        window.ferrisSetPref = function (key, value) {
+            var host = location.hostname;
+            var domain = (host === 'ferris.uz' || host.slice(-10) === '.ferris.uz') ? '; domain=.ferris.uz' : '';
+            var secure = location.protocol === 'https:' ? '; Secure' : '';
+            document.cookie = 'ferris_' + key + '=' + encodeURIComponent(value) + domain + '; path=/; max-age=31536000; SameSite=Lax' + secure;
+            try { localStorage.setItem('ferris_' + key, value); } catch (e) {}
+        };
         (function () {
-            var t = null;
-            try { t = localStorage.getItem('ferris_theme'); } catch (e) {}
+            var t = window.ferrisGetPref('theme');
             if (t !== 'light' && t !== 'dark') {
                 t = (window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches) ? 'light' : 'dark';
             }
@@ -502,7 +515,7 @@
         };
 
         function getPreferredLanguage() {
-            const saved = localStorage.getItem('ferris_lang');
+            const saved = window.ferrisGetPref('lang');
             if (saved === 'uz' || saved === 'en') return saved;
             const navLang = (navigator.languages && navigator.languages.length ? navigator.languages[0] : (navigator.language || '')).toLowerCase();
             return navLang.startsWith('uz') ? 'uz' : 'en';
@@ -510,7 +523,7 @@
 
         function setLanguage(lang) {
             if (lang !== 'uz' && lang !== 'en') lang = 'uz';
-            localStorage.setItem('ferris_lang', lang);
+            window.ferrisSetPref('lang', lang);
             document.documentElement.lang = lang;
 
             // Update Navbar Toggle Button
@@ -578,7 +591,7 @@
         }
 
         function toggleLanguage() {
-            const current = localStorage.getItem('ferris_lang') || getPreferredLanguage();
+            const current = window.ferrisGetPref('lang') || getPreferredLanguage();
             const next = current === 'uz' ? 'en' : 'uz';
             setLanguage(next);
         }
@@ -2000,7 +2013,7 @@
             var cur = document.documentElement.getAttribute('data-theme') === 'light' ? 'light' : 'dark';
             var next = cur === 'light' ? 'dark' : 'light';
             document.documentElement.setAttribute('data-theme', next);
-            try { localStorage.setItem('ferris_theme', next); } catch (e) {}
+            window.ferrisSetPref('theme', next);
         };
     </script>
     <script src="/js/mascot-widget.js" defer></script>

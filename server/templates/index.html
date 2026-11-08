@@ -529,7 +529,7 @@
         if (btn._copyTimeout) {
             clearTimeout(btn._copyTimeout);
         }
-        const currentLang = typeof getPreferredLanguage === 'function' ? getPreferredLanguage() : (localStorage.getItem('ferris_lang') || 'uz');
+        const currentLang = typeof getPreferredLanguage === 'function' ? getPreferredLanguage() : ((window.ferrisGetPref ? window.ferrisGetPref('lang') : null) || 'uz');
         const copiedText = currentLang === 'uz' ? 'Nusxalandi!' : 'Copied!';
         btn.innerHTML = `<i data-lucide="check" class="w-3.5 h-3.5 text-emerald-400"></i><span class="text-emerald-400 font-semibold font-sans text-xs">${copiedText}</span>`;
         btn.classList.add('border-emerald-500/50', 'bg-emerald-500/10');
