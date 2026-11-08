@@ -1,0 +1,12 @@
+{
+  "name": "ferris-server-assets",
+  "private": true,
+  "description": "Build tooling for the compiled Tailwind stylesheet (static/tailwind.css)",
+  "scripts": {
+    "build:css": "tailwindcss -c tailwind.config.js -i assets/tailwind.input.css -o ../static/tailwind.css --minify"
+  },
+  "devDependencies": {
+    "dompurify": "^3.2.6",
+    "tailwindcss": "3.4.19"
+  }
+}

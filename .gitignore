@@ -19,3 +19,6 @@ distribution/aur/*/pkg/
 *.local
 
 public
+
+# Tailwind build tooling
+server/node_modules/

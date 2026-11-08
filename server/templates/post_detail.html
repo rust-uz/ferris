@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+
+{% block title %}{{ item.post.title }} — Ferris.uz forum{% endblock %}
+{% block description %}{{ description }}{% endblock %}
+{% block canonical %}{{ canonical }}{% endblock %}
+{% block og_type %}article{% endblock %}
+{% block og_url %}{{ canonical }}{% endblock %}
+{% block og_title %}{{ item.post.title }} — Ferris.uz forum{% endblock %}
+{% block og_desc %}{{ description }}{% endblock %}
+{% block twitter_url %}{{ canonical }}{% endblock %}
+{% block twitter_title %}{{ item.post.title }} — Ferris.uz forum{% endblock %}
+{% block twitter_desc %}{{ description }}{% endblock %}
+
+{% block extra_head %}
+<script type="application/ld+json">{{ json_ld|safe }}</script>
+{% endblock %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-14 flex flex-col gap-6">
+
+    <nav aria-label="Breadcrumb" class="flex items-center gap-2 text-xs font-mono text-muted flex-wrap">
+        <a href="https://topics.ferris.uz" class="hover:text-brand-orange transition-colors">Forum</a>
+        <span aria-hidden="true">/</span>
+        <a href="{{ topic_url }}" class="hover:text-brand-orange transition-colors">{{ topic_label }}</a>
+    </nav>
+
+    <article class="glass-card p-5 sm:p-8 rounded-3xl flex flex-col gap-5">
+        <div class="flex items-center gap-2 sm:gap-3 text-xs text-muted font-mono flex-wrap">
+            <a href="{{ topic_url }}" class="text-amber-400 font-semibold bg-amber-400/10 px-2 py-0.5 rounded">{{ topic_label }}</a>
+            <span>&bull;</span>
+            <span class="text-ink font-sans font-medium">
+                {% if let Some(author) = item.post.author_name %}@{{ author }}{% else %}Rustacean{% endif %}
+            </span>
+            <span>&bull;</span>
+            <time datetime="{{ item.post.created_at.to_rfc3339() }}" class="text-faint">{{ item.post.created_at.format("%Y-%m-%d %H:%M") }}</time>
+            <span>&bull;</span>
+            <span class="text-emerald-400 font-semibold">{{ item.post.views_count }} ko'rish</span>
+        </div>
+
+        <h1 class="text-2xl sm:text-4xl font-bold tracking-tight text-ink leading-tight">{{ item.post.title }}</h1>
+
+        <div class="post-content markdown-body text-sm sm:text-base text-ink2 leading-relaxed font-sans" data-raw="{{ item.post.content }}">{{ item.post.content }}</div>
+    </article>
+
+    <section aria-labelledby="comments-h" class="flex flex-col gap-3">
+        <h2 id="comments-h" class="text-lg font-bold text-ink">Javoblar ({{ item.comments.len() }})</h2>
+        {% if item.comments.is_empty() %}
+        <p class="text-sm text-faint">Hozircha javoblar yo'q. <a class="text-brand-orange hover:underline" href="{{ topic_url }}#post-{{ item.post.id }}">Forumda javob yozing</a>.</p>
+        {% endif %}
+        {% for comment in item.comments %}
+        <div class="glass-card p-4 sm:p-5 rounded-2xl flex flex-col gap-2">
+            <div class="flex items-center gap-2 text-xs font-mono text-muted">
+                <span class="text-brand-orange font-semibold">@{{ comment.author_name }}</span>
+                <span>&bull;</span>
+                <time datetime="{{ comment.created_at.to_rfc3339() }}" class="text-faint">{{ comment.created_at.format("%Y-%m-%d %H:%M") }}</time>
+            </div>
+            <div class="comment-content markdown-body text-ink font-sans leading-relaxed text-sm" data-raw="{{ comment.content }}">{{ comment.content }}</div>
+        </div>
+        {% endfor %}
+    </section>
+
+    <div class="flex flex-wrap gap-3">
+        <a href="{{ topic_url }}#post-{{ item.post.id }}" class="inline-flex items-center justify-center px-5 py-2.5 min-h-[44px] rounded-2xl bg-brand-orange text-on-accent font-semibold text-sm hover:opacity-90 transition-opacity">Forumda muhokama qilish</a>
+        <a href="https://topics.ferris.uz" class="inline-flex items-center justify-center px-5 py-2.5 min-h-[44px] rounded-2xl bg-surface border border-ink/15 text-ink font-semibold text-sm hover:border-brand-orange/40 transition-colors">Barcha mavzular</a>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    window.addEventListener('DOMContentLoaded', function () {
+        if (!window.marked || !window.safeMarkdown) return;
+        window.marked.setOptions({ breaks: true, gfm: true });
+        document.querySelectorAll('.markdown-body[data-raw]').forEach(function (el) {
+            var raw = el.getAttribute('data-raw');
+            if (!raw) return;
+            el.innerHTML = window.safeMarkdown(raw);
+            el.querySelectorAll('pre code').forEach(function (b) { if (window.hljs) window.hljs.highlightElement(b); });
+        });
+    });
+</script>
+{% endblock %}

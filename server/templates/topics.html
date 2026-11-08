@@ -1,11 +1,11 @@
 {% extends "base.html" %}
 
-{% block title %}topics.ferris.uz — Rust Mavzulari va Muhokamalar Forumi{% endblock %}
-{% block description %}O'zbekiston Rustaceanlar forumi: f/rust, f/async, f/systems, f/quantum muhokamalari va texnik savol-javoblar.{% endblock %}
-{% block canonical %}https://topics.ferris.uz{% endblock %}
-{% block og_title %}topics.ferris.uz — Rust Mavzulari va Muhokamalar Forumi{% endblock %}
-{% block og_desc %}O'zbekiston Rustaceanlar forumi: f/rust, f/async, f/systems, f/quantum muhokamalari va texnik savol-javoblar.{% endblock %}
-{% block og_url %}https://topics.ferris.uz{% endblock %}
+{% block title %}{% if let Some(sel) = selected %}{{ sel.title }} ({{ sel.slug }}) — Ferris.uz forum{% else %}topics.ferris.uz — Rust Mavzulari va Muhokamalar Forumi{% endif %}{% endblock %}
+{% block description %}{% if let Some(sel) = selected %}{{ sel.slug }} yo'nalishi: {{ sel.title }}. O'zbekiston Rustaceanlar forumidagi muhokamalar va savol-javoblar.{% else %}O'zbekiston Rustaceanlar forumi: f/rust, f/async, f/systems, f/quantum muhokamalari va texnik savol-javoblar.{% endif %}{% endblock %}
+{% block canonical %}{% if let Some(sel) = selected %}https://ferris.uz/{{ sel.slug }}{% else %}https://topics.ferris.uz{% endif %}{% endblock %}
+{% block og_title %}{% if let Some(sel) = selected %}{{ sel.title }} ({{ sel.slug }}) — Ferris.uz forum{% else %}topics.ferris.uz — Rust Mavzulari va Muhokamalar Forumi{% endif %}{% endblock %}
+{% block og_desc %}{% if let Some(sel) = selected %}{{ sel.slug }} yo'nalishi: {{ sel.title }}. O'zbekiston Rustaceanlar forumidagi muhokamalar.{% else %}O'zbekiston Rustaceanlar forumi: f/rust, f/async, f/systems, f/quantum muhokamalari va texnik savol-javoblar.{% endif %}{% endblock %}
+{% block og_url %}{% if let Some(sel) = selected %}https://ferris.uz/{{ sel.slug }}{% else %}https://topics.ferris.uz{% endif %}{% endblock %}
 
 {% block extra_head %}
 <script type="application/ld+json">
@@ -159,7 +159,7 @@
                 </div>
 
                 <h3 class="post-title text-base sm:text-xl font-bold text-ink hover:text-brand-orange transition-colors leading-snug">
-                    {{ item.post.title }}
+                    <a href="https://ferris.uz/p/{{ item.post.id }}">{{ item.post.title }}</a>
                 </h3>
 
                 <div class="post-content markdown-body text-xs sm:text-sm text-ink2 leading-relaxed font-sans" data-raw="{{ item.post.content }}">
@@ -521,7 +521,7 @@
 
             const content = document.getElementById('postContent').value.trim();
             if (content && window.marked) {
-                previewArea.innerHTML = marked.parse(content);
+                previewArea.innerHTML = safeMarkdown(content);
                 previewArea.querySelectorAll('pre code').forEach(block => {
                     if (window.hljs) hljs.highlightElement(block);
                 });
@@ -590,11 +590,11 @@
                     <div class="flex items-center justify-between p-3 rounded-2xl hover:bg-surface/60 transition-colors gap-3">
                         <div class="flex items-center gap-3 min-w-0">
                             <span class="w-6 text-center text-base shrink-0 font-bold">${medal}</span>
-                            <img src="${u.avatar_url || '/logo.png'}" class="w-10 h-10 rounded-xl object-cover border border-ink/10 shrink-0"/>
+                            <img src="${escapeHtml(u.avatar_url || '/logo.png')}" class="w-10 h-10 rounded-xl object-cover border border-ink/10 shrink-0"/>
                             <div class="min-w-0">
-                                <a href="https://ferris.uz/@${u.username}" class="text-sm font-bold text-ink hover:text-brand-orange transition-colors flex items-center gap-1.5 truncate">
-                                    <span>${u.display_name}</span>
-                                    <span class="text-xs font-mono text-brand-orange font-normal">@${u.username}</span>
+                                <a href="https://ferris.uz/@${encodeURIComponent(u.username)}" class="text-sm font-bold text-ink hover:text-brand-orange transition-colors flex items-center gap-1.5 truncate">
+                                    <span>${escapeHtml(u.display_name)}</span>
+                                    <span class="text-xs font-mono text-brand-orange font-normal">@${escapeHtml(u.username)}</span>
                                 </a>
                                 <div class="flex items-center gap-1.5 mt-1 flex-wrap">
                                     ${badgesHtml}
@@ -627,7 +627,7 @@
         document.querySelectorAll('.post-content[data-raw]').forEach(el => {
             const raw = el.getAttribute('data-raw');
             if (raw) {
-                el.innerHTML = marked.parse(raw);
+                el.innerHTML = safeMarkdown(raw);
                 el.querySelectorAll('pre code').forEach(block => {
                     if (window.hljs) hljs.highlightElement(block);
                 });
@@ -637,7 +637,7 @@
         document.querySelectorAll('.comment-content[data-raw]').forEach(el => {
             const raw = el.getAttribute('data-raw');
             if (raw) {
-                el.innerHTML = marked.parse(raw);
+                el.innerHTML = safeMarkdown(raw);
                 el.querySelectorAll('pre code').forEach(block => {
                     if (window.hljs) hljs.highlightElement(block);
                 });

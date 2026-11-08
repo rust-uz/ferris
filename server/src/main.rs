@@ -47,6 +47,18 @@ pub struct IndexTemplate {
 pub struct TopicsTemplate {
     pub topics: Vec<Topic>,
     pub posts: Vec<PostWithComments>,
+    pub selected: Option<Topic>,
+}
+
+#[derive(Template)]
+#[template(path = "post_detail.html")]
+pub struct PostDetailTemplate {
+    pub item: PostWithComments,
+    pub topic_label: String,
+    pub topic_url: String,
+    pub description: String,
+    pub canonical: String,
+    pub json_ld: String,
 }
 
 #[derive(Template)]
@@ -841,6 +853,7 @@ async fn main() {
         .route("/topics", get(topics_page_handler))
         .route("/groups", get(groups_page_handler))
         .route("/f/:slug", get(group_detail_page_handler))
+        .route("/p/:id", get(post_page_handler))
         .route("/groups/:slug", get(group_detail_page_handler))
         .route("/login", get(login_page_handler))
         .route("/device", get(device_page_handler))
@@ -976,6 +989,101 @@ async fn topics_page_handler(State(state): State<AppState>) -> impl IntoResponse
     let template = TopicsTemplate {
         topics,
         posts: posts_with_comments,
+        selected: None,
+    };
+    match template.render() {
+        Ok(html) => axum::response::Html(html).into_response(),
+        Err(e) => (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()).into_response(),
+    }
+}
+
+/// `/f/<slug>` bo'yicha forum mavzusi sahifasi (masalan /f/rust). Topilmasa None.
+fn topic_page_response(state: &AppState, clean_slug: &str) -> Option<axum::response::Response> {
+    let topics = state.topics.read().unwrap().clone();
+    let full = format!("f/{}", clean_slug);
+    let selected = topics.iter().find(|t| t.slug == full || t.slug == clean_slug).cloned()?;
+    let comments = state.comments.read().unwrap().clone();
+    let posts: Vec<PostWithComments> = state
+        .posts
+        .read()
+        .unwrap()
+        .iter()
+        .filter(|p| p.topic_slug.as_deref() == Some(selected.slug.as_str()) || p.topic_slug.as_deref() == Some(clean_slug))
+        .cloned()
+        .map(|p| {
+            let c: Vec<Comment> = comments.iter().filter(|c| c.post_id == p.id).cloned().collect();
+            PostWithComments { post: p, comments: c }
+        })
+        .collect();
+    let template = TopicsTemplate { topics, posts, selected: Some(selected) };
+    Some(match template.render() {
+        Ok(html) => axum::response::Html(html).into_response(),
+        Err(e) => (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()).into_response(),
+    })
+}
+
+/// `/p/<uuid>` — alohida post sahifasi (qidiruv tizimlari va ulashish uchun doimiy havola).
+async fn post_page_handler(
+    State(state): State<AppState>,
+    Path(id): Path<String>,
+) -> axum::response::Response {
+    let uuid = match Uuid::parse_str(&id) {
+        Ok(u) => u,
+        Err(_) => return not_found_handler().await.into_response(),
+    };
+    let found = state.posts.read().unwrap().iter().find(|p| p.id == uuid).cloned();
+    let post = match found {
+        Some(p) => p,
+        None => return not_found_handler().await.into_response(),
+    };
+    let comments: Vec<Comment> = state.comments.read().unwrap().iter().filter(|c| c.post_id == post.id).cloned().collect();
+
+    let topic_slug = post.topic_slug.clone().unwrap_or_else(|| "f/rust".to_string());
+    let topic_path = topic_slug.trim_start_matches("f/").to_string();
+    let topic_url = format!("https://ferris.uz/f/{}", topic_path);
+    let topic_label = format!("f/{}", topic_path);
+    let canonical = format!("https://ferris.uz/p/{}", post.id);
+
+    // Meta tavsif: Markdown belgilarsiz, bir qatorli, ~160 belgi
+    let plain: String = post.content.split_whitespace().collect::<Vec<_>>().join(" ").replace(['#', '*', '`', '>'], "");
+    let description: String = {
+        let t: String = plain.chars().take(160).collect();
+        if plain.chars().count() > 160 { format!("{}…", t.trim_end()) } else { t }
+    };
+
+    let ld = serde_json::json!({
+        "@context": "https://schema.org",
+        "@type": "DiscussionForumPosting",
+        "headline": post.title,
+        "text": post.content,
+        "url": canonical,
+        "mainEntityOfPage": canonical,
+        "datePublished": post.created_at.to_rfc3339(),
+        "dateModified": post.updated_at.to_rfc3339(),
+        "inLanguage": "uz",
+        "author": { "@type": "Person", "name": post.author_name.clone().unwrap_or_else(|| "Rustacean".to_string()) },
+        "isPartOf": { "@type": "WebPage", "name": topic_label, "url": topic_url },
+        "interactionStatistic": [
+            { "@type": "InteractionCounter", "interactionType": "https://schema.org/CommentAction", "userInteractionCount": comments.len() },
+            { "@type": "InteractionCounter", "interactionType": "https://schema.org/ViewAction", "userInteractionCount": post.views_count }
+        ],
+        "comment": comments.iter().map(|c| serde_json::json!({
+            "@type": "Comment",
+            "text": c.content,
+            "datePublished": c.created_at.to_rfc3339(),
+            "author": { "@type": "Person", "name": c.author_name }
+        })).collect::<Vec<_>>()
+    });
+    // </script> ni uzib qo'ymasligi uchun
+    let json_ld = ld.to_string().replace("</", "<\\/");
+
+    let template = PostDetailTemplate {
+        item: PostWithComments { post, comments },
+        topic_label,
+        topic_url,
+        description,
+        canonical,
+        json_ld,
     };
     match template.render() {
         Ok(html) => axum::response::Html(html).into_response(),
@@ -1192,10 +1300,19 @@ async fn group_detail_page_handler(
     _headers: HeaderMap,
 ) -> impl IntoResponse {
     let clean_slug = slug.trim_start_matches("f/").to_string();
-    let groups = state.groups.read().unwrap();
-    let group = match groups.iter().find(|g| g.slug == clean_slug).cloned() {
+    let group = {
+        let groups = state.groups.read().unwrap();
+        groups.iter().find(|g| g.slug == clean_slug).cloned()
+    };
+    let group = match group {
         Some(g) => g,
-        None => return (StatusCode::NOT_FOUND, "Jamiyat topilmadi").into_response(),
+        None => {
+            // Jamiyat topilmasa, bu forum mavzusi (f/rust, f/async ...) bo'lishi mumkin
+            return match topic_page_response(&state, &clean_slug) {
+                Some(resp) => resp,
+                None => not_found_handler().await.into_response(),
+            };
+        }
     };
 
     let members = {
@@ -1248,8 +1365,8 @@ async fn not_found_handler() -> impl IntoResponse {
 }
 
 /// Barcha javoblarga xavfsizlik sarlavhalari qo'shiladi (mavjud sarlavhalar o'zgartirilmaydi).
-/// CSP: sahifalarda inline skriptlar va Tailwind CDN ishlatiladi, shuning uchun script-src 'unsafe-inline'
-/// va Tailwind CDN uchun 'unsafe-eval' kerak (CDN o'rniga build qilingan CSS ga o'tilgach olib tashlanadi); qolgan yo'nalishlar (object, base, frame-ancestors, form-action) qat'iy cheklangan.
+/// CSP: sahifalarda inline skriptlar bor ('unsafe-inline'); Telegram login vidjeti (data-onauth) eval ishlatadi
+/// ('unsafe-eval'). Qolgan yo'nalishlar (object, base, frame-ancestors, form-action) qat'iy cheklangan.
 async fn security_headers(
     req: axum::extract::Request,
     next: axum::middleware::Next,
@@ -1257,11 +1374,11 @@ async fn security_headers(
     let mut res = next.run(req).await;
     let h = res.headers_mut();
     let csp = "default-src 'self'; \
-        script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.tailwindcss.com https://telegram.org https://static.cloudflareinsights.com; \
+        script-src 'self' 'unsafe-inline' 'unsafe-eval' https://telegram.org https://static.cloudflareinsights.com; \
         style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; \
         font-src 'self' https://fonts.gstatic.com data:; \
         img-src 'self' data: blob: https:; \
-        connect-src 'self' https://*.ferris.uz wss://*.ferris.uz https://cdn.tailwindcss.com https://cloudflareinsights.com; \
+        connect-src 'self' https://*.ferris.uz wss://*.ferris.uz https://cloudflareinsights.com; \
         frame-src https://oauth.telegram.org https://telegram.org https://t.me; \
         object-src 'none'; base-uri 'self'; form-action 'self' https://*.ferris.uz; frame-ancestors 'self'";
     if !h.contains_key("content-security-policy") {
@@ -1561,7 +1678,7 @@ async fn install_ps1_handler() -> impl IntoResponse {
 }
 
 async fn robots_handler() -> impl IntoResponse {
-    let content = "User-agent: *\nAllow: /\nAllow: /topics\nAllow: /groups\nAllow: /f/\nAllow: /@\nAllow: /profile/\nDisallow: /api/\nDisallow: /device\n\nSitemap: https://ferris.uz/sitemap.xml\n";
+    let content = "User-agent: *\nAllow: /\nAllow: /topics\nAllow: /groups\nAllow: /f/\nAllow: /p/\nAllow: /@\nAllow: /profile/\nDisallow: /api/\nDisallow: /device\n\nSitemap: https://ferris.uz/sitemap.xml\n";
     ([(axum::http::header::CONTENT_TYPE, "text/plain; charset=utf-8")], content)
 }
 
@@ -1600,13 +1717,25 @@ async fn dynamic_sitemap_handler(State(state): State<AppState>) -> impl IntoResp
         }
     }
 
-    // 3. Dinamik Mavzular (Topics)
+    // 3. Dinamik Mavzular (Topics) — /f/<slug>
     {
         let topics = state.topics.read().unwrap();
         for t in topics.iter() {
             xml.push_str(&format!(
-                "  <url>\n    <loc>https://topics.ferris.uz#{}</loc>\n    <lastmod>{}</lastmod>\n    <changefreq>daily</changefreq>\n    <priority>0.8</priority>\n  </url>\n",
-                t.slug, now
+                "  <url>\n    <loc>https://ferris.uz/f/{}</loc>\n    <lastmod>{}</lastmod>\n    <changefreq>daily</changefreq>\n    <priority>0.8</priority>\n  </url>\n",
+                t.slug.trim_start_matches("f/"), now
+            ));
+        }
+    }
+
+    // 3b. Postlar — /p/<uuid>
+    {
+        let posts = state.posts.read().unwrap();
+        for p in posts.iter() {
+            xml.push_str(&format!(
+                "  <url>\n    <loc>https://ferris.uz/p/{}</loc>\n    <lastmod>{}</lastmod>\n    <changefreq>weekly</changefreq>\n    <priority>0.7</priority>\n  </url>\n",
+                p.id,
+                p.updated_at.format("%Y-%m-%d")
             ));
         }
     }

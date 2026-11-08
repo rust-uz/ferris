@@ -100,43 +100,19 @@
     <!-- Syntax Highlighting & Markdown Parser -->
     <link rel="stylesheet" href="/highlight-dark.css">
     <script src="/js/marked.min.js"></script>
+    <script src="/js/purify.min.js"></script>
+    <script>
+        // User content is untrusted: always sanitize rendered Markdown before inserting it into the DOM.
+        window.safeMarkdown = function (raw) {
+            var html = window.marked ? window.marked.parse(String(raw == null ? '' : raw)) : String(raw);
+            return window.DOMPurify ? window.DOMPurify.sanitize(html) : '';
+        };
+    </script>
     <script src="/js/highlight.min.js"></script>
     <script src="/js/rust.min.js"></script>
 
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            darkMode: 'class',
-            theme: {
-                extend: {
-                    fontFamily: {
-                        sans: ['"Plus Jakarta Sans"', 'sans-serif'],
-                        display: ['"Familjen Grotesk"', '"Plus Jakarta Sans"', 'sans-serif'],
-                        mono: ['"JetBrains Mono"', 'monospace'],
-                    },
-                    colors: {
-                        paper: 'rgb(var(--c-paper) / <alpha-value>)',
-                        sunk: 'rgb(var(--c-sunk) / <alpha-value>)',
-                        surface: 'rgb(var(--c-surface) / <alpha-value>)',
-                        surface2: 'rgb(var(--c-surface2) / <alpha-value>)',
-                        surface3: 'rgb(var(--c-surface3) / <alpha-value>)',
-                        ink: 'rgb(var(--c-ink) / <alpha-value>)',
-                        ink2: 'rgb(var(--c-ink2) / <alpha-value>)',
-                        muted: 'rgb(var(--c-muted) / <alpha-value>)',
-                        faint: 'rgb(var(--c-faint) / <alpha-value>)',
-                        dim: 'rgb(var(--c-dim) / <alpha-value>)',
-                        'on-accent': 'rgb(var(--c-on-accent) / <alpha-value>)',
-                        brand: {
-                            orange: '#f74c00',
-                            accent: '#ff6a00',
-                            dark: '#09090b',
-                        }
-                    }
-                }
-            }
-        }
-    </script>
+    <!-- Tailwind CSS (compiled: server/tailwind.config.js -> static/tailwind.css) -->
+    <link rel="stylesheet" href="/tailwind.css?v=1">
     <style>
         :root, :root[data-theme="dark"] {
             color-scheme: dark;
@@ -1363,13 +1339,13 @@
                     container.innerHTML = convos.map(c => {
                         const dateStr = c.timestamp ? new Date(c.timestamp * 1000).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : '';
                         return `
-                            <div onclick="openDmWith('${c.username}')" class="p-3 rounded-xl hover:bg-surface border border-transparent hover:border-ink/5 transition-all cursor-pointer flex items-center justify-between gap-3 group">
+                            <div data-u="${escapeHtml(c.username)}" onclick="openDmWith(this.dataset.u)" class="p-3 rounded-xl hover:bg-surface border border-transparent hover:border-ink/5 transition-all cursor-pointer flex items-center justify-between gap-3 group">
                                 <div class="flex items-center gap-3 min-w-0">
                                     <div class="w-9 h-9 rounded-xl bg-surface2 border border-ink/10 flex items-center justify-center text-xs font-mono font-bold text-brand-orange shrink-0">
                                         @
                                     </div>
                                     <div class="flex flex-col min-w-0">
-                                        <span class="text-xs font-bold text-ink group-hover:text-brand-orange transition-colors font-mono truncate">@${c.username}</span>
+                                        <span class="text-xs font-bold text-ink group-hover:text-brand-orange transition-colors font-mono truncate">@${escapeHtml(c.username)}</span>
                                         <span class="text-[11px] text-muted truncate">${escapeHtml(c.last_message || '')}</span>
                                     </div>
                                 </div>
@@ -1969,7 +1945,7 @@
                     a.onclick = () => closeSearchModal();
                     a.innerHTML = `
                         <div class="flex items-center gap-3">
-                            <img src="${g.avatar_url || '/logo.png'}" class="w-8 h-8 rounded-lg object-cover border border-ink/10"/>
+                            <img src="${escapeHtml(g.avatar_url || '/logo.png')}" class="w-8 h-8 rounded-lg object-cover border border-ink/10"/>
                             <div>
                                 <div class="text-sm font-semibold text-ink flex items-center gap-2">
                                     <span>${escapeHtml(g.name)}</span>
@@ -1994,7 +1970,7 @@
                     a.onclick = () => closeSearchModal();
                     a.innerHTML = `
                         <div class="flex items-center gap-3">
-                            <img src="${u.avatar_url || '/logo.png'}" class="w-7 h-7 rounded-full object-cover border border-ink/15"/>
+                            <img src="${escapeHtml(u.avatar_url || '/logo.png')}" class="w-7 h-7 rounded-full object-cover border border-ink/15"/>
                             <div>
                                 <div class="text-sm font-semibold text-ink">@${escapeHtml(u.username)}</div>
                                 <div class="text-xs text-muted">${escapeHtml(u.display_name)}</div>
