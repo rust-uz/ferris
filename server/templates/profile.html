@@ -12,15 +12,15 @@
 <div class="max-w-5xl mx-auto px-4 sm:px-6 py-10 flex flex-col gap-10">
 
     <!-- Profile Header Card -->
-    <div class="p-6 sm:p-10 rounded-3xl bg-zinc-900/40 border border-white/10 backdrop-blur-md flex flex-col sm:flex-row sm:items-center justify-between gap-6 shadow-xl">
+    <div class="p-6 sm:p-10 rounded-3xl bg-surface/40 border border-ink/10 backdrop-blur-md flex flex-col sm:flex-row sm:items-center justify-between gap-6 shadow-xl">
         <div class="flex items-center gap-5">
             <img src="{{ user.avatar_url.as_deref().unwrap_or("/logo.jpg") }}" alt="{{ user.display_name }}" class="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl object-cover border-2 border-brand-orange/40 shadow-lg"/>
             <div class="flex flex-col gap-1">
                 <div class="flex items-center gap-2 flex-wrap">
-                    <h1 class="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">{{ user.display_name }}</h1>
+                    <h1 class="text-2xl sm:text-3xl font-extrabold text-ink tracking-tight">{{ user.display_name }}</h1>
                     {% for ident in identities %}
                         {% if ident.provider == "github" %}
-                        <a href="https://github.com/{{ ident.provider_username.as_deref().unwrap_or("") }}" target="_blank" class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-mono font-semibold bg-zinc-800 text-zinc-200 border border-white/15 hover:border-white/30 transition-all shadow-sm">
+                        <a href="https://github.com/{{ ident.provider_username.as_deref().unwrap_or("") }}" target="_blank" class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-mono font-semibold bg-surface2 text-ink border border-ink/15 hover:border-ink/30 transition-all shadow-sm">
                             <svg class="w-3 h-3 fill-current" viewBox="0 0 24 24"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
                             <span>@{{ ident.provider_username.as_deref().unwrap_or("github") }}</span>
                             <i data-lucide="check" class="w-3 h-3 text-emerald-400"></i>
@@ -49,20 +49,20 @@
                     </span>
                     {% endif %}
                 </div>
-                <p class="text-xs text-zinc-400 mt-1">Ferris.uz suveren a'zosi &bull; Rust Tizimli Dasturlash Ekotizimi</p>
+                <p class="text-xs text-muted mt-1">Ferris.uz suveren a'zosi &bull; Rust Tizimli Dasturlash Ekotizimi</p>
             </div>
         </div>
 
         <div class="flex items-center gap-3 shrink-0 self-start sm:self-center flex-wrap">
-            <button id="profileDmBtn" onclick="openDmWith('{{ user.username }}')" class="px-4 py-2 rounded-xl bg-brand-orange hover:bg-orange-600 text-white text-xs font-semibold transition-colors flex items-center gap-1.5 shadow-sm">
+            <button id="profileDmBtn" onclick="openDmWith('{{ user.username }}')" class="px-4 py-2 rounded-xl bg-brand-orange hover:bg-orange-600 text-on-accent text-xs font-semibold transition-colors flex items-center gap-1.5 shadow-sm">
                 <i data-lucide="mail" class="w-3.5 h-3.5"></i>
                 <span>Xabar yozish (DM)</span>
             </button>
-            <button id="profileBlockBtn" onclick="toggleBlockProfileUser('{{ user.username }}')" class="hidden px-4 py-2 rounded-xl bg-zinc-800 hover:bg-rose-950/40 text-zinc-300 hover:text-rose-400 border border-white/10 hover:border-rose-500/30 text-xs font-semibold transition-colors flex items-center gap-1.5">
+            <button id="profileBlockBtn" onclick="toggleBlockProfileUser('{{ user.username }}')" class="hidden px-4 py-2 rounded-xl bg-surface2 hover:bg-rose-950/40 text-ink2 hover:text-rose-400 border border-ink/10 hover:border-rose-500/30 text-xs font-semibold transition-colors flex items-center gap-1.5">
                 <i id="profileBlockBtnIcon" data-lucide="ban" class="w-3.5 h-3.5"></i>
                 <span id="profileBlockBtnText">Bloklash</span>
             </button>
-            <a href="https://groups.ferris.uz" class="px-4 py-2 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-zinc-200 text-xs font-semibold border border-white/10 transition-colors">
+            <a href="https://groups.ferris.uz" class="px-4 py-2 rounded-xl bg-surface2 hover:bg-surface3 text-ink text-xs font-semibold border border-ink/10 transition-colors">
                 Jamiyatlar
             </a>
             <button id="profileLogoutBtn" onclick="logoutUser()" class="hidden px-4 py-2 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30 text-xs font-semibold transition-colors flex items-center gap-1.5">
@@ -74,22 +74,22 @@
 
     <!-- Profile Stats Row (including Karma) -->
     <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
-        <div class="p-5 rounded-2xl bg-zinc-900/30 border border-white/10 flex flex-col gap-1">
-            <span class="text-xs font-mono text-zinc-500">A'zo jamiyatlar</span>
+        <div class="p-5 rounded-2xl bg-surface/30 border border-ink/10 flex flex-col gap-1">
+            <span class="text-xs font-mono text-faint">A'zo jamiyatlar</span>
             <span class="text-2xl font-extrabold text-emerald-400 font-mono">{{ joined_groups.len() }}</span>
         </div>
-        <div class="p-5 rounded-2xl bg-zinc-900/30 border border-white/10 flex flex-col gap-1">
-            <span class="text-xs font-mono text-zinc-500">Muhokamalar</span>
+        <div class="p-5 rounded-2xl bg-surface/30 border border-ink/10 flex flex-col gap-1">
+            <span class="text-xs font-mono text-faint">Muhokamalar</span>
             <span class="text-2xl font-extrabold text-brand-orange font-mono">{{ user_posts.len() }}</span>
         </div>
-        <div class="p-5 rounded-2xl bg-zinc-900/30 border border-white/10 flex flex-col gap-1">
+        <div class="p-5 rounded-2xl bg-surface/30 border border-ink/10 flex flex-col gap-1">
             <span class="text-xs font-mono text-amber-400 flex items-center gap-1">
                 <i data-lucide="zap" class="w-3.5 h-3.5 fill-current"></i> Karma Obro'si
             </span>
             <span class="text-2xl font-extrabold text-amber-400 font-mono">{{ user_posts.len() * 15 + 10 }}</span>
         </div>
-        <div class="p-5 rounded-2xl bg-zinc-900/30 border border-white/10 flex flex-col gap-1">
-            <span class="text-xs font-mono text-zinc-500">Holat</span>
+        <div class="p-5 rounded-2xl bg-surface/30 border border-ink/10 flex flex-col gap-1">
+            <span class="text-xs font-mono text-faint">Holat</span>
             <span class="text-sm font-bold text-emerald-400 flex items-center gap-1.5 mt-1.5">
                 <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span> Faol Dasturchi
             </span>
@@ -98,16 +98,16 @@
 
     <!-- Sovereign Username (Ferris ID) Card -->
     {% if is_own_profile %}
-    <div class="p-6 sm:p-7 rounded-3xl bg-zinc-900/40 border border-white/10 backdrop-blur-md flex flex-col gap-5 shadow-lg">
-        <div class="flex items-center justify-between pb-3 border-b border-white/10 flex-wrap gap-2">
+    <div class="p-6 sm:p-7 rounded-3xl bg-surface/40 border border-ink/10 backdrop-blur-md flex flex-col gap-5 shadow-lg">
+        <div class="flex items-center justify-between pb-3 border-b border-ink/10 flex-wrap gap-2">
             <div class="flex items-center gap-2">
                 <i data-lucide="at-sign" class="w-5 h-5 text-brand-orange"></i>
-                <h2 class="text-base sm:text-lg font-bold text-white">Suveren Ferris ID (@username)</h2>
+                <h2 class="text-base sm:text-lg font-bold text-ink">Suveren Ferris ID (@username)</h2>
             </div>
             <span class="text-xs font-mono text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2.5 py-0.5 rounded-full">Sovereign Identity</span>
         </div>
 
-        <p class="text-xs text-zinc-400 leading-relaxed">
+        <p class="text-xs text-muted leading-relaxed">
             Sizning Ferris ekotizimidagi asosiy va suveren identifikatoringiz. Barcha provayderlar (GitHub, Telegram) aynan shu hisobingizga bog'lanadi.
             Faqat kichik lotin harflari, raqamlar va pastki chiziqdan iborat bo'lishi kerak (3–20 ta belgi).
         </p>
@@ -115,43 +115,43 @@
         <form onsubmit="handleUpdateUsername(event)" class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
             <div class="relative flex-grow">
                 <span class="absolute left-3.5 top-1/2 -translate-y-1/2 text-brand-orange font-mono font-bold text-sm">@</span>
-                <input type="text" id="sovereignUsernameInput" value="{{ user.username }}" maxlength="20" required autocomplete="off" class="w-full pl-8 pr-10 py-2.5 rounded-xl bg-zinc-950 border border-white/10 text-white font-mono text-sm placeholder-zinc-500 focus:outline-none focus:border-brand-orange transition-colors" oninput="debounceCheckUsername(this.value)">
+                <input type="text" id="sovereignUsernameInput" value="{{ user.username }}" maxlength="20" required autocomplete="off" class="w-full pl-8 pr-10 py-2.5 rounded-xl bg-sunk border border-ink/10 text-ink font-mono text-sm placeholder-faint focus:outline-none focus:border-brand-orange transition-colors" oninput="debounceCheckUsername(this.value)">
                 <span id="usernameCheckIcon" class="absolute right-3.5 top-1/2 -translate-y-1/2"></span>
             </div>
-            <button type="submit" id="saveUsernameBtn" class="px-5 py-2.5 rounded-xl bg-brand-orange hover:bg-orange-600 text-white font-semibold text-xs transition-all shadow-md active:scale-95 shrink-0 flex items-center justify-center gap-1.5 cursor-pointer">
+            <button type="submit" id="saveUsernameBtn" class="px-5 py-2.5 rounded-xl bg-brand-orange hover:bg-orange-600 text-on-accent font-semibold text-xs transition-all shadow-md active:scale-95 shrink-0 flex items-center justify-center gap-1.5 cursor-pointer">
                 <i data-lucide="check" class="w-4 h-4"></i>
                 <span>Saqlash</span>
             </button>
         </form>
-        <div id="usernameCheckMsg" class="text-xs font-mono text-zinc-400 hidden"></div>
+        <div id="usernameCheckMsg" class="text-xs font-mono text-muted hidden"></div>
     </div>
     {% endif %}
 
     <!-- Linked Accounts (Multi-Provider Unified Identity) -->
     {% if is_own_profile %}
-    <div class="p-6 sm:p-7 rounded-3xl bg-zinc-900/40 border border-white/10 backdrop-blur-md flex flex-col gap-5 shadow-lg">
-        <div class="flex items-center justify-between pb-3 border-b border-white/10">
+    <div class="p-6 sm:p-7 rounded-3xl bg-surface/40 border border-ink/10 backdrop-blur-md flex flex-col gap-5 shadow-lg">
+        <div class="flex items-center justify-between pb-3 border-b border-ink/10">
             <div class="flex items-center gap-2">
                 <i data-lucide="link-2" class="w-5 h-5 text-brand-orange"></i>
-                <h2 class="text-base sm:text-lg font-bold text-white">Bog'langan Hisoblar (Unified SSO)</h2>
+                <h2 class="text-base sm:text-lg font-bold text-ink">Bog'langan Hisoblar (Unified SSO)</h2>
             </div>
-            <span class="text-xs font-mono text-zinc-400">Ferris ID &bull; Yagona Shaxs</span>
+            <span class="text-xs font-mono text-muted">Ferris ID &bull; Yagona Shaxs</span>
         </div>
 
-        <p class="text-xs text-zinc-400 leading-relaxed">
+        <p class="text-xs text-muted leading-relaxed">
             Ferris.uz hisobingizga bir nechta provayderlarni (GitHub va Telegram) ulashingiz mumkin.
             Ulaganingizdan so'ng ikkala xizmat orqali ham bitta profilga kirasiz, CLI tokenlari va muhokamalaringiz umumiy bo'ladi.
         </p>
 
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <!-- GitHub Box -->
-            <div class="p-4 rounded-2xl bg-zinc-950/60 border border-white/10 flex items-center justify-between gap-4">
+            <div class="p-4 rounded-2xl bg-sunk/60 border border-ink/10 flex items-center justify-between gap-4">
                 <div class="flex items-center gap-3 min-w-0">
-                    <div class="w-10 h-10 rounded-xl bg-zinc-800 flex items-center justify-center shrink-0 border border-white/10">
-                        <svg class="w-5 h-5 fill-zinc-200" viewBox="0 0 24 24"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+                    <div class="w-10 h-10 rounded-xl bg-surface2 flex items-center justify-center shrink-0 border border-ink/10">
+                        <svg class="w-5 h-5 fill-ink" viewBox="0 0 24 24"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
                     </div>
                     <div class="truncate">
-                        <div class="text-sm font-bold text-white flex items-center gap-1.5">
+                        <div class="text-sm font-bold text-ink flex items-center gap-1.5">
                             GitHub
                             {% if has_github %}
                             <i data-lucide="badge-check" class="w-4 h-4 text-emerald-400"></i>
@@ -160,7 +160,7 @@
                         {% if has_github %}
                         <span class="text-xs font-mono text-emerald-400 truncate block">@{{ github_username.as_deref().unwrap_or("ulangan") }}</span>
                         {% else %}
-                        <span class="text-xs text-zinc-500">Ulanmagan</span>
+                        <span class="text-xs text-faint">Ulanmagan</span>
                         {% endif %}
                     </div>
                 </div>
@@ -172,13 +172,13 @@
                             <i data-lucide="check" class="w-3.5 h-3.5"></i> Ulangan
                         </span>
                         {% if can_unlink %}
-                        <button onclick="unlinkProvider('github')" title="GitHub hisobini uzish" class="px-2.5 py-1 rounded-xl bg-zinc-800 hover:bg-rose-950/40 text-zinc-400 hover:text-rose-400 border border-white/10 hover:border-rose-500/30 text-xs font-semibold inline-flex items-center gap-1 transition-colors">
+                        <button onclick="unlinkProvider('github')" title="GitHub hisobini uzish" class="px-2.5 py-1 rounded-xl bg-surface2 hover:bg-rose-950/40 text-muted hover:text-rose-400 border border-ink/10 hover:border-rose-500/30 text-xs font-semibold inline-flex items-center gap-1 transition-colors">
                             <i data-lucide="unlink" class="w-3 h-3"></i> Uzish
                         </button>
                         {% endif %}
                     </div>
                     {% else %}
-                    <a href="/auth/github?return_to=https://ferris.uz/profile" class="px-3.5 py-1.5 rounded-xl bg-zinc-800 hover:bg-zinc-700 border border-white/10 text-white text-xs font-semibold inline-flex items-center gap-1.5 transition-colors">
+                    <a href="/auth/github?return_to=https://ferris.uz/profile" class="px-3.5 py-1.5 rounded-xl bg-surface2 hover:bg-surface3 border border-ink/10 text-ink text-xs font-semibold inline-flex items-center gap-1.5 transition-colors">
                         <i data-lucide="plus" class="w-3.5 h-3.5"></i> Ulash
                     </a>
                     {% endif %}
@@ -186,13 +186,13 @@
             </div>
 
             <!-- Telegram Box -->
-            <div class="p-4 rounded-2xl bg-zinc-950/60 border border-white/10 flex items-center justify-between gap-4">
+            <div class="p-4 rounded-2xl bg-sunk/60 border border-ink/10 flex items-center justify-between gap-4">
                 <div class="flex items-center gap-3 min-w-0">
                     <div class="w-10 h-10 rounded-xl bg-sky-500/10 flex items-center justify-center shrink-0 border border-sky-500/20">
                         <i data-lucide="send" class="w-5 h-5 text-sky-400"></i>
                     </div>
                     <div class="truncate">
-                        <div class="text-sm font-bold text-white flex items-center gap-1.5">
+                        <div class="text-sm font-bold text-ink flex items-center gap-1.5">
                             Telegram
                             {% if has_telegram %}
                             <i data-lucide="badge-check" class="w-4 h-4 text-emerald-400"></i>
@@ -201,7 +201,7 @@
                         {% if has_telegram %}
                         <span class="text-xs font-mono text-sky-400 truncate block">@{{ telegram_username.as_deref().unwrap_or("ulangan") }}</span>
                         {% else %}
-                        <span class="text-xs text-zinc-500">Ulanmagan</span>
+                        <span class="text-xs text-faint">Ulanmagan</span>
                         {% endif %}
                     </div>
                 </div>
@@ -213,7 +213,7 @@
                             <i data-lucide="check" class="w-3.5 h-3.5"></i> Ulangan
                         </span>
                         {% if can_unlink %}
-                        <button onclick="unlinkProvider('telegram')" title="Telegram hisobini uzish" class="px-2.5 py-1 rounded-xl bg-zinc-800 hover:bg-rose-950/40 text-zinc-400 hover:text-rose-400 border border-white/10 hover:border-rose-500/30 text-xs font-semibold inline-flex items-center gap-1 transition-colors">
+                        <button onclick="unlinkProvider('telegram')" title="Telegram hisobini uzish" class="px-2.5 py-1 rounded-xl bg-surface2 hover:bg-rose-950/40 text-muted hover:text-rose-400 border border-ink/10 hover:border-rose-500/30 text-xs font-semibold inline-flex items-center gap-1 transition-colors">
                             <i data-lucide="unlink" class="w-3 h-3"></i> Uzish
                         </button>
                         {% endif %}
@@ -232,10 +232,10 @@
         </div>
 
         <!-- CLI Device Flow Quick Guide -->
-        <div class="pt-4 border-t border-white/5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs text-zinc-400">
+        <div class="pt-4 border-t border-ink/5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs text-muted">
             <div class="flex items-center gap-2">
                 <i data-lucide="terminal" class="w-4 h-4 text-brand-orange shrink-0"></i>
-                <span>Terminalda kirish: <code class="px-2 py-0.5 rounded bg-zinc-950 text-brand-orange font-mono text-[11px] border border-white/10">ferris login</code></span>
+                <span>Terminalda kirish: <code class="px-2 py-0.5 rounded bg-sunk text-brand-orange font-mono text-[11px] border border-ink/10">ferris login</code></span>
             </div>
             <a href="/device" class="text-emerald-400 hover:text-emerald-300 font-medium inline-flex items-center gap-1">
                 Qurilmani faollashtirish (Device Flow) &rarr;
@@ -244,14 +244,14 @@
     </div>
 
     <!-- Active Devices & CLI Tokens (RFC 7009 Token Revocation) -->
-    <div class="p-6 sm:p-7 rounded-3xl bg-zinc-900/40 border border-white/10 backdrop-blur-md flex flex-col gap-5 shadow-lg">
-        <div class="flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b border-white/10 gap-2">
+    <div class="p-6 sm:p-7 rounded-3xl bg-surface/40 border border-ink/10 backdrop-blur-md flex flex-col gap-5 shadow-lg">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b border-ink/10 gap-2">
             <div class="flex items-center gap-2">
                 <i data-lucide="shield-check" class="w-5 h-5 text-emerald-400"></i>
-                <h2 class="text-base sm:text-lg font-bold text-white">Faol Qurilmalar va CLI Tokenlari</h2>
+                <h2 class="text-base sm:text-lg font-bold text-ink">Faol Qurilmalar va CLI Tokenlari</h2>
             </div>
             <div class="flex items-center gap-2">
-                <span class="text-xs font-mono text-zinc-400">{{ active_tokens.len() }} ta faol token</span>
+                <span class="text-xs font-mono text-muted">{{ active_tokens.len() }} ta faol token</span>
                 {% if !active_tokens.is_empty() %}
                 <button onclick="revokeAllTokens()" class="px-3 py-1 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/30 text-rose-400 text-xs font-semibold transition-colors flex items-center gap-1">
                     <i data-lucide="shield-alert" class="w-3.5 h-3.5"></i> Barchasini bekor qilish
@@ -260,23 +260,23 @@
             </div>
         </div>
 
-        <p class="text-xs text-zinc-400 leading-relaxed">
+        <p class="text-xs text-muted leading-relaxed">
             Quyida Ferris ID orqali ruxsat berilgan barcha faol CLI va ilovalar ro'yxati keltirilgan.
             Agar shubhali faollikni sezsangiz yoki qurilmangizdan chiqmoqchi bo'lsangiz, istalgan tokenni bekor qilishingiz mumkin.
         </p>
 
         {% if active_tokens.is_empty() %}
-        <div class="p-6 rounded-2xl bg-zinc-950/40 border border-dashed border-white/10 text-center flex flex-col items-center">
-            <i data-lucide="laptop" class="w-8 h-8 text-zinc-600 mb-2"></i>
-            <span class="text-xs text-zinc-400">Hozircha faol CLI tokenlari yo'q.</span>
-            <span class="text-[11px] text-zinc-500 font-mono mt-1">Terminalda <code class="text-brand-orange">ferris login</code> yoki <code class="text-brand-orange">hikaku login ferris</code> orqali ulashingiz mumkin.</span>
+        <div class="p-6 rounded-2xl bg-sunk/40 border border-dashed border-ink/10 text-center flex flex-col items-center">
+            <i data-lucide="laptop" class="w-8 h-8 text-dim mb-2"></i>
+            <span class="text-xs text-muted">Hozircha faol CLI tokenlari yo'q.</span>
+            <span class="text-[11px] text-faint font-mono mt-1">Terminalda <code class="text-brand-orange">ferris login</code> yoki <code class="text-brand-orange">hikaku login ferris</code> orqali ulashingiz mumkin.</span>
         </div>
         {% else %}
         <div class="flex flex-col gap-2.5">
             {% for token in active_tokens %}
-            <div class="p-4 rounded-2xl bg-zinc-950/60 border border-white/10 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:border-white/20 transition-all">
+            <div class="p-4 rounded-2xl bg-sunk/60 border border-ink/10 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:border-ink/20 transition-all">
                 <div class="flex items-center gap-3 min-w-0">
-                    <div class="w-10 h-10 rounded-xl bg-zinc-800 flex items-center justify-center shrink-0 border border-white/10 text-brand-orange">
+                    <div class="w-10 h-10 rounded-xl bg-surface2 flex items-center justify-center shrink-0 border border-ink/10 text-brand-orange">
                         {% if token.client_id == "hikaku-cli" %}
                         <i data-lucide="zap" class="w-5 h-5 text-amber-400"></i>
                         {% else %}
@@ -284,11 +284,11 @@
                         {% endif %}
                     </div>
                     <div class="truncate">
-                        <div class="text-sm font-bold text-white flex items-center gap-2">
+                        <div class="text-sm font-bold text-ink flex items-center gap-2">
                             <span>{{ token.client_name }}</span>
-                            <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-zinc-800 text-zinc-300 border border-white/10">{{ token.client_id }}</span>
+                            <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-surface2 text-ink2 border border-ink/10">{{ token.client_id }}</span>
                         </div>
-                        <div class="text-[11px] font-mono text-zinc-400 flex items-center gap-2 mt-0.5 flex-wrap">
+                        <div class="text-[11px] font-mono text-muted flex items-center gap-2 mt-0.5 flex-wrap">
                             <span>Yaratilgan: {{ token.created_at }}</span>
                             {% if let Some(last_used) = token.last_used_at %}
                             <span>&bull; Oxirgi faollik: {{ last_used }}</span>
@@ -298,7 +298,7 @@
                 </div>
 
                 <div class="shrink-0 self-end sm:self-center">
-                    <button onclick="revokeToken('{{ token.id }}')" class="px-3 py-1.5 rounded-xl bg-zinc-800 hover:bg-rose-950/40 text-zinc-300 hover:text-rose-400 border border-white/10 hover:border-rose-500/30 text-xs font-semibold transition-colors flex items-center gap-1.5 shadow-sm">
+                    <button onclick="revokeToken('{{ token.id }}')" class="px-3 py-1.5 rounded-xl bg-surface2 hover:bg-rose-950/40 text-ink2 hover:text-rose-400 border border-ink/10 hover:border-rose-500/30 text-xs font-semibold transition-colors flex items-center gap-1.5 shadow-sm">
                         <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
                         <span>Bekor qilish</span>
                     </button>
@@ -312,21 +312,21 @@
 
     <!-- Joined Communities Section -->
     <div class="flex flex-col gap-4">
-        <div class="flex items-center justify-between pb-3 border-b border-white/10">
-            <h2 class="text-lg font-bold text-white flex items-center gap-2">
+        <div class="flex items-center justify-between pb-3 border-b border-ink/10">
+            <h2 class="text-lg font-bold text-ink flex items-center gap-2">
                 <i data-lucide="users" class="w-5 h-5 text-emerald-400"></i>
                 <span>A'zo Bo'lgan Jamiyatlarim</span>
             </h2>
-            <span class="text-xs font-mono text-zinc-500">{{ joined_groups.len() }} ta guruh</span>
+            <span class="text-xs font-mono text-faint">{{ joined_groups.len() }} ta guruh</span>
         </div>
 
         {% if joined_groups.is_empty() %}
-        <div class="p-8 rounded-2xl bg-zinc-900/20 border border-dashed border-white/10 text-center flex flex-col items-center">
-            <div class="w-12 h-12 rounded-2xl bg-zinc-900 border border-white/5 flex items-center justify-center mb-3 text-zinc-500">
+        <div class="p-8 rounded-2xl bg-surface/20 border border-dashed border-ink/10 text-center flex flex-col items-center">
+            <div class="w-12 h-12 rounded-2xl bg-surface border border-ink/5 flex items-center justify-center mb-3 text-faint">
                 <i data-lucide="users" class="w-6 h-6"></i>
             </div>
-            <h3 class="text-sm font-semibold text-white mb-1">Hozircha hech qaysi jamiyatga a'zo emassiz</h3>
-            <p class="text-xs text-zinc-400 mb-4">O'zingizga qiziq bo'lgan Rust guruhlariga a'zo bo'ling!</p>
+            <h3 class="text-sm font-semibold text-ink mb-1">Hozircha hech qaysi jamiyatga a'zo emassiz</h3>
+            <p class="text-xs text-muted mb-4">O'zingizga qiziq bo'lgan Rust guruhlariga a'zo bo'ling!</p>
             <a href="https://groups.ferris.uz" class="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold transition-colors">
                 Jamiyatlarni Tanlash &rarr;
             </a>
@@ -334,16 +334,16 @@
         {% else %}
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {% for g in joined_groups %}
-            <div class="p-5 rounded-2xl bg-zinc-900/40 border border-white/10 hover:border-emerald-500/30 transition-all flex flex-col justify-between group">
+            <div class="p-5 rounded-2xl bg-surface/40 border border-ink/10 hover:border-emerald-500/30 transition-all flex flex-col justify-between group">
                 <div>
                     <div class="flex items-center gap-3 mb-3">
-                        <img src="{{ g.avatar_url }}" alt="{{ g.name }}" class="w-10 h-10 rounded-xl object-cover border border-white/10"/>
+                        <img src="{{ g.avatar_url }}" alt="{{ g.name }}" class="w-10 h-10 rounded-xl object-cover border border-ink/10"/>
                         <div>
-                            <h3 class="text-sm font-bold text-white group-hover:text-emerald-400 transition-colors leading-tight">{{ g.name }}</h3>
-                            <span class="text-[11px] font-mono text-zinc-500">f/{{ g.slug }}</span>
+                            <h3 class="text-sm font-bold text-ink group-hover:text-emerald-400 transition-colors leading-tight">{{ g.name }}</h3>
+                            <span class="text-[11px] font-mono text-faint">f/{{ g.slug }}</span>
                         </div>
                     </div>
-                    <p class="text-xs text-zinc-400 leading-relaxed mb-4">
+                    <p class="text-xs text-muted leading-relaxed mb-4">
                         {% if let Some(desc) = g.description %}
                             {{ desc }}
                         {% else %}
@@ -351,11 +351,11 @@
                         {% endif %}
                     </p>
                 </div>
-                <div class="pt-3 border-t border-white/5 flex items-center justify-between">
+                <div class="pt-3 border-t border-ink/5 flex items-center justify-between">
                     <span class="text-xs font-mono text-emerald-400 font-semibold flex items-center gap-1.5">
                         <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span> A'zosi
                     </span>
-                    <a href="/f/{{ g.slug }}" class="text-xs text-zinc-300 hover:text-white font-medium flex items-center gap-1">
+                    <a href="/f/{{ g.slug }}" class="text-xs text-ink2 hover:text-ink font-medium flex items-center gap-1">
                         Sahifaga kirish &rarr;
                     </a>
                 </div>
@@ -367,40 +367,40 @@
 
     <!-- User's Created Posts -->
     <div class="flex flex-col gap-4">
-        <div class="flex items-center justify-between pb-3 border-b border-white/10">
-            <h2 class="text-lg font-bold text-white flex items-center gap-2">
+        <div class="flex items-center justify-between pb-3 border-b border-ink/10">
+            <h2 class="text-lg font-bold text-ink flex items-center gap-2">
                 <i data-lucide="messages-square" class="w-5 h-5 text-brand-orange"></i>
                 <span>Mening Muhokamalarim</span>
             </h2>
-            <span class="text-xs font-mono text-zinc-500">{{ user_posts.len() }} ta post</span>
+            <span class="text-xs font-mono text-faint">{{ user_posts.len() }} ta post</span>
         </div>
 
         {% if user_posts.is_empty() %}
-        <div class="p-8 rounded-2xl bg-zinc-900/20 border border-dashed border-white/10 text-center flex flex-col items-center">
-            <div class="w-12 h-12 rounded-2xl bg-zinc-900 border border-white/5 flex items-center justify-center mb-3 text-zinc-500">
+        <div class="p-8 rounded-2xl bg-surface/20 border border-dashed border-ink/10 text-center flex flex-col items-center">
+            <div class="w-12 h-12 rounded-2xl bg-surface border border-ink/5 flex items-center justify-center mb-3 text-faint">
                 <i data-lucide="inbox" class="w-6 h-6"></i>
             </div>
-            <h3 class="text-sm font-semibold text-white mb-1">Hozircha birorta ham mavzu ochmadingiz</h3>
-            <p class="text-xs text-zinc-400 mb-4">Rust bo'yicha savol bering yoki tajribangizni ulashing!</p>
-            <a href="https://topics.ferris.uz" class="px-4 py-2 rounded-xl bg-brand-orange hover:bg-orange-600 text-white text-xs font-semibold transition-colors">
+            <h3 class="text-sm font-semibold text-ink mb-1">Hozircha birorta ham mavzu ochmadingiz</h3>
+            <p class="text-xs text-muted mb-4">Rust bo'yicha savol bering yoki tajribangizni ulashing!</p>
+            <a href="https://topics.ferris.uz" class="px-4 py-2 rounded-xl bg-brand-orange hover:bg-orange-600 text-on-accent text-xs font-semibold transition-colors">
                 Mavzularga o'tish &rarr;
             </a>
         </div>
         {% else %}
         <div class="flex flex-col gap-3">
             {% for post in user_posts %}
-            <article class="p-5 rounded-2xl bg-zinc-900/40 border border-white/10 hover:border-white/20 transition-all flex flex-col gap-2">
-                <div class="flex items-center gap-2 text-xs font-mono text-zinc-400">
-                    <span class="text-zinc-500">{{ post.created_at.format("%Y-%m-%d %H:%M") }}</span>
+            <article class="p-5 rounded-2xl bg-surface/40 border border-ink/10 hover:border-ink/20 transition-all flex flex-col gap-2">
+                <div class="flex items-center gap-2 text-xs font-mono text-muted">
+                    <span class="text-faint">{{ post.created_at.format("%Y-%m-%d %H:%M") }}</span>
                     <span>&bull;</span>
                     <span class="text-emerald-400 font-semibold flex items-center gap-1.5">
                         <i data-lucide="eye" class="w-3.5 h-3.5"></i> {{ post.views_count }} ta ko'rildi
                     </span>
                 </div>
-                <h3 class="text-base font-bold text-white hover:text-brand-orange transition-colors">
+                <h3 class="text-base font-bold text-ink hover:text-brand-orange transition-colors">
                     {{ post.title }}
                 </h3>
-                <p class="text-xs text-zinc-300 line-clamp-2">
+                <p class="text-xs text-ink2 line-clamp-2">
                     {{ post.content }}
                 </p>
             </article>
@@ -447,7 +447,7 @@
         } else {
             textEl.innerText = "Bloklash";
             if (iconEl) iconEl.setAttribute('data-lucide', 'ban');
-            btn.className = "px-4 py-2 rounded-xl bg-zinc-800 hover:bg-rose-950/40 text-zinc-300 hover:text-rose-400 border border-white/10 hover:border-rose-500/30 text-xs font-semibold transition-colors flex items-center gap-1.5";
+            btn.className = "px-4 py-2 rounded-xl bg-surface2 hover:bg-rose-950/40 text-ink2 hover:text-rose-400 border border-ink/10 hover:border-rose-500/30 text-xs font-semibold transition-colors flex items-center gap-1.5";
         }
         if (window.lucide) lucide.createIcons();
     }
@@ -570,10 +570,10 @@
         }
 
         if (clean === '{{ user.username }}'.toLowerCase()) {
-            if (icon) icon.innerHTML = '<i data-lucide="check-circle" class="w-4 h-4 text-zinc-500"></i>';
+            if (icon) icon.innerHTML = '<i data-lucide="check-circle" class="w-4 h-4 text-faint"></i>';
             if (msg) {
                 msg.classList.remove('hidden');
-                msg.className = 'text-xs font-mono text-zinc-500';
+                msg.className = 'text-xs font-mono text-faint';
                 msg.innerText = 'Hozirgi faol username';
             }
             if (window.lucide) lucide.createIcons();
@@ -619,7 +619,7 @@
         const btn = document.getElementById('saveUsernameBtn');
         const oldBtnText = btn.innerHTML;
         btn.disabled = true;
-        btn.innerHTML = '<span class="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin inline-block"></span> Saqlanmoqda...';
+        btn.innerHTML = '<span class="w-3.5 h-3.5 border-2 border-ink border-t-transparent rounded-full animate-spin inline-block"></span> Saqlanmoqda...';
 
         try {
             const res = await fetch('/api/v1/profile/username', {

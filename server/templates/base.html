@@ -1,7 +1,17 @@
 <!DOCTYPE html>
-<html lang="uz" class="dark scroll-smooth">
+<html lang="uz" data-theme="dark" class="scroll-smooth">
 <head>
     <meta charset="UTF-8">
+    <script>
+        (function () {
+            var t = null;
+            try { t = localStorage.getItem('ferris_theme'); } catch (e) {}
+            if (t !== 'light' && t !== 'dark') {
+                t = (window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches) ? 'light' : 'dark';
+            }
+            document.documentElement.setAttribute('data-theme', t);
+        })();
+    </script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
     <title>{% block title %}Ferris.uz — O'zbekiston Rust Tizim Dasturlash Ekotizimi{% endblock %}</title>
     <meta name="description" content="{% block description %}O'zbekiston Rustaceanlar hamjamiyati, rasmiy ferris-cli vositasi, mavzular va jamiyatlar portali.{% endblock %}">
@@ -62,7 +72,7 @@
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Familjen+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
     <link rel="icon" type="image/svg+xml" href="/favicon.svg">
     <link rel="icon" type="image/x-icon" href="/favicon.ico">
     <link rel="icon" type="image/png" sizes="48x48" href="/favicon-48x48.png">
@@ -87,9 +97,21 @@
                 extend: {
                     fontFamily: {
                         sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+                        display: ['"Familjen Grotesk"', '"Plus Jakarta Sans"', 'sans-serif'],
                         mono: ['"JetBrains Mono"', 'monospace'],
                     },
                     colors: {
+                        paper: 'rgb(var(--c-paper) / <alpha-value>)',
+                        sunk: 'rgb(var(--c-sunk) / <alpha-value>)',
+                        surface: 'rgb(var(--c-surface) / <alpha-value>)',
+                        surface2: 'rgb(var(--c-surface2) / <alpha-value>)',
+                        surface3: 'rgb(var(--c-surface3) / <alpha-value>)',
+                        ink: 'rgb(var(--c-ink) / <alpha-value>)',
+                        ink2: 'rgb(var(--c-ink2) / <alpha-value>)',
+                        muted: 'rgb(var(--c-muted) / <alpha-value>)',
+                        faint: 'rgb(var(--c-faint) / <alpha-value>)',
+                        dim: 'rgb(var(--c-dim) / <alpha-value>)',
+                        'on-accent': 'rgb(var(--c-on-accent) / <alpha-value>)',
                         brand: {
                             orange: '#f74c00',
                             accent: '#ff6a00',
@@ -101,11 +123,52 @@
         }
     </script>
     <style>
+        :root, :root[data-theme="dark"] {
+            color-scheme: dark;
+            --c-paper: 9 9 11; --c-sunk: 14 14 18; --c-surface: 24 24 27; --c-surface2: 39 39 42; --c-surface3: 63 63 70;
+            --c-ink: 255 255 255; --c-ink2: 212 212 216; --c-muted: 161 161 170; --c-faint: 113 113 122; --c-dim: 82 82 91;
+            --c-on-accent: 255 255 255;
+            --grid-line: rgba(255, 255, 255, 0.04);
+            --glass-bg: rgba(18, 18, 22, 0.65); --glass-border: rgba(255, 255, 255, 0.08); --glass-shadow: 0 4px 24px -1px rgba(0, 0, 0, 0.4);
+            --md-text: #e4e4e7; --md-head: #ffffff; --md-quote: #d4d4d8; --md-code-bg: rgba(255, 255, 255, 0.08); --md-code-border: rgba(255, 255, 255, 0.12); --md-code-ink: #fca5a5; --md-hr: rgba(255, 255, 255, 0.1);
+            --glow: rgba(247, 76, 0, 0.08);
+        }
+        :root[data-theme="light"] {
+            color-scheme: light;
+            --c-paper: 250 247 242; --c-sunk: 244 240 233; --c-surface: 255 255 255; --c-surface2: 238 233 225; --c-surface3: 224 218 208;
+            --c-ink: 23 23 28; --c-ink2: 54 54 64; --c-muted: 90 90 102; --c-faint: 110 110 122; --c-dim: 150 150 160;
+            --c-on-accent: 23 23 28;
+            --grid-line: rgba(23, 23, 28, 0.045);
+            --glass-bg: rgba(255, 255, 255, 0.85); --glass-border: rgba(23, 23, 28, 0.10); --glass-shadow: 0 2px 14px -2px rgba(23, 23, 28, 0.10);
+            --md-text: #2a2a32; --md-head: #17171c; --md-quote: #3a3a44; --md-code-bg: rgba(23, 23, 28, 0.06); --md-code-border: rgba(23, 23, 28, 0.12); --md-code-ink: #b42318; --md-hr: rgba(23, 23, 28, 0.12);
+            --glow: rgba(247, 76, 0, 0.07);
+        }
+        main section, main > div { min-width: 0; max-width: 100%; }
+        main section { width: 100%; }
+        main pre { overflow-x: auto; max-width: 100%; }
+        h1, h2, h3 { font-family: "Familjen Grotesk", "Plus Jakarta Sans", sans-serif; letter-spacing: -0.02em; }
+        .theme-light-only { display: none !important; }
+        :root[data-theme="light"] .theme-light-only { display: inline-block !important; }
+        :root[data-theme="light"] .theme-dark-only { display: none !important; }
+        /* Light theme: pastel 300/400 accents need deeper shades to keep contrast on paper */
+        :root[data-theme="light"] .text-brand-orange, :root[data-theme="light"] .hover\:text-brand-orange:hover { color: #c2410c; }
+        :root[data-theme="light"] .text-emerald-300, :root[data-theme="light"] .text-emerald-400, :root[data-theme="light"] .hover\:text-emerald-400:hover, :root[data-theme="light"] .group:hover .group-hover\:text-emerald-400 { color: #047857; }
+        :root[data-theme="light"] .text-cyan-300, :root[data-theme="light"] .text-cyan-400, :root[data-theme="light"] .hover\:text-cyan-300:hover, :root[data-theme="light"] .group:hover .group-hover\:text-cyan-400 { color: #0e7490; }
+        :root[data-theme="light"] .text-amber-200, :root[data-theme="light"] .text-amber-300, :root[data-theme="light"] .text-amber-400, :root[data-theme="light"] .text-amber-500, :root[data-theme="light"] .hover\:text-amber-300:hover, :root[data-theme="light"] .hover\:text-amber-400:hover { color: #b45309; }
+        :root[data-theme="light"] .text-rose-300, :root[data-theme="light"] .text-rose-400, :root[data-theme="light"] .hover\:text-rose-400:hover, :root[data-theme="light"] .text-red-400 { color: #be123c; }
+        :root[data-theme="light"] .text-sky-300, :root[data-theme="light"] .text-sky-400, :root[data-theme="light"] .hover\:text-sky-300:hover, :root[data-theme="light"] .text-blue-400 { color: #0369a1; }
+        :root[data-theme="light"] .text-purple-400, :root[data-theme="light"] .text-pink-400 { color: #7e22ce; }
+        :root[data-theme="light"] .text-yellow-400, :root[data-theme="light"] .text-orange-100 { color: #a16207; }
+        :root[data-theme="light"] .markdown-body a, :root[data-theme="light"] ::selection { color: #c2410c; }
+        :root[data-theme="light"] ::selection { background: rgba(247, 76, 0, 0.25); color: #17171c; }
+        :root[data-theme="light"] .cyber-grid { opacity: 0.9; }
+        :root[data-theme="light"] img[src*="ferris_main"] { filter: drop-shadow(0 12px 18px rgba(23, 23, 28, 0.18)) !important; }
+        :root[data-theme="light"] .group > .blur-2xl { opacity: 0.25 !important; }
         ::selection { background: #f74c00; color: #ffffff; }
         .cyber-grid {
             background-image: 
-                linear-gradient(to right, rgba(255, 255, 255, 0.04) 1px, transparent 1px),
-                linear-gradient(to bottom, rgba(255, 255, 255, 0.04) 1px, transparent 1px);
+                linear-gradient(to right, var(--grid-line) 1px, transparent 1px),
+                linear-gradient(to bottom, var(--grid-line) 1px, transparent 1px);
             background-size: 48px 48px;
             mask-image: radial-gradient(ellipse at 50% 10%, black 40%, transparent 80%);
         }
@@ -116,11 +179,11 @@
         }
         /* Glassmorphism Card Style */
         .glass-card {
-            background: rgba(18, 18, 22, 0.65);
+            background: var(--glass-bg);
             backdrop-filter: blur(16px);
             -webkit-backdrop-filter: blur(16px);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            box-shadow: 0 4px 24px -1px rgba(0, 0, 0, 0.4);
+            border: 1px solid var(--glass-border);
+            box-shadow: var(--glass-shadow);
         }
         .glass-card:hover {
             border-color: rgba(247, 76, 0, 0.35);
@@ -132,12 +195,12 @@
 
         /* Custom Cyber-OLED Markdown Styling */
         .markdown-body {
-            color: #e4e4e7;
+            color: var(--md-text);
             font-size: 0.875rem;
             line-height: 1.65;
         }
         .markdown-body h1, .markdown-body h2, .markdown-body h3, .markdown-body h4 {
-            color: #ffffff;
+            color: var(--md-head);
             font-weight: 700;
             margin-top: 1rem;
             margin-bottom: 0.5rem;
@@ -161,13 +224,13 @@
             color: #ff6a00;
         }
         .markdown-body code:not(pre code) {
-            background: rgba(255, 255, 255, 0.08);
-            border: 1px solid rgba(255, 255, 255, 0.12);
+            background: var(--md-code-bg);
+            border: 1px solid var(--md-code-border);
             padding: 0.15rem 0.35rem;
             border-radius: 0.375rem;
             font-family: 'JetBrains Mono', monospace;
             font-size: 0.825em;
-            color: #fca5a5;
+            color: var(--md-code-ink);
         }
         .markdown-body pre {
             background: #09090b !important;
@@ -188,7 +251,7 @@
             background: rgba(247, 76, 0, 0.05);
             padding: 0.5rem 0.875rem;
             border-radius: 0 0.5rem 0.5rem 0;
-            color: #d4d4d8;
+            color: var(--md-quote);
             margin: 0.75rem 0;
         }
         .markdown-body ul {
@@ -202,7 +265,7 @@
             margin-bottom: 0.65rem;
         }
         .markdown-body hr {
-            border-color: rgba(255, 255, 255, 0.1);
+            border-color: var(--md-hr);
             margin: 1rem 0;
         }
     </style>
@@ -256,7 +319,7 @@
                 hero_h1_systems: "Tizimli Dasturlash.",
                 hero_h1_memory: "Xotira Xavfsizligi.",
                 hero_h1_speed: "Maksimal Tezlik.",
-                hero_subtitle: 'Garbage Collector kechikishlarisiz, toza xotira va yuqori RPS. O\'zbekiston Rustaceanlari forumi, faol jamiyatlar va rasmiy <code class="text-brand-orange font-mono font-medium px-2 py-0.5 rounded-lg bg-zinc-900 border border-white/10">ferris-cli</code> Linux Security Enclave vositasi.',
+                hero_subtitle: 'Garbage Collector kechikishlarisiz, toza xotira va yuqori RPS. O\'zbekiston Rustaceanlari forumi, faol jamiyatlar va rasmiy <code class="text-brand-orange font-mono font-medium px-2 py-0.5 rounded-lg bg-surface border border-ink/10">ferris-cli</code> Linux Security Enclave vositasi.',
                 hero_btn_install: "ferris-cli O'rnatish",
                 hero_btn_forum: "Mavzular & Forum →",
                 btn_copy: "Nusxa",
@@ -274,7 +337,7 @@
                 subdomain_title: "Ferris.uz Subdomenlar Tizimi",
                 subdomain_desc: "Har bir yo'nalish alohida subdomen, yuqori RPS va mustaqil servislar orqali ta'minlangan",
                 card_topics_title: "Mavzular & Forum",
-                card_topics_desc: '<code class="text-zinc-300 font-mono">f/rust</code>, <code class="text-zinc-300 font-mono">f/async</code>, <code class="text-zinc-300 font-mono">f/systems</code> va <code class="text-zinc-300 font-mono">f/quantum</code> yo\'nalishlarida chuqur texnik maqolalar va ochiq muhokamalar.',
+                card_topics_desc: '<code class="text-ink2 font-mono">f/rust</code>, <code class="text-ink2 font-mono">f/async</code>, <code class="text-ink2 font-mono">f/systems</code> va <code class="text-ink2 font-mono">f/quantum</code> yo\'nalishlarida chuqur texnik maqolalar va ochiq muhokamalar.',
                 card_topics_action: "Mavzularga o'tish",
                 card_groups_title: "Jamiyatlar & Guruhlar",
                 card_groups_desc: "Rustacean to'garaklari, hududiy meetup guruhlari va ochiq manbali loyihalar katalogi. Yangi jamiyat ochish va birlashish maydoni.",
@@ -288,9 +351,9 @@
                 cli_section_title: "ferris-cli — Terminal Vositasini O'rnatish",
                 cli_section_desc: "Linux Landlock LSM yadroviy qamali, ChaCha20-Poly1305 sirlar ombori va Zero-Trust tarmoq izolyatsiyasiga ega rasmiy terminal ilovasi (v0.3.0).",
                 cli_deb_pkg: ".deb Paket",
-                cli_tab_linux_note: 'Binar SHA-256 xesh tekshiruvi bilan avtomatik <code class="text-zinc-400">/usr/local/bin/ferris</code> (yoki <code class="text-zinc-400">~/.local/bin/ferris</code>) ga xavfsiz o\'rnatiladi.',
+                cli_tab_linux_note: 'Binar SHA-256 xesh tekshiruvi bilan avtomatik <code class="text-muted">/usr/local/bin/ferris</code> (yoki <code class="text-muted">~/.local/bin/ferris</code>) ga xavfsiz o\'rnatiladi.',
                 cli_tab_brew_note: 'macOS (Apple Silicon M1-M4 & Intel) va Linuxbrew uchun to\'liq avtomatik formula.',
-                cli_tab_arch_note: 'Yoki manbadan yig\'ish uchun: <code class="text-zinc-400">paru -S ferris-cli</code>',
+                cli_tab_arch_note: 'Yoki manbadan yig\'ish uchun: <code class="text-muted">paru -S ferris-cli</code>',
                 cli_tab_debian_note: 'Debian, Ubuntu, Linux Mint va Pop!_OS tizimlariga rasmiy paket boshqaruvi bilan o\'rnatish.',
                 cli_tab_windows_note: 'PowerShell orqali avtomatik foydalanuvchi PATH muhitiga qo\'shiladi.',
                 cli_tab_cargo_note: 'Rust toolchain mavjud barcha operatsion tizimlarda to\'g\'ridan-to\'g\'ri Crates.io reyestridan o\'rnatish.',
@@ -368,7 +431,7 @@
                 hero_h1_systems: "Systems Programming.",
                 hero_h1_memory: "Memory Safety.",
                 hero_h1_speed: "Maximum Speed.",
-                hero_subtitle: 'Zero Garbage Collector pauses, guaranteed memory safety, and maximum RPS. The official community forum for Uzbek Rustaceans, active hubs, and the official <code class="text-brand-orange font-mono font-medium px-2 py-0.5 rounded-lg bg-zinc-900 border border-white/10">ferris-cli</code> Linux Security Enclave.',
+                hero_subtitle: 'Zero Garbage Collector pauses, guaranteed memory safety, and maximum RPS. The official community forum for Uzbek Rustaceans, active hubs, and the official <code class="text-brand-orange font-mono font-medium px-2 py-0.5 rounded-lg bg-surface border border-ink/10">ferris-cli</code> Linux Security Enclave.',
                 hero_btn_install: "Install ferris-cli",
                 hero_btn_forum: "Topics & Forum →",
                 btn_copy: "Copy",
@@ -386,7 +449,7 @@
                 subdomain_title: "Ferris.uz Subdomain Architecture",
                 subdomain_desc: "Every domain powered by dedicated microservices, ultra-low latency, and high RPS",
                 card_topics_title: "Topics & Forum",
-                card_topics_desc: 'In-depth technical articles and open discussions across <code class="text-zinc-300 font-mono">f/rust</code>, <code class="text-zinc-300 font-mono">f/async</code>, <code class="text-zinc-300 font-mono">f/systems</code>, and <code class="text-zinc-300 font-mono">f/quantum</code>.',
+                card_topics_desc: 'In-depth technical articles and open discussions across <code class="text-ink2 font-mono">f/rust</code>, <code class="text-ink2 font-mono">f/async</code>, <code class="text-ink2 font-mono">f/systems</code>, and <code class="text-ink2 font-mono">f/quantum</code>.',
                 card_topics_action: "Explore Topics",
                 card_groups_title: "Communities & Groups",
                 card_groups_desc: "Rustacean student clubs, regional meetup groups, and open-source directory. Launch your community.",
@@ -400,9 +463,9 @@
                 cli_section_title: "ferris-cli — Developer Security Terminal",
                 cli_section_desc: "Official developer CLI featuring Linux Landlock LSM kernel sandbox, ChaCha20-Poly1305 vault, and Zero-Trust network isolation (v0.3.0).",
                 cli_deb_pkg: ".deb Package",
-                cli_tab_linux_note: 'Securely installed to <code class="text-zinc-400">/usr/local/bin/ferris</code> (or <code class="text-zinc-400">~/.local/bin/ferris</code>) with automatic SHA-256 hash verification.',
+                cli_tab_linux_note: 'Securely installed to <code class="text-muted">/usr/local/bin/ferris</code> (or <code class="text-muted">~/.local/bin/ferris</code>) with automatic SHA-256 hash verification.',
                 cli_tab_brew_note: 'Fully automated formula for macOS (Apple Silicon M1-M4 & Intel) and Linuxbrew.',
-                cli_tab_arch_note: 'Or build from source via: <code class="text-zinc-400">paru -S ferris-cli</code>',
+                cli_tab_arch_note: 'Or build from source via: <code class="text-muted">paru -S ferris-cli</code>',
                 cli_tab_debian_note: 'Install via official package manager on Debian, Ubuntu, Linux Mint, and Pop!_OS.',
                 cli_tab_windows_note: 'Automatically appended to user PATH environment via PowerShell.',
                 cli_tab_cargo_note: 'Direct installation from Crates.io registry across all operating systems with a Rust toolchain.',
@@ -456,9 +519,9 @@
             if (uzLabel && enLabel) {
                 if (lang === 'uz') {
                     uzLabel.className = 'font-bold text-brand-orange transition-colors';
-                    enLabel.className = 'text-zinc-400 hover:text-white transition-colors';
+                    enLabel.className = 'text-muted hover:text-ink transition-colors';
                 } else {
-                    uzLabel.className = 'text-zinc-400 hover:text-white transition-colors';
+                    uzLabel.className = 'text-muted hover:text-ink transition-colors';
                     enLabel.className = 'font-bold text-brand-orange transition-colors';
                 }
             }
@@ -468,11 +531,11 @@
             const dEn = document.getElementById('drawerLangEn');
             if (dUz && dEn) {
                 if (lang === 'uz') {
-                    dUz.className = 'px-2.5 py-1 rounded-lg bg-brand-orange text-white font-bold transition-all cursor-pointer';
-                    dEn.className = 'px-2.5 py-1 rounded-lg bg-zinc-800 text-zinc-400 hover:text-white transition-all cursor-pointer';
+                    dUz.className = 'px-2.5 py-1 rounded-lg bg-brand-orange text-on-accent font-bold transition-all cursor-pointer';
+                    dEn.className = 'px-2.5 py-1 rounded-lg bg-surface2 text-muted hover:text-ink transition-all cursor-pointer';
                 } else {
-                    dUz.className = 'px-2.5 py-1 rounded-lg bg-zinc-800 text-zinc-400 hover:text-white transition-all cursor-pointer';
-                    dEn.className = 'px-2.5 py-1 rounded-lg bg-brand-orange text-white font-bold transition-all cursor-pointer';
+                    dUz.className = 'px-2.5 py-1 rounded-lg bg-surface2 text-muted hover:text-ink transition-all cursor-pointer';
+                    dEn.className = 'px-2.5 py-1 rounded-lg bg-brand-orange text-on-accent font-bold transition-all cursor-pointer';
                 }
             }
 
@@ -530,33 +593,34 @@
     </script>
     {% block extra_head %}{% endblock %}
 </head>
-<body class="bg-black text-zinc-100 font-sans antialiased min-h-screen flex flex-col relative selection:bg-brand-orange selection:text-white">
+<body class="bg-paper text-ink font-sans antialiased min-h-screen flex flex-col relative selection:bg-brand-orange selection:text-on-accent">
     <!-- Ambient Backdrop -->
-    <div class="fixed inset-0 pointer-events-none -z-10 bg-[radial-gradient(circle_at_50%_0%,rgba(247,76,0,0.08)_0%,transparent_60%)]">
+    <div class="fixed inset-0 pointer-events-none -z-10 bg-[radial-gradient(circle_at_50%_0%,var(--glow)_0%,transparent_60%)]">
         <div class="absolute inset-0 cyber-grid"></div>
     </div>
 
     <!-- Top Navigation Bar -->
-    <header class="sticky top-0 z-50 bg-black/80 backdrop-blur-xl border-b border-white/10 transition-all">
+    <header class="sticky top-0 z-50 bg-paper/80 backdrop-blur-xl border-b border-ink/10 transition-all">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-2 sm:gap-4">
             <!-- Left: Brand Logo & Primary Nav -->
             <div class="flex items-center gap-5 lg:gap-7 shrink-0">
                 <a href="https://ferris.uz" class="flex items-center gap-2.5 sm:gap-3 group shrink-0">
-                    <img src="/logo-mark.svg" alt="Ferris" width="40" height="32" class="w-10 h-8 object-contain group-hover:scale-105 transition-transform"/>
-                    <span class="text-lg sm:text-xl font-bold tracking-tight text-white flex items-center">
+                    <img src="/logo-mark.svg" alt="Ferris" width="40" height="32" class="theme-dark-only w-10 h-8 object-contain group-hover:scale-105 transition-transform"/>
+                    <img src="/logo-mark-light.svg" alt="Ferris" width="40" height="32" class="theme-light-only w-10 h-8 object-contain group-hover:scale-105 transition-transform"/>
+                    <span class="text-lg sm:text-xl font-bold tracking-tight text-ink flex items-center">
                         ferris<span class="text-brand-orange">.uz</span>
                     </span>
                 </a>
 
                 <!-- Core Navigation Links -->
-                <nav class="hidden md:flex items-center gap-5 text-sm font-medium text-zinc-400">
-                    <a href="https://topics.ferris.uz" class="hover:text-white transition-colors flex items-center gap-1.5 py-1 whitespace-nowrap">
+                <nav class="hidden md:flex items-center gap-5 text-sm font-medium text-muted">
+                    <a href="https://topics.ferris.uz" class="hover:text-ink transition-colors flex items-center gap-1.5 py-1 whitespace-nowrap">
                         <i data-lucide="layers" class="w-4 h-4 text-brand-orange"></i> <span data-i18n="nav_topics">Mavzular</span>
                     </a>
-                    <a href="https://groups.ferris.uz" class="hover:text-white transition-colors flex items-center gap-1.5 py-1 whitespace-nowrap">
+                    <a href="https://groups.ferris.uz" class="hover:text-ink transition-colors flex items-center gap-1.5 py-1 whitespace-nowrap">
                         <i data-lucide="users" class="w-4 h-4 text-emerald-400"></i> <span data-i18n="nav_groups">Jamiyatlar</span>
                     </a>
-                    <a href="https://doc.ferris.uz" target="_blank" rel="noopener" class="hover:text-white transition-colors flex items-center gap-1.5 py-1 whitespace-nowrap">
+                    <a href="https://doc.ferris.uz" target="_blank" rel="noopener" class="hover:text-ink transition-colors flex items-center gap-1.5 py-1 whitespace-nowrap">
                         <i data-lucide="book-open" class="w-4 h-4 text-cyan-400"></i> <span data-i18n="nav_book">Rust Kitobi</span>
                     </a>
                 </nav>
@@ -564,45 +628,51 @@
 
             <!-- Center: Sleek Quick Search Bar -->
             <div class="flex-grow max-w-md mx-2 lg:mx-4 hidden sm:block">
-                <button onclick="openSearchModal()" class="w-full flex items-center justify-between px-3.5 py-2 text-xs rounded-xl bg-zinc-900/80 hover:bg-zinc-800 border border-white/10 hover:border-brand-orange/40 text-zinc-400 hover:text-white transition-all shadow-sm group cursor-pointer text-left">
+                <button onclick="openSearchModal()" class="w-full flex items-center justify-between px-3.5 py-2 text-xs rounded-xl bg-surface/80 hover:bg-surface2 border border-ink/10 hover:border-brand-orange/40 text-muted hover:text-ink transition-all shadow-sm group cursor-pointer text-left">
                     <span class="flex items-center gap-2.5 truncate">
-                        <i data-lucide="search" class="w-4 h-4 text-zinc-400 group-hover:text-brand-orange transition-colors shrink-0"></i>
+                        <i data-lucide="search" class="w-4 h-4 text-muted group-hover:text-brand-orange transition-colors shrink-0"></i>
                         <span class="truncate" data-i18n="nav_search_placeholder">Mavzular, jamiyatlar, kodlar...</span>
                     </span>
-                    <kbd class="hidden md:inline-block px-1.5 py-0.5 text-[10px] font-mono text-zinc-500 bg-black/60 border border-white/10 rounded shrink-0">Ctrl+K</kbd>
+                    <kbd class="hidden md:inline-block px-1.5 py-0.5 text-[10px] font-mono text-faint bg-paper/60 border border-ink/10 rounded shrink-0">Ctrl+K</kbd>
                 </button>
             </div>
 
             <!-- Right: Tools + Direct Messages + Profile -->
             <div class="flex items-center gap-2 sm:gap-2.5 shrink-0">
                 <!-- Mobile Search Trigger Button -->
-                <button onclick="openSearchModal()" class="sm:hidden p-2 rounded-xl text-zinc-400 hover:text-white hover:bg-zinc-900 border border-white/10 transition-colors" title="Qidiruv">
+                <button onclick="openSearchModal()" class="hidden p-2 rounded-xl text-muted hover:text-ink hover:bg-surface border border-ink/10 transition-colors" title="Qidiruv">
                     <i data-lucide="search" class="w-4 h-4 text-brand-orange"></i>
                 </button>
 
+                <!-- Theme toggle (light / dark) -->
+                <button id="themeToggleBtn" type="button" onclick="toggleTheme()" class="p-2 rounded-xl bg-surface/90 hover:bg-surface2 border border-ink/15 hover:border-brand-orange/40 text-muted hover:text-ink transition-all cursor-pointer" title="Mavzuni almashtirish / Toggle theme" aria-label="Toggle theme">
+                    <svg class="theme-dark-only w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>
+                    <svg class="theme-light-only w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+                </button>
+
                 <!-- Modern UZ / EN Language Switcher Toggle Button -->
-                <button id="langToggleBtn" onclick="toggleLanguage()" class="px-2.5 py-1.5 rounded-xl bg-zinc-900/90 hover:bg-zinc-800 border border-white/15 hover:border-brand-orange/40 text-xs font-mono transition-all flex items-center gap-1.5 cursor-pointer select-none group shadow-sm" title="Tilni almashtirish / Switch language (UZ / EN)" aria-label="Switch Language">
-                    <i data-lucide="globe" class="w-3.5 h-3.5 text-zinc-400 group-hover:text-brand-orange transition-colors"></i>
+                <button id="langToggleBtn" onclick="toggleLanguage()" class="px-2.5 py-1.5 rounded-xl bg-surface/90 hover:bg-surface2 border border-ink/15 hover:border-brand-orange/40 text-xs font-mono transition-all hidden sm:flex items-center gap-1.5 cursor-pointer select-none group shadow-sm" title="Tilni almashtirish / Switch language (UZ / EN)" aria-label="Switch Language">
+                    <i data-lucide="globe" class="w-3.5 h-3.5 text-muted group-hover:text-brand-orange transition-colors"></i>
                     <span id="langUzLabel" class="text-brand-orange font-bold transition-colors">UZ</span>
-                    <span class="text-zinc-600 font-sans text-[11px]">|</span>
-                    <span id="langEnLabel" class="text-zinc-400 hover:text-white transition-colors">EN</span>
+                    <span class="text-dim font-sans text-[11px]">|</span>
+                    <span id="langEnLabel" class="text-muted hover:text-ink transition-colors">EN</span>
                 </button>
 
                 <!-- ferris-cli Download Badge -->
-                <a href="https://ferris.uz#cli-download" class="hidden lg:inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-xl bg-zinc-900 border border-white/15 text-zinc-300 hover:text-white hover:bg-zinc-800 hover:border-brand-orange/40 transition-all whitespace-nowrap">
-                    <i data-lucide="terminal" class="w-3.5 h-3.5 text-zinc-400"></i>
+                <a href="https://ferris.uz#cli-download" class="hidden lg:inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-xl bg-surface border border-ink/15 text-ink2 hover:text-ink hover:bg-surface2 hover:border-brand-orange/40 transition-all whitespace-nowrap">
+                    <i data-lucide="terminal" class="w-3.5 h-3.5 text-muted"></i>
                     <span>ferris-cli</span>
                 </a>
 
                 <!-- GitHub Icon Button -->
-                <a href="https://github.com/rust-uz/ferris" target="_blank" rel="noopener" class="p-2 rounded-xl text-zinc-400 hover:text-white hover:bg-zinc-900 border border-white/10 transition-colors hidden sm:inline-flex items-center" title="GitHub (rust-uz/ferris)">
+                <a href="https://github.com/rust-uz/ferris" target="_blank" rel="noopener" class="p-2 rounded-xl text-muted hover:text-ink hover:bg-surface border border-ink/10 transition-colors hidden sm:inline-flex items-center" title="GitHub (rust-uz/ferris)">
                     <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
                 </a>
 
                 <!-- Auth Navigation Element -->
                 <div id="authNavWrapper" class="flex items-center gap-2">
                     <!-- State: Logged Out -->
-                    <button id="navLoginBtn" onclick="openAuthModal()" class="inline-flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-semibold rounded-xl bg-brand-orange hover:bg-orange-600 text-white transition-all shadow-sm whitespace-nowrap cursor-pointer">
+                    <button id="navLoginBtn" onclick="openAuthModal()" class="inline-flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-semibold rounded-xl bg-brand-orange hover:bg-orange-600 text-on-accent transition-all shadow-sm whitespace-nowrap cursor-pointer">
                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"></path></svg>
                         <span data-i18n="nav_login">Kirish</span>
                     </button>
@@ -610,19 +680,19 @@
                     <!-- State: Logged In -->
                     <div id="navUserBlock" class="hidden items-center gap-2">
                         <!-- DM Button with ping badge -->
-                        <button id="navDmBtn" onclick="toggleDmDrawer()" class="relative p-2 rounded-xl bg-zinc-900/80 hover:bg-zinc-800 border border-white/10 text-xs font-semibold text-zinc-300 hover:text-white transition-colors flex items-center cursor-pointer" title="Shaxsiy Xabarlar (DM)">
+                        <button id="navDmBtn" onclick="toggleDmDrawer()" class="relative p-2 rounded-xl bg-surface/80 hover:bg-surface2 border border-ink/10 text-xs font-semibold text-ink2 hover:text-ink transition-colors flex items-center cursor-pointer" title="Shaxsiy Xabarlar (DM)">
                             <i data-lucide="mail" class="w-4 h-4"></i>
                             <span id="navDmBadge" class="hidden absolute top-1 right-1 w-2 h-2 rounded-full bg-brand-orange animate-ping"></span>
                         </button>
 
                         <!-- Profile Chip (Avatar + @username) -->
-                        <a href="https://ferris.uz/profile" class="flex items-center gap-2 p-1.5 px-3 rounded-xl bg-zinc-900/80 hover:bg-zinc-800 border border-white/10 hover:border-brand-orange/40 transition-all cursor-pointer whitespace-nowrap" title="Mening Profilim">
-                            <img id="navUserAvatar" src="/logo.jpg" alt="Avatar" class="w-6 h-6 rounded-full object-cover border border-white/20"/>
-                            <span id="navUserName" class="text-xs font-semibold text-zinc-200 max-w-[110px] truncate"></span>
+                        <a href="https://ferris.uz/profile" class="flex items-center gap-2 p-1.5 px-3 rounded-xl bg-surface/80 hover:bg-surface2 border border-ink/10 hover:border-brand-orange/40 transition-all cursor-pointer whitespace-nowrap" title="Mening Profilim">
+                            <img id="navUserAvatar" src="/logo.jpg" alt="Avatar" class="w-6 h-6 rounded-full object-cover border border-ink/20"/>
+                            <span id="navUserName" class="text-xs font-semibold text-ink max-w-[110px] truncate"></span>
                         </a>
 
                         <!-- Logout Button -->
-                        <button onclick="logoutUser()" class="p-2 text-zinc-400 hover:text-rose-400 rounded-xl hover:bg-zinc-900 border border-transparent hover:border-white/10 transition-colors cursor-pointer" title="Chiqish">
+                        <button onclick="logoutUser()" class="p-2 text-muted hover:text-rose-400 rounded-xl hover:bg-surface border border-transparent hover:border-ink/10 transition-colors cursor-pointer" title="Chiqish">
                             <i data-lucide="log-out" class="w-4 h-4"></i>
                         </button>
                     </div>
@@ -651,7 +721,7 @@
                 </script>
 
                 <!-- Mobile Menu Button -->
-                <button id="mobileMenuBtn" class="md:hidden p-2 rounded-xl text-zinc-400 hover:text-white hover:bg-zinc-900 border border-white/10 transition-colors focus:outline-none" aria-label="Menyu">
+                <button id="mobileMenuBtn" class="md:hidden p-2 rounded-xl text-muted hover:text-ink hover:bg-surface border border-ink/10 transition-colors focus:outline-none" aria-label="Menyu">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
                     </svg>
@@ -661,54 +731,54 @@
     </header>
 
     <!-- Mobile Drawer -->
-    <div id="mobileDrawer" class="hidden lg:hidden fixed inset-x-0 top-16 bg-zinc-950/98 backdrop-blur-2xl border-b border-white/10 px-5 py-6 z-40 transition-all max-h-[calc(100vh-4rem)] overflow-y-auto">
+    <div id="mobileDrawer" class="hidden lg:hidden fixed inset-x-0 top-16 bg-sunk/98 backdrop-blur-2xl border-b border-ink/10 px-5 py-6 z-40 transition-all max-h-[calc(100vh-4rem)] overflow-y-auto">
         <div class="flex flex-col gap-3 text-sm font-medium">
             <!-- Mobile Language Switcher -->
-            <div class="flex items-center justify-between p-2.5 rounded-xl bg-zinc-900/80 border border-white/10">
-                <span class="flex items-center gap-2.5 text-zinc-300">
+            <div class="flex items-center justify-between p-2.5 rounded-xl bg-surface/80 border border-ink/10">
+                <span class="flex items-center gap-2.5 text-ink2">
                     <i data-lucide="globe" class="w-4 h-4 text-brand-orange"></i>
                     <span data-i18n="drawer_lang_label">Til / Language</span>
                 </span>
                 <div class="flex items-center gap-1 font-mono text-xs">
-                    <button onclick="setLanguage('uz')" id="drawerLangUz" class="px-2.5 py-1 rounded-lg bg-brand-orange text-white font-bold transition-all cursor-pointer">UZ</button>
-                    <button onclick="setLanguage('en')" id="drawerLangEn" class="px-2.5 py-1 rounded-lg bg-zinc-800 text-zinc-400 hover:text-white transition-all cursor-pointer">EN</button>
+                    <button onclick="setLanguage('uz')" id="drawerLangUz" class="px-2.5 py-1 rounded-lg bg-brand-orange text-on-accent font-bold transition-all cursor-pointer">UZ</button>
+                    <button onclick="setLanguage('en')" id="drawerLangEn" class="px-2.5 py-1 rounded-lg bg-surface2 text-muted hover:text-ink transition-all cursor-pointer">EN</button>
                 </div>
             </div>
 
-            <button onclick="openSearchModal(); document.getElementById('mobileDrawer').classList.add('hidden');" class="text-zinc-200 hover:text-white flex items-center justify-between p-2.5 rounded-xl bg-zinc-900/80 border border-white/10 hover:border-brand-orange/40 transition-all text-left">
+            <button onclick="openSearchModal(); document.getElementById('mobileDrawer').classList.add('hidden');" class="text-ink hover:text-ink flex items-center justify-between p-2.5 rounded-xl bg-surface/80 border border-ink/10 hover:border-brand-orange/40 transition-all text-left">
                 <span class="flex items-center gap-2.5"><i data-lucide="search" class="w-4 h-4 text-brand-orange"></i> <span data-i18n="drawer_search">Tezkor Qidiruv</span></span>
-                <span class="text-xs font-mono text-zinc-400 bg-black/60 px-2 py-0.5 rounded border border-white/10">Ctrl+K</span>
+                <span class="text-xs font-mono text-muted bg-paper/60 px-2 py-0.5 rounded border border-ink/10">Ctrl+K</span>
             </button>
-            <a href="https://topics.ferris.uz" class="text-zinc-200 hover:text-white flex items-center justify-between p-2.5 rounded-xl hover:bg-zinc-900/60 border border-transparent hover:border-white/5 transition-all">
+            <a href="https://topics.ferris.uz" class="text-ink hover:text-ink flex items-center justify-between p-2.5 rounded-xl hover:bg-surface/60 border border-transparent hover:border-ink/5 transition-all">
                 <span class="flex items-center gap-2.5"><i data-lucide="layers" class="w-4 h-4 text-brand-orange"></i> <span data-i18n="drawer_topics">topics.ferris.uz (Mavzular)</span></span>
                 <span class="text-xs font-mono text-brand-orange bg-brand-orange/10 px-2 py-0.5 rounded-md">Forum &rarr;</span>
             </a>
-            <a href="https://groups.ferris.uz" class="text-zinc-200 hover:text-white flex items-center justify-between p-2.5 rounded-xl hover:bg-zinc-900/60 border border-transparent hover:border-white/5 transition-all">
+            <a href="https://groups.ferris.uz" class="text-ink hover:text-ink flex items-center justify-between p-2.5 rounded-xl hover:bg-surface/60 border border-transparent hover:border-ink/5 transition-all">
                 <span class="flex items-center gap-2.5"><i data-lucide="users" class="w-4 h-4 text-emerald-400"></i> <span data-i18n="drawer_groups">groups.ferris.uz (Jamiyatlar)</span></span>
                 <span class="text-xs font-mono text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-md">Katalog &rarr;</span>
             </a>
-            <a href="https://doc.ferris.uz" target="_blank" rel="noopener" class="text-zinc-200 hover:text-white flex items-center justify-between p-2.5 rounded-xl hover:bg-zinc-900/60 border border-transparent hover:border-white/5 transition-all">
+            <a href="https://doc.ferris.uz" target="_blank" rel="noopener" class="text-ink hover:text-ink flex items-center justify-between p-2.5 rounded-xl hover:bg-surface/60 border border-transparent hover:border-ink/5 transition-all">
                 <span class="flex items-center gap-2.5"><i data-lucide="book-open" class="w-4 h-4 text-cyan-400"></i> <span data-i18n="drawer_book">doc.ferris.uz (Rust Kitobi)</span></span>
                 <span class="text-xs font-mono text-cyan-400 bg-cyan-500/10 px-2 py-0.5 rounded-md">O'zbekcha &rarr;</span>
             </a>
-            <button onclick="toggleDmDrawer()" class="text-left text-zinc-200 hover:text-white p-2.5 rounded-xl hover:bg-zinc-900/60 border border-transparent hover:border-white/5 flex items-center justify-between transition-all">
+            <button onclick="toggleDmDrawer()" class="text-left text-ink hover:text-ink p-2.5 rounded-xl hover:bg-surface/60 border border-transparent hover:border-ink/5 flex items-center justify-between transition-all">
                 <span class="flex items-center gap-2.5"><i data-lucide="mail" class="w-4 h-4 text-cyan-400"></i> <span data-i18n="drawer_dm">Shaxsiy Xabarlar (DM)</span></span>
                 <span class="text-xs font-mono text-cyan-400 bg-cyan-500/10 px-2 py-0.5 rounded-md">Jonli WS &rarr;</span>
             </button>
-            <a href="https://ferris.uz/profile" id="mobileProfileLink" class="hidden text-zinc-200 hover:text-white p-2.5 rounded-xl hover:bg-zinc-900/60 border border-transparent hover:border-white/5">
-                <span class="flex items-center gap-2.5"><i data-lucide="user" class="w-4 h-4 text-zinc-400"></i> <span data-i18n="drawer_profile">Mening Profilim</span></span>
+            <a href="https://ferris.uz/profile" id="mobileProfileLink" class="hidden text-ink hover:text-ink p-2.5 rounded-xl hover:bg-surface/60 border border-transparent hover:border-ink/5">
+                <span class="flex items-center gap-2.5"><i data-lucide="user" class="w-4 h-4 text-muted"></i> <span data-i18n="drawer_profile">Mening Profilim</span></span>
             </a>
-            <a href="https://ferris.uz#cli-download" class="text-zinc-200 hover:text-white p-2.5 rounded-xl hover:bg-zinc-900/60 border border-transparent hover:border-white/5">
-                <span class="flex items-center gap-2.5"><i data-lucide="terminal" class="w-4 h-4 text-zinc-400"></i> <span data-i18n="drawer_install">ferris-cli O'rnatish</span></span>
+            <a href="https://ferris.uz#cli-download" class="text-ink hover:text-ink p-2.5 rounded-xl hover:bg-surface/60 border border-transparent hover:border-ink/5">
+                <span class="flex items-center gap-2.5"><i data-lucide="terminal" class="w-4 h-4 text-muted"></i> <span data-i18n="drawer_install">ferris-cli O'rnatish</span></span>
             </a>
-            <a href="https://ferris.uz#playground" class="text-zinc-200 hover:text-white p-2.5 rounded-xl hover:bg-zinc-900/60 border border-transparent hover:border-white/5">
+            <a href="https://ferris.uz#playground" class="text-ink hover:text-ink p-2.5 rounded-xl hover:bg-surface/60 border border-transparent hover:border-ink/5">
                 <span class="flex items-center gap-2.5"><i data-lucide="play" class="w-4 h-4 text-brand-orange"></i> <span data-i18n="drawer_playground">Rust Kod Playground</span></span>
             </a>
-            <a href="https://api.ferris.uz/api/v1/context" target="_blank" class="text-zinc-200 hover:text-white p-2.5 rounded-xl hover:bg-zinc-900/60 border border-transparent hover:border-white/5 flex items-center justify-between">
+            <a href="https://api.ferris.uz/api/v1/context" target="_blank" class="text-ink hover:text-ink p-2.5 rounded-xl hover:bg-surface/60 border border-transparent hover:border-ink/5 flex items-center justify-between">
                 <span class="flex items-center gap-2.5"><i data-lucide="cpu" class="w-4 h-4 text-cyan-400"></i> <span data-i18n="drawer_api">api.ferris.uz (JSON API)</span></span>
-                <span class="text-xs font-mono text-zinc-500">v1 &rarr;</span>
+                <span class="text-xs font-mono text-faint">v1 &rarr;</span>
             </a>
-            <a href="https://github.com/rust-uz/ferris" target="_blank" rel="noopener" class="text-zinc-200 hover:text-white p-2.5 rounded-xl hover:bg-zinc-900/60 border border-transparent hover:border-white/5 flex items-center justify-between mt-2 pt-3 border-t border-white/5">
+            <a href="https://github.com/rust-uz/ferris" target="_blank" rel="noopener" class="text-ink hover:text-ink p-2.5 rounded-xl hover:bg-surface/60 border border-transparent hover:border-ink/5 flex items-center justify-between mt-2 pt-3 border-t border-ink/5">
                 <span class="flex items-center gap-2">
                     <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
                     <span>GitHub: rust-uz/ferris</span>
@@ -724,54 +794,55 @@
     </main>
 
     <!-- Clean Compact Minimalist Footer -->
-    <footer class="border-t border-white/10 bg-zinc-950/80 mt-20 py-10 px-4 sm:px-6 lg:px-8">
-        <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6 text-xs text-zinc-500 font-mono">
+    <footer class="border-t border-ink/10 bg-sunk/80 mt-20 py-10 px-4 sm:px-6 lg:px-8">
+        <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6 text-xs text-faint font-mono">
             <div class="flex items-center gap-3">
-                <img src="/logo-mark.svg" alt="Ferris" width="32" height="26" class="w-8 h-auto object-contain opacity-90"/>
-                <span class="text-zinc-200 font-bold font-sans tracking-tight text-sm">ferris<span class="text-brand-orange">.uz</span></span>
-                <span class="hidden sm:inline text-zinc-600">&bull;</span>
-                <span class="text-zinc-400" data-i18n="footer_ecosystem">Rust Uzbekistan Rasmiy Ekotizimi</span>
+                <img src="/logo-mark.svg" alt="Ferris" width="32" height="26" class="theme-dark-only w-8 h-auto object-contain opacity-90"/>
+                <img src="/logo-mark-light.svg" alt="Ferris" width="32" height="26" class="theme-light-only w-8 h-auto object-contain"/>
+                <span class="text-ink font-bold font-sans tracking-tight text-sm">ferris<span class="text-brand-orange">.uz</span></span>
+                <span class="hidden sm:inline text-dim">&bull;</span>
+                <span class="text-muted" data-i18n="footer_ecosystem">Rust Uzbekistan Rasmiy Ekotizimi</span>
             </div>
             <div class="flex flex-wrap items-center justify-center gap-x-6 gap-y-2">
-                <a href="https://topics.ferris.uz" class="hover:text-zinc-300 transition-colors">topics.ferris.uz</a>
-                <a href="https://groups.ferris.uz" class="hover:text-zinc-300 transition-colors">groups.ferris.uz</a>
-                <a href="https://ferris.uz/profile" class="hover:text-zinc-300 transition-colors" data-i18n="footer_profile">Profil</a>
-                <a href="https://ferris.uz/privacy" class="hover:text-zinc-300 transition-colors text-zinc-400 font-sans" data-i18n="footer_privacy">Maxfiylik Siyosati</a>
-                <a href="https://ferris.uz/terms" class="hover:text-zinc-300 transition-colors text-zinc-400 font-sans" data-i18n="footer_terms">Foydalanish Qoidalari</a>
-                <a href="https://api.ferris.uz/api/v1/context" class="hover:text-zinc-300 transition-colors">api.ferris.uz</a>
+                <a href="https://topics.ferris.uz" class="hover:text-ink2 transition-colors">topics.ferris.uz</a>
+                <a href="https://groups.ferris.uz" class="hover:text-ink2 transition-colors">groups.ferris.uz</a>
+                <a href="https://ferris.uz/profile" class="hover:text-ink2 transition-colors" data-i18n="footer_profile">Profil</a>
+                <a href="https://ferris.uz/privacy" class="hover:text-ink2 transition-colors text-muted font-sans" data-i18n="footer_privacy">Maxfiylik Siyosati</a>
+                <a href="https://ferris.uz/terms" class="hover:text-ink2 transition-colors text-muted font-sans" data-i18n="footer_terms">Foydalanish Qoidalari</a>
+                <a href="https://api.ferris.uz/api/v1/context" class="hover:text-ink2 transition-colors">api.ferris.uz</a>
                 <a href="https://github.com/rust-uz/ferris" target="_blank" rel="noopener" class="hover:text-amber-400 transition-colors flex items-center gap-1.5 font-sans">
                     <svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
                     <span>rust-uz/ferris</span>
                 </a>
             </div>
-            <div class="text-zinc-600">
+            <div class="text-dim">
                 &copy; 2026 Ferris.uz &bull; Cloudflare Universal SSL
             </div>
         </div>
     </footer>
 
     <!-- Floating DM Launcher Button -->
-    <button id="floatingDmBtn" onclick="toggleDmDrawer()" class="fixed bottom-6 right-6 z-40 flex items-center gap-2 px-3.5 py-2.5 rounded-2xl bg-zinc-950/90 hover:bg-zinc-900 border border-brand-orange/40 text-white font-medium text-xs shadow-2xl backdrop-blur-lg transition-all hover:scale-105 group" title="Shaxsiy Xabarlar (DM)">
+    <button id="floatingDmBtn" onclick="toggleDmDrawer()" class="fixed bottom-6 right-6 z-40 flex items-center gap-2 px-3.5 py-2.5 rounded-2xl bg-sunk/90 hover:bg-surface border border-brand-orange/40 text-ink font-medium text-xs shadow-2xl backdrop-blur-lg transition-all hover:scale-105 group" title="Shaxsiy Xabarlar (DM)">
         <i data-lucide="mail" class="w-4 h-4 text-brand-orange group-hover:scale-110 transition-transform"></i>
         <span class="font-semibold font-mono hidden sm:inline" data-i18n="floating_dm_text">Shaxsiy Chat</span>
         <span id="floatingDmBadge" class="hidden w-2 h-2 rounded-full bg-brand-orange animate-ping"></span>
     </button>
 
     <!-- Direct Message (DM) Slide-over Drawer -->
-    <div id="dmDrawerOverlay" class="hidden fixed inset-0 z-50 bg-black/70 backdrop-blur-sm transition-opacity" onclick="toggleDmDrawer()"></div>
-    <div id="dmDrawer" class="fixed top-0 right-0 bottom-0 z-50 w-full sm:max-w-md bg-zinc-950 border-l border-white/15 shadow-2xl flex flex-col transform translate-x-full transition-transform duration-300 ease-in-out">
+    <div id="dmDrawerOverlay" class="hidden fixed inset-0 z-50 bg-paper/70 backdrop-blur-sm transition-opacity" onclick="toggleDmDrawer()"></div>
+    <div id="dmDrawer" class="fixed top-0 right-0 bottom-0 z-50 w-full sm:max-w-md bg-sunk border-l border-ink/15 shadow-2xl flex flex-col transform translate-x-full transition-transform duration-300 ease-in-out">
         <!-- Drawer Header -->
-        <div class="p-4 border-b border-white/10 flex items-center justify-between bg-zinc-900/50 backdrop-blur-md">
+        <div class="p-4 border-b border-ink/10 flex items-center justify-between bg-surface/50 backdrop-blur-md">
             <div class="flex items-center gap-2.5">
-                <button id="dmBackBtn" onclick="showDmList()" class="hidden p-1.5 rounded-lg text-zinc-400 hover:text-white hover:bg-zinc-800 transition-colors" title="Ortga">
+                <button id="dmBackBtn" onclick="showDmList()" class="hidden p-1.5 rounded-lg text-muted hover:text-ink hover:bg-surface2 transition-colors" title="Ortga">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
                 </button>
                 <div class="flex flex-col">
-                    <h3 id="dmHeaderTitle" class="text-sm font-bold text-white tracking-tight flex items-center gap-2">
+                    <h3 id="dmHeaderTitle" class="text-sm font-bold text-ink tracking-tight flex items-center gap-2">
                         <i data-lucide="mail" class="w-4 h-4 text-brand-orange"></i>
                         <span>Shaxsiy Xabarlar</span>
                     </h3>
-                    <span id="dmHeaderSubtitle" class="text-[10px] font-mono text-zinc-500"></span>
+                    <span id="dmHeaderSubtitle" class="text-[10px] font-mono text-faint"></span>
                 </div>
             </div>
             <div class="flex items-center gap-3">
@@ -779,32 +850,32 @@
                     <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
                     <span>WS Online</span>
                 </span>
-                <button onclick="toggleDmDrawer()" class="p-1 rounded-lg text-zinc-500 hover:text-white text-xl leading-none transition-colors">&times;</button>
+                <button onclick="toggleDmDrawer()" class="p-1 rounded-lg text-faint hover:text-ink text-xl leading-none transition-colors">&times;</button>
             </div>
         </div>
 
         <!-- View 1: Conversations List -->
         <div id="dmListView" class="flex-grow flex flex-col overflow-hidden">
             <!-- New Chat Input -->
-            <div class="p-4 border-b border-white/5 bg-zinc-900/20">
-                <label class="block text-[11px] font-mono text-zinc-400 mb-1.5 font-medium">Yangi suhbat boshlash:</label>
+            <div class="p-4 border-b border-ink/5 bg-surface/20">
+                <label class="block text-[11px] font-mono text-muted mb-1.5 font-medium">Yangi suhbat boshlash:</label>
                 <form onsubmit="startNewDmChat(event)" class="flex gap-2">
                     <div class="relative flex-grow">
-                        <span class="absolute left-3 top-2.5 text-zinc-500 text-xs font-mono">@</span>
-                        <input id="dmTargetInput" type="text" placeholder="username (masalan: founder)" class="w-full bg-black/60 border border-white/10 rounded-xl pl-7 pr-3 py-2 text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-brand-orange/60 font-mono" required/>
+                        <span class="absolute left-3 top-2.5 text-faint text-xs font-mono">@</span>
+                        <input id="dmTargetInput" type="text" placeholder="username (masalan: founder)" class="w-full bg-paper/60 border border-ink/10 rounded-xl pl-7 pr-3 py-2 text-xs text-ink placeholder-faint focus:outline-none focus:border-brand-orange/60 font-mono" required/>
                     </div>
-                    <button type="submit" class="px-3 py-2 rounded-xl bg-brand-orange hover:bg-orange-600 text-white font-semibold text-xs transition-colors shrink-0">
+                    <button type="submit" class="px-3 py-2 rounded-xl bg-brand-orange hover:bg-orange-600 text-on-accent font-semibold text-xs transition-colors shrink-0">
                         Ochish
                     </button>
                 </form>
-                <div class="mt-2 text-[11px] text-zinc-500 font-mono">
+                <div class="mt-2 text-[11px] text-faint font-mono">
                     <span>Foydalanuvchi username'ini kiritib suhbatni boshlang.</span>
                 </div>
             </div>
 
             <!-- Conversations List Container -->
             <div id="dmConvosContainer" class="flex-grow overflow-y-auto p-3 space-y-1">
-                <div class="p-6 text-center text-xs text-zinc-500 font-mono">
+                <div class="p-6 text-center text-xs text-faint font-mono">
                     Suhbatlar yuklanmoqda...
                 </div>
             </div>
@@ -813,14 +884,14 @@
         <!-- View 2: Active Chat View -->
         <div id="dmChatView" class="hidden flex-grow flex flex-col overflow-hidden">
             <!-- Active Partner Banner -->
-            <div class="px-4 py-2 bg-black/40 border-b border-white/5 flex items-center justify-between text-xs">
+            <div class="px-4 py-2 bg-paper/40 border-b border-ink/5 flex items-center justify-between text-xs">
                 <div class="flex items-center gap-2">
                     <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
-                    <span class="text-zinc-400">Suhbatdosh:</span>
+                    <span class="text-muted">Suhbatdosh:</span>
                     <a id="dmPartnerProfileLink" href="#" target="_blank" class="font-bold text-cyan-400 hover:underline font-mono"></a>
                 </div>
                 <div class="flex items-center gap-2">
-                    <button id="dmBlockToggleBtn" onclick="toggleBlockActiveUser()" class="px-2.5 py-1 rounded-lg bg-zinc-800 hover:bg-rose-950/40 text-zinc-400 hover:text-rose-400 border border-white/10 text-[11px] font-mono transition-colors flex items-center gap-1.5">
+                    <button id="dmBlockToggleBtn" onclick="toggleBlockActiveUser()" class="px-2.5 py-1 rounded-lg bg-surface2 hover:bg-rose-950/40 text-muted hover:text-rose-400 border border-ink/10 text-[11px] font-mono transition-colors flex items-center gap-1.5">
                         <i data-lucide="ban" class="w-3 h-3"></i>
                         <span>Bloklash</span>
                     </button>
@@ -839,10 +910,10 @@
             </div>
 
             <!-- Input Box -->
-            <div class="p-3 border-t border-white/10 bg-zinc-900/60 backdrop-blur-md">
+            <div class="p-3 border-t border-ink/10 bg-surface/60 backdrop-blur-md">
                 <form onsubmit="sendDmMessage(event)" class="flex items-center gap-2">
-                    <input id="dmTextInput" type="text" placeholder="Xabar yozing (Enter bosing)..." autocomplete="off" class="flex-grow bg-black/60 border border-white/10 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-brand-orange/60 transition-colors" required/>
-                    <button type="submit" id="dmSendBtn" class="px-3.5 py-2.5 rounded-xl bg-brand-orange hover:bg-orange-600 text-white font-semibold text-xs transition-colors flex items-center gap-1 shrink-0">
+                    <input id="dmTextInput" type="text" placeholder="Xabar yozing (Enter bosing)..." autocomplete="off" class="flex-grow bg-paper/60 border border-ink/10 rounded-xl px-3.5 py-2.5 text-xs text-ink placeholder-faint focus:outline-none focus:border-brand-orange/60 transition-colors" required/>
+                    <button type="submit" id="dmSendBtn" class="px-3.5 py-2.5 rounded-xl bg-brand-orange hover:bg-orange-600 text-on-accent font-semibold text-xs transition-colors flex items-center gap-1 shrink-0">
                         <span>Yuborish</span>
                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path></svg>
                     </button>
@@ -852,43 +923,43 @@
     </div>
 
     <!-- Incoming DM Toast Notification -->
-    <div id="dmToast" class="hidden fixed bottom-6 left-6 z-50 max-w-sm bg-zinc-950 border border-brand-orange/40 rounded-2xl p-4 shadow-2xl backdrop-blur-lg flex items-start gap-3 cursor-pointer hover:bg-zinc-900 transition-all" onclick="openDmFromToast()">
+    <div id="dmToast" class="hidden fixed bottom-6 left-6 z-50 max-w-sm bg-sunk border border-brand-orange/40 rounded-2xl p-4 shadow-2xl backdrop-blur-lg flex items-start gap-3 cursor-pointer hover:bg-surface transition-all" onclick="openDmFromToast()">
         <div class="w-8 h-8 rounded-full bg-brand-orange/20 border border-brand-orange/40 flex items-center justify-center shrink-0 text-brand-orange mt-0.5">
             <i data-lucide="mail" class="w-4 h-4"></i>
         </div>
         <div class="flex flex-col">
             <div class="flex items-center justify-between gap-4">
-                <h4 id="dmToastSender" class="text-xs font-bold text-white font-mono"></h4>
-                <span class="text-[10px] font-mono text-zinc-500">Hozirgina</span>
+                <h4 id="dmToastSender" class="text-xs font-bold text-ink font-mono"></h4>
+                <span class="text-[10px] font-mono text-faint">Hozirgina</span>
             </div>
-            <p id="dmToastText" class="text-xs text-zinc-300 mt-0.5 line-clamp-2"></p>
+            <p id="dmToastText" class="text-xs text-ink2 mt-0.5 line-clamp-2"></p>
         </div>
     </div>
 
     <!-- Universal Auth Modal (GitHub & Telegram SSO) -->
-    <div id="authModal" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4">
-        <div class="w-full max-w-sm bg-zinc-950 border border-white/15 rounded-2xl p-6 shadow-2xl flex flex-col gap-5 text-center relative">
-            <div class="flex items-center justify-between pb-3 border-b border-white/10">
+    <div id="authModal" class="hidden fixed inset-0 z-50 bg-paper/80 backdrop-blur-md flex items-center justify-center p-4">
+        <div class="w-full max-w-sm bg-sunk border border-ink/15 rounded-2xl p-6 shadow-2xl flex flex-col gap-5 text-center relative">
+            <div class="flex items-center justify-between pb-3 border-b border-ink/10">
                 <div class="flex items-center gap-2.5">
                     <img src="/logo.jpg" alt="Ferris" class="w-6 h-6 rounded-md"/>
-                    <h3 class="text-sm font-bold text-white tracking-tight">Ferris.uz ga Kirish</h3>
+                    <h3 class="text-sm font-bold text-ink tracking-tight">Ferris.uz ga Kirish</h3>
                 </div>
-                <button onclick="closeAuthModal()" class="text-zinc-500 hover:text-white text-xl leading-none">&times;</button>
+                <button onclick="closeAuthModal()" class="text-faint hover:text-ink text-xl leading-none">&times;</button>
             </div>
             
-            <p class="text-xs text-zinc-400 leading-relaxed text-left">
+            <p class="text-xs text-muted leading-relaxed text-left">
                 Jamiyatlarga a'zo bo'lish, mavzu ochish va fikr bildirish uchun profilingiz bilan kiring:
             </p>
 
             <div class="flex flex-col gap-3">
                 <!-- GitHub OAuth (with return_to) -->
-                <a id="modalGithubBtn" href="https://ferris.uz/api/auth/github" class="w-full flex items-center justify-center gap-2.5 px-4 py-2.5 rounded-xl bg-zinc-900 hover:bg-zinc-800 border border-white/15 text-white font-medium text-xs transition-all shadow-sm">
+                <a id="modalGithubBtn" href="https://ferris.uz/api/auth/github" class="w-full flex items-center justify-center gap-2.5 px-4 py-2.5 rounded-xl bg-surface hover:bg-surface2 border border-ink/15 text-ink font-medium text-xs transition-all shadow-sm">
                     <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
                     <span>GitHub orqali kirish</span>
                 </a>
 
                 <!-- Telegram Options: Subdomain SSO Button vs Direct Widget on ferris.uz -->
-                <div id="telegramAuthContainer" class="flex flex-col items-center justify-center p-3 rounded-xl bg-zinc-900/60 border border-white/10 gap-2">
+                <div id="telegramAuthContainer" class="flex flex-col items-center justify-center p-3 rounded-xl bg-surface/60 border border-ink/10 gap-2">
                     <div id="tgSubdomainBtnWrap" class="w-full">
                         <a id="modalTelegramSSOBtn" href="https://ferris.uz/login" class="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-sky-500/10 hover:bg-sky-500/20 border border-sky-500/30 text-sky-400 font-semibold text-xs transition-all">
                             <i data-lucide="send" class="w-3.5 h-3.5"></i>
@@ -905,8 +976,8 @@
                 </div>
             </div>
 
-            <div class="text-[11px] text-zinc-500 font-mono pt-2 border-t border-white/5 flex items-center gap-1.5">
-                <i data-lucide="shield" class="w-3.5 h-3.5 text-zinc-400"></i> Sessiya barcha *.ferris.uz subdomenlari uchun umumiy saqlanadi
+            <div class="text-[11px] text-faint font-mono pt-2 border-t border-ink/5 flex items-center gap-1.5">
+                <i data-lucide="shield" class="w-3.5 h-3.5 text-muted"></i> Sessiya barcha *.ferris.uz subdomenlari uchun umumiy saqlanadi
             </div>
         </div>
     </div>
@@ -1252,9 +1323,9 @@
                     const convos = data.conversations || [];
                     if (convos.length === 0) {
                         container.innerHTML = `
-                            <div class="p-8 text-center text-xs text-zinc-500 font-mono">
-                                <div class="w-10 h-10 rounded-2xl bg-zinc-900 border border-white/5 flex items-center justify-center mx-auto mb-3">
-                                    <i data-lucide="mail" class="w-5 h-5 text-zinc-400"></i>
+                            <div class="p-8 text-center text-xs text-faint font-mono">
+                                <div class="w-10 h-10 rounded-2xl bg-surface border border-ink/5 flex items-center justify-center mx-auto mb-3">
+                                    <i data-lucide="mail" class="w-5 h-5 text-muted"></i>
                                 </div>
                                 Hozircha hech qanday shaxsiy xabar yo'q.<br/>
                                 Yuqoridagi maydonga username kiritib yangi suhbat boshlang!
@@ -1267,17 +1338,17 @@
                     container.innerHTML = convos.map(c => {
                         const dateStr = c.timestamp ? new Date(c.timestamp * 1000).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : '';
                         return `
-                            <div onclick="openDmWith('${c.username}')" class="p-3 rounded-xl hover:bg-zinc-900 border border-transparent hover:border-white/5 transition-all cursor-pointer flex items-center justify-between gap-3 group">
+                            <div onclick="openDmWith('${c.username}')" class="p-3 rounded-xl hover:bg-surface border border-transparent hover:border-ink/5 transition-all cursor-pointer flex items-center justify-between gap-3 group">
                                 <div class="flex items-center gap-3 min-w-0">
-                                    <div class="w-9 h-9 rounded-xl bg-zinc-800 border border-white/10 flex items-center justify-center text-xs font-mono font-bold text-brand-orange shrink-0">
+                                    <div class="w-9 h-9 rounded-xl bg-surface2 border border-ink/10 flex items-center justify-center text-xs font-mono font-bold text-brand-orange shrink-0">
                                         @
                                     </div>
                                     <div class="flex flex-col min-w-0">
-                                        <span class="text-xs font-bold text-white group-hover:text-brand-orange transition-colors font-mono truncate">@${c.username}</span>
-                                        <span class="text-[11px] text-zinc-400 truncate">${escapeHtml(c.last_message || '')}</span>
+                                        <span class="text-xs font-bold text-ink group-hover:text-brand-orange transition-colors font-mono truncate">@${c.username}</span>
+                                        <span class="text-[11px] text-muted truncate">${escapeHtml(c.last_message || '')}</span>
                                     </div>
                                 </div>
-                                <span class="text-[10px] font-mono text-zinc-500 shrink-0">${dateStr}</span>
+                                <span class="text-[10px] font-mono text-faint shrink-0">${dateStr}</span>
                             </div>
                         `;
                     }).join('');
@@ -1296,7 +1367,7 @@
 
             const container = document.getElementById('dmMessagesContainer');
             if (!container) return;
-            container.innerHTML = '<div class="text-center text-xs text-zinc-500 font-mono py-8">Yozishmalar tarixi yuklanmoqda...</div>';
+            container.innerHTML = '<div class="text-center text-xs text-faint font-mono py-8">Yozishmalar tarixi yuklanmoqda...</div>';
 
             try {
                 const res = await fetch(`/api/v1/dm/${encodeURIComponent(username)}`, {
@@ -1312,8 +1383,8 @@
                     const messages = data.messages || [];
                     if (messages.length === 0) {
                         container.innerHTML = `
-                            <div class="text-center text-xs text-zinc-500 font-mono py-12 flex flex-col items-center">
-                                <div class="w-10 h-10 rounded-full bg-zinc-900 border border-white/5 flex items-center justify-center mb-2 text-zinc-400">
+                            <div class="text-center text-xs text-faint font-mono py-12 flex flex-col items-center">
+                                <div class="w-10 h-10 rounded-full bg-surface border border-ink/5 flex items-center justify-center mb-2 text-muted">
                                     <i data-lucide="message-square" class="w-5 h-5"></i>
                                 </div>
                                 @${escapeHtml(username)} bilan suhbat hali bo'sh.<br/>
@@ -1332,8 +1403,8 @@
                 } else {
                     const err = await res.json().catch(() => ({}));
                     container.innerHTML = `
-                        <div class="text-center text-xs text-zinc-400 font-mono py-12 flex flex-col items-center">
-                            <div class="w-10 h-10 rounded-full bg-zinc-900 border border-white/5 flex items-center justify-center mb-2 text-zinc-500">
+                        <div class="text-center text-xs text-muted font-mono py-12 flex flex-col items-center">
+                            <div class="w-10 h-10 rounded-full bg-surface border border-ink/5 flex items-center justify-center mb-2 text-faint">
                                 <i data-lucide="user-x" class="w-5 h-5"></i>
                             </div>
                             <span class="text-rose-400 font-semibold">${escapeHtml(err.error || "Foydalanuvchi topilmadi")}</span>
@@ -1366,7 +1437,7 @@
             } else if (window.activeDmBlockedByThem) {
                 if (blockBtn) {
                     blockBtn.innerHTML = '<i data-lucide="ban" class="w-3 h-3"></i> <span>Bloklash</span>';
-                    blockBtn.className = 'px-2.5 py-1 rounded-lg bg-zinc-800 hover:bg-rose-950/40 text-zinc-400 hover:text-rose-400 border border-white/10 text-[11px] font-mono transition-colors flex items-center gap-1.5';
+                    blockBtn.className = 'px-2.5 py-1 rounded-lg bg-surface2 hover:bg-rose-950/40 text-muted hover:text-rose-400 border border-ink/10 text-[11px] font-mono transition-colors flex items-center gap-1.5';
                 }
                 if (banner) {
                     banner.classList.remove('hidden');
@@ -1377,7 +1448,7 @@
             } else {
                 if (blockBtn) {
                     blockBtn.innerHTML = '<i data-lucide="ban" class="w-3 h-3"></i> <span>Bloklash</span>';
-                    blockBtn.className = 'px-2.5 py-1 rounded-lg bg-zinc-800 hover:bg-rose-950/40 text-zinc-400 hover:text-rose-400 border border-white/10 text-[11px] font-mono transition-colors flex items-center gap-1.5';
+                    blockBtn.className = 'px-2.5 py-1 rounded-lg bg-surface2 hover:bg-rose-950/40 text-muted hover:text-rose-400 border border-ink/10 text-[11px] font-mono transition-colors flex items-center gap-1.5';
                 }
                 if (banner) banner.classList.add('hidden');
                 if (input) { input.disabled = false; input.placeholder = "Xabar yozing (Enter bosing)..."; }
@@ -1422,16 +1493,16 @@
             const bubble = document.createElement('div');
             bubble.className = isMe
                 ? 'p-3 rounded-2xl rounded-br-sm bg-orange-600/20 border border-orange-500/40 text-orange-100 text-xs max-w-[85%] break-words shadow-sm'
-                : 'p-3 rounded-2xl rounded-bl-sm bg-zinc-900 border border-white/10 text-zinc-200 text-xs max-w-[85%] break-words shadow-sm';
+                : 'p-3 rounded-2xl rounded-bl-sm bg-surface border border-ink/10 text-ink text-xs max-w-[85%] break-words shadow-sm';
             bubble.innerText = msg.text;
 
             const ts = document.createElement('div');
-            ts.className = 'text-[10px] font-mono text-zinc-500 px-1 flex items-center gap-1.5';
+            ts.className = 'text-[10px] font-mono text-faint px-1 flex items-center gap-1.5';
             ts.innerHTML = `<span>${isMe ? 'Siz' : '@' + escapeHtml(msg.sender)} • ${timeStr}</span>`;
 
             if (isMe) {
                 const delBtn = document.createElement('button');
-                delBtn.className = 'opacity-0 group-hover:opacity-100 text-zinc-500 hover:text-rose-400 text-[11px] transition-opacity cursor-pointer flex items-center gap-1';
+                delBtn.className = 'opacity-0 group-hover:opacity-100 text-faint hover:text-rose-400 text-[11px] transition-opacity cursor-pointer flex items-center gap-1';
                 delBtn.title = "Xabarni o'chirish";
                 delBtn.innerHTML = '<i data-lucide="trash-2" class="w-3 h-3"></i>';
                 delBtn.onclick = (e) => {
@@ -1630,39 +1701,39 @@
     <!-- ============================================================================== -->
     <!-- GLOBAL INSTANT SEARCH MODAL (Ctrl+K) -->
     <!-- ============================================================================== -->
-    <div id="searchModal" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-start justify-center pt-12 sm:pt-20 px-3 sm:px-4" onclick="if(event.target===this) closeSearchModal()">
-        <div class="w-full max-w-2xl bg-zinc-950 border border-white/15 rounded-2xl shadow-2xl overflow-hidden flex flex-col transition-all">
+    <div id="searchModal" class="hidden fixed inset-0 z-50 bg-paper/80 backdrop-blur-md flex items-start justify-center pt-12 sm:pt-20 px-3 sm:px-4" onclick="if(event.target===this) closeSearchModal()">
+        <div class="w-full max-w-2xl bg-sunk border border-ink/15 rounded-2xl shadow-2xl overflow-hidden flex flex-col transition-all">
             <!-- Search Input Header -->
-            <div class="flex items-center gap-3 px-4 py-3.5 border-b border-white/10 bg-zinc-900/60">
+            <div class="flex items-center gap-3 px-4 py-3.5 border-b border-ink/10 bg-surface/60">
                 <i data-lucide="search" class="w-5 h-5 text-brand-orange shrink-0"></i>
-                <input id="globalSearchInput" type="text" autocomplete="off" placeholder="Mavzular, muhokamalar, jamiyatlar yoki dasturchilarni qidiring..." data-i18n-placeholder="search_modal_placeholder" class="w-full bg-transparent text-sm sm:text-base text-white placeholder-zinc-500 focus:outline-none font-sans" oninput="handleGlobalSearchInput(this.value)">
+                <input id="globalSearchInput" type="text" autocomplete="off" placeholder="Mavzular, muhokamalar, jamiyatlar yoki dasturchilarni qidiring..." data-i18n-placeholder="search_modal_placeholder" class="w-full bg-transparent text-sm sm:text-base text-ink placeholder-faint focus:outline-none font-sans" oninput="handleGlobalSearchInput(this.value)">
                 <span id="searchSpinner" class="hidden shrink-0"><span class="w-4 h-4 border-2 border-brand-orange border-t-transparent rounded-full animate-spin inline-block"></span></span>
-                <kbd class="hidden sm:inline-block px-2 py-0.5 text-[11px] font-mono text-zinc-400 bg-zinc-800/80 border border-white/10 rounded cursor-pointer shrink-0" onclick="closeSearchModal()">ESC</kbd>
-                <button onclick="closeSearchModal()" class="sm:hidden text-zinc-400 hover:text-white p-1 text-xl leading-none">&times;</button>
+                <kbd class="hidden sm:inline-block px-2 py-0.5 text-[11px] font-mono text-muted bg-surface2/80 border border-ink/10 rounded cursor-pointer shrink-0" onclick="closeSearchModal()">ESC</kbd>
+                <button onclick="closeSearchModal()" class="sm:hidden text-muted hover:text-ink p-1 text-xl leading-none">&times;</button>
             </div>
 
             <!-- Search Results Container -->
-            <div id="searchResultsList" class="max-h-[60vh] overflow-y-auto p-2 sm:p-3 divide-y divide-white/5 space-y-1">
+            <div id="searchResultsList" class="max-h-[60vh] overflow-y-auto p-2 sm:p-3 divide-y divide-ink/5 space-y-1">
                 <!-- Empty state placeholder -->
-                <div id="searchEmptyState" class="py-10 text-center text-xs text-zinc-500 font-sans">
-                    <i data-lucide="compass" class="w-8 h-8 text-zinc-600 mx-auto mb-2 opacity-60"></i>
-                    <p class="text-zinc-400 font-medium text-sm" data-i18n="search_modal_title">Platforma bo'ylab tezkor qidiruv</p>
-                    <p class="text-zinc-500 mt-1" data-i18n="search_modal_hint">Kamida 2 ta belgi kiriting yoki toifalardan birini tanlang</p>
+                <div id="searchEmptyState" class="py-10 text-center text-xs text-faint font-sans">
+                    <i data-lucide="compass" class="w-8 h-8 text-dim mx-auto mb-2 opacity-60"></i>
+                    <p class="text-muted font-medium text-sm" data-i18n="search_modal_title">Platforma bo'ylab tezkor qidiruv</p>
+                    <p class="text-faint mt-1" data-i18n="search_modal_hint">Kamida 2 ta belgi kiriting yoki toifalardan birini tanlang</p>
                     <div class="flex items-center justify-center gap-2 mt-4 text-[11px] font-mono">
-                        <span class="px-2 py-0.5 rounded bg-zinc-900 border border-white/10 text-zinc-400">f/rust</span>
-                        <span class="px-2 py-0.5 rounded bg-zinc-900 border border-white/10 text-zinc-400">async</span>
-                        <span class="px-2 py-0.5 rounded bg-zinc-900 border border-white/10 text-zinc-400">CLI</span>
+                        <span class="px-2 py-0.5 rounded bg-surface border border-ink/10 text-muted">f/rust</span>
+                        <span class="px-2 py-0.5 rounded bg-surface border border-ink/10 text-muted">async</span>
+                        <span class="px-2 py-0.5 rounded bg-surface border border-ink/10 text-muted">CLI</span>
                     </div>
                 </div>
             </div>
 
             <!-- Footer Shortcuts -->
-            <div class="px-4 py-2.5 bg-zinc-900/40 border-t border-white/10 flex items-center justify-between text-[11px] font-mono text-zinc-500">
+            <div class="px-4 py-2.5 bg-surface/40 border-t border-ink/10 flex items-center justify-between text-[11px] font-mono text-faint">
                 <div class="flex items-center gap-3">
-                    <span><kbd class="px-1.5 py-0.5 bg-zinc-800 border border-white/10 rounded text-zinc-400">↑↓</kbd> <span data-i18n="search_shortcut_select">Tanlash</span></span>
-                    <span><kbd class="px-1.5 py-0.5 bg-zinc-800 border border-white/10 rounded text-zinc-400">↵</kbd> <span data-i18n="search_shortcut_open">Ochish</span></span>
+                    <span><kbd class="px-1.5 py-0.5 bg-surface2 border border-ink/10 rounded text-muted">↑↓</kbd> <span data-i18n="search_shortcut_select">Tanlash</span></span>
+                    <span><kbd class="px-1.5 py-0.5 bg-surface2 border border-ink/10 rounded text-muted">↵</kbd> <span data-i18n="search_shortcut_open">Ochish</span></span>
                 </div>
-                <span><kbd class="px-1.5 py-0.5 bg-zinc-800 border border-white/10 rounded text-zinc-400">ESC</kbd> <span data-i18n="search_shortcut_close">Yopish</span></span>
+                <span><kbd class="px-1.5 py-0.5 bg-surface2 border border-ink/10 rounded text-muted">ESC</kbd> <span data-i18n="search_shortcut_close">Yopish</span></span>
             </div>
         </div>
     </div>
@@ -1686,13 +1757,13 @@
                 const currLang = typeof getPreferredLanguage === 'function' ? getPreferredLanguage() : 'uz';
                 const d = FERRIS_I18N[currLang] || FERRIS_I18N.uz;
                 empty.innerHTML = `
-                    <i data-lucide="compass" class="w-8 h-8 text-zinc-600 mx-auto mb-2 opacity-60"></i>
-                    <p class="text-zinc-400 font-medium text-sm" data-i18n="search_modal_title">${d.search_modal_title}</p>
-                    <p class="text-zinc-500 mt-1" data-i18n="search_modal_hint">${d.search_modal_hint}</p>
+                    <i data-lucide="compass" class="w-8 h-8 text-dim mx-auto mb-2 opacity-60"></i>
+                    <p class="text-muted font-medium text-sm" data-i18n="search_modal_title">${d.search_modal_title}</p>
+                    <p class="text-faint mt-1" data-i18n="search_modal_hint">${d.search_modal_hint}</p>
                     <div class="flex items-center justify-center gap-2 mt-4 text-[11px] font-mono">
-                        <span class="px-2 py-0.5 rounded bg-zinc-900 border border-white/10 text-zinc-400">f/rust</span>
-                        <span class="px-2 py-0.5 rounded bg-zinc-900 border border-white/10 text-zinc-400">async</span>
-                        <span class="px-2 py-0.5 rounded bg-zinc-900 border border-white/10 text-zinc-400">CLI</span>
+                        <span class="px-2 py-0.5 rounded bg-surface border border-ink/10 text-muted">f/rust</span>
+                        <span class="px-2 py-0.5 rounded bg-surface border border-ink/10 text-muted">async</span>
+                        <span class="px-2 py-0.5 rounded bg-surface border border-ink/10 text-muted">CLI</span>
                     </div>
                 `;
             }
@@ -1799,8 +1870,8 @@
                     emptyState.classList.remove('hidden');
                     emptyState.innerHTML = `
                         <i data-lucide="alert-circle" class="w-8 h-8 text-amber-500 mx-auto mb-2 opacity-70"></i>
-                        <p class="text-zinc-300 font-medium text-sm">"${escapeHtml(q)}" ${d.search_not_found || "bo'yicha natija topilmadi"}</p>
-                        <p class="text-zinc-500 text-xs mt-1">${d.search_not_found_hint || "Boshqa so'z bilan qidirib ko'ring yoki yangi mavzu oching"}</p>
+                        <p class="text-ink2 font-medium text-sm">"${escapeHtml(q)}" ${d.search_not_found || "bo'yicha natija topilmadi"}</p>
+                        <p class="text-faint text-xs mt-1">${d.search_not_found_hint || "Boshqa so'z bilan qidirib ko'ring yoki yangi mavzu oching"}</p>
                     `;
                     if (window.lucide) lucide.createIcons();
                 }
@@ -1813,7 +1884,7 @@
 
             const addHeader = (title, icon) => {
                 const h = document.createElement('div');
-                h.className = 'search-cat-header text-[11px] font-mono text-zinc-400 font-semibold px-3 pt-3 pb-1 flex items-center gap-1.5 uppercase tracking-wider';
+                h.className = 'search-cat-header text-[11px] font-mono text-muted font-semibold px-3 pt-3 pb-1 flex items-center gap-1.5 uppercase tracking-wider';
                 h.innerHTML = `<i data-lucide="${icon}" class="w-3.5 h-3.5 text-brand-orange"></i><span>${title}</span>`;
                 list.appendChild(h);
             };
@@ -1824,17 +1895,17 @@
                 data.topics.forEach(t => {
                     const a = document.createElement('a');
                     a.href = `https://topics.ferris.uz#${t.slug}`;
-                    a.className = 'search-item flex items-center justify-between p-3 rounded-xl hover:bg-zinc-900 border border-transparent hover:border-white/10 transition-colors block cursor-pointer';
+                    a.className = 'search-item flex items-center justify-between p-3 rounded-xl hover:bg-surface border border-transparent hover:border-ink/10 transition-colors block cursor-pointer';
                     a.onclick = () => closeSearchModal();
                     a.innerHTML = `
                         <div class="flex items-center gap-3">
-                            <span class="p-2 rounded-lg bg-zinc-900 border border-white/5 text-amber-400 font-mono text-xs font-bold">${escapeHtml(t.slug)}</span>
+                            <span class="p-2 rounded-lg bg-surface border border-ink/5 text-amber-400 font-mono text-xs font-bold">${escapeHtml(t.slug)}</span>
                             <div>
-                                <div class="text-sm font-semibold text-white">${escapeHtml(t.title)}</div>
-                                <div class="text-xs text-zinc-400 line-clamp-1">${escapeHtml(t.description || '')}</div>
+                                <div class="text-sm font-semibold text-ink">${escapeHtml(t.title)}</div>
+                                <div class="text-xs text-muted line-clamp-1">${escapeHtml(t.description || '')}</div>
                             </div>
                         </div>
-                        <i data-lucide="arrow-up-right" class="w-4 h-4 text-zinc-500"></i>
+                        <i data-lucide="arrow-up-right" class="w-4 h-4 text-faint"></i>
                     `;
                     list.appendChild(a);
                 });
@@ -1846,18 +1917,18 @@
                 data.posts.forEach(p => {
                     const a = document.createElement('a');
                     a.href = `https://topics.ferris.uz#post-${p.id}`;
-                    a.className = 'search-item flex items-start justify-between p-3 rounded-xl hover:bg-zinc-900 border border-transparent hover:border-white/10 transition-colors block cursor-pointer';
+                    a.className = 'search-item flex items-start justify-between p-3 rounded-xl hover:bg-surface border border-transparent hover:border-ink/10 transition-colors block cursor-pointer';
                     a.onclick = () => closeSearchModal();
                     a.innerHTML = `
                         <div class="flex-grow pr-2">
                             <div class="flex items-center gap-2 mb-1">
                                 <span class="text-[10px] font-mono text-brand-orange bg-brand-orange/10 px-1.5 py-0.5 rounded">${escapeHtml(p.topic_slug || 'f/rust')}</span>
-                                <span class="text-[11px] text-zinc-400 font-mono">@${escapeHtml(p.author_name || 'Rustacean')} &bull; ${p.created_at}</span>
+                                <span class="text-[11px] text-muted font-mono">@${escapeHtml(p.author_name || 'Rustacean')} &bull; ${p.created_at}</span>
                             </div>
-                            <div class="text-sm font-semibold text-white hover:text-brand-orange transition-colors">${escapeHtml(p.title)}</div>
-                            <div class="text-xs text-zinc-400 line-clamp-1 mt-0.5 font-sans">${escapeHtml(p.snippet)}</div>
+                            <div class="text-sm font-semibold text-ink hover:text-brand-orange transition-colors">${escapeHtml(p.title)}</div>
+                            <div class="text-xs text-muted line-clamp-1 mt-0.5 font-sans">${escapeHtml(p.snippet)}</div>
                         </div>
-                        <i data-lucide="arrow-up-right" class="w-4 h-4 text-zinc-500 mt-1 shrink-0"></i>
+                        <i data-lucide="arrow-up-right" class="w-4 h-4 text-faint mt-1 shrink-0"></i>
                     `;
                     list.appendChild(a);
                 });
@@ -1869,20 +1940,20 @@
                 data.groups.forEach(g => {
                     const a = document.createElement('a');
                     a.href = `https://groups.ferris.uz/f/${g.slug}`;
-                    a.className = 'search-item flex items-center justify-between p-3 rounded-xl hover:bg-zinc-900 border border-transparent hover:border-white/10 transition-colors block cursor-pointer';
+                    a.className = 'search-item flex items-center justify-between p-3 rounded-xl hover:bg-surface border border-transparent hover:border-ink/10 transition-colors block cursor-pointer';
                     a.onclick = () => closeSearchModal();
                     a.innerHTML = `
                         <div class="flex items-center gap-3">
-                            <img src="${g.avatar_url || '/logo.png'}" class="w-8 h-8 rounded-lg object-cover border border-white/10"/>
+                            <img src="${g.avatar_url || '/logo.png'}" class="w-8 h-8 rounded-lg object-cover border border-ink/10"/>
                             <div>
-                                <div class="text-sm font-semibold text-white flex items-center gap-2">
+                                <div class="text-sm font-semibold text-ink flex items-center gap-2">
                                     <span>${escapeHtml(g.name)}</span>
-                                    <span class="text-[10px] font-mono text-zinc-500">f/${escapeHtml(g.slug)}</span>
+                                    <span class="text-[10px] font-mono text-faint">f/${escapeHtml(g.slug)}</span>
                                 </div>
-                                <div class="text-xs text-zinc-400 line-clamp-1">${escapeHtml(g.description || '')}</div>
+                                <div class="text-xs text-muted line-clamp-1">${escapeHtml(g.description || '')}</div>
                             </div>
                         </div>
-                        <span class="text-xs font-mono text-zinc-500">${g.members_count} ${d.members_label || "a'zo"}</span>
+                        <span class="text-xs font-mono text-faint">${g.members_count} ${d.members_label || "a'zo"}</span>
                     `;
                     list.appendChild(a);
                 });
@@ -1894,17 +1965,17 @@
                 data.users.forEach(u => {
                     const a = document.createElement('a');
                     a.href = `https://ferris.uz/@${u.username}`;
-                    a.className = 'search-item flex items-center justify-between p-3 rounded-xl hover:bg-zinc-900 border border-transparent hover:border-white/10 transition-colors block cursor-pointer';
+                    a.className = 'search-item flex items-center justify-between p-3 rounded-xl hover:bg-surface border border-transparent hover:border-ink/10 transition-colors block cursor-pointer';
                     a.onclick = () => closeSearchModal();
                     a.innerHTML = `
                         <div class="flex items-center gap-3">
-                            <img src="${u.avatar_url || '/logo.png'}" class="w-7 h-7 rounded-full object-cover border border-white/15"/>
+                            <img src="${u.avatar_url || '/logo.png'}" class="w-7 h-7 rounded-full object-cover border border-ink/15"/>
                             <div>
-                                <div class="text-sm font-semibold text-white">@${escapeHtml(u.username)}</div>
-                                <div class="text-xs text-zinc-400">${escapeHtml(u.display_name)}</div>
+                                <div class="text-sm font-semibold text-ink">@${escapeHtml(u.username)}</div>
+                                <div class="text-xs text-muted">${escapeHtml(u.display_name)}</div>
                             </div>
                         </div>
-                        <i data-lucide="chevron-right" class="w-4 h-4 text-zinc-500"></i>
+                        <i data-lucide="chevron-right" class="w-4 h-4 text-faint"></i>
                     `;
                     list.appendChild(a);
                 });
@@ -1923,6 +1994,14 @@
                 '"': '&quot;'
             }[tag] || tag));
         }
+    </script>
+    <script>
+        window.toggleTheme = function () {
+            var cur = document.documentElement.getAttribute('data-theme') === 'light' ? 'light' : 'dark';
+            var next = cur === 'light' ? 'dark' : 'light';
+            document.documentElement.setAttribute('data-theme', next);
+            try { localStorage.setItem('ferris_theme', next); } catch (e) {}
+        };
     </script>
     <script src="/js/mascot-widget.js" defer></script>
     {% block scripts %}{% endblock %}

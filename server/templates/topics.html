@@ -36,24 +36,24 @@
 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 flex flex-col gap-10 sm:gap-14">
 
     <!-- Topics Header -->
-    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-white/10">
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-ink/10">
         <div>
             <div class="flex items-center gap-2 mb-2">
                 <span class="text-xs font-mono text-brand-orange bg-brand-orange/10 border border-brand-orange/20 px-3 py-0.5 rounded-full">topics.ferris.uz</span>
-                <span class="text-xs text-zinc-500 font-mono">Forum & Technical Discussions</span>
+                <span class="text-xs text-faint font-mono">Forum & Technical Discussions</span>
             </div>
-            <h1 class="text-2xl sm:text-3xl md:text-4xl font-extrabold tracking-tight text-white flex items-center gap-2.5">
+            <h1 class="text-2xl sm:text-3xl md:text-4xl font-extrabold tracking-tight text-ink flex items-center gap-2.5">
                 <i data-lucide="layers" class="w-8 h-8 text-brand-orange"></i>
                 <span data-i18n="topics_header_title">Mavzular va Kategoriyalar</span>
             </h1>
-            <p class="text-xs sm:text-sm text-zinc-400 mt-1" data-i18n="topics_header_desc">Rasmiy Rust texnik yo'nalishlari va hamjamiyat ochiq muhokamalari</p>
+            <p class="text-xs sm:text-sm text-muted mt-1" data-i18n="topics_header_desc">Rasmiy Rust texnik yo'nalishlari va hamjamiyat ochiq muhokamalari</p>
         </div>
         <div class="flex items-center gap-2.5 self-start sm:self-auto shrink-0 flex-wrap">
-            <button onclick="openLeaderboardModal()" class="px-4 py-2.5 rounded-2xl bg-zinc-900 hover:bg-zinc-800 text-zinc-300 hover:text-white border border-white/10 hover:border-amber-400/40 text-xs sm:text-sm font-semibold transition-all shadow-sm flex items-center gap-2 cursor-pointer">
+            <button onclick="openLeaderboardModal()" class="px-4 py-2.5 rounded-2xl bg-surface hover:bg-surface2 text-ink2 hover:text-ink border border-ink/10 hover:border-amber-400/40 text-xs sm:text-sm font-semibold transition-all shadow-sm flex items-center gap-2 cursor-pointer">
                 <i data-lucide="trophy" class="w-4 h-4 text-amber-400"></i>
                 <span data-i18n="topics_btn_leaderboard">Top Rustaceanlar (Leaderboard)</span>
             </button>
-            <button onclick="handleNewPostClick()" class="px-5 py-2.5 rounded-2xl bg-brand-orange hover:bg-orange-600 text-white font-semibold text-xs sm:text-sm transition-all shadow-lg shadow-orange-950/40 hover:scale-105 active:scale-95 flex items-center gap-2 cursor-pointer">
+            <button onclick="handleNewPostClick()" class="px-5 py-2.5 rounded-2xl bg-brand-orange hover:bg-orange-600 text-on-accent font-semibold text-xs sm:text-sm transition-all shadow-lg shadow-orange-950/40 hover:scale-105 active:scale-95 flex items-center gap-2 cursor-pointer">
                 <i data-lucide="plus" class="w-4 h-4"></i>
                 <span data-i18n="topics_btn_new">Yangi Muhokama</span>
             </button>
@@ -66,7 +66,7 @@
         <div class="glass-card p-5 sm:p-6 rounded-2xl transition-all duration-300 hover:-translate-y-1 flex flex-col justify-between">
             <div>
                 <div class="flex items-center justify-between mb-3">
-                    <span class="p-2.5 rounded-xl bg-zinc-900 border border-white/5 flex items-center justify-center">
+                    <span class="p-2.5 rounded-xl bg-surface border border-ink/5 flex items-center justify-center">
                         {% if topic.slug == "f/rust" %}
                             <i data-lucide="cpu" class="w-6 h-6 text-amber-400"></i>
                         {% else if topic.slug == "f/async" %}
@@ -81,8 +81,8 @@
                     </span>
                     <span class="text-xs font-mono text-amber-400 bg-amber-400/10 border border-amber-400/20 px-2 py-0.5 rounded-md">{{ topic.slug }}</span>
                 </div>
-                <h3 class="text-base sm:text-lg font-bold text-white mb-2">{{ topic.title }}</h3>
-                <p class="text-xs sm:text-sm text-zinc-400 leading-relaxed">
+                <h3 class="text-base sm:text-lg font-bold text-ink mb-2">{{ topic.title }}</h3>
+                <p class="text-xs sm:text-sm text-muted leading-relaxed">
                     {% if let Some(desc) = topic.description %}
                         {{ desc }}
                     {% else %}
@@ -90,7 +90,7 @@
                     {% endif %}
                 </p>
             </div>
-            <div class="mt-4 pt-3 border-t border-white/5 flex items-center justify-between text-xs text-zinc-500 font-mono">
+            <div class="mt-4 pt-3 border-t border-ink/5 flex items-center justify-between text-xs text-faint font-mono">
                 <span data-i18n="topics_channel_active">Kanal faol</span>
                 <span class="text-brand-orange font-semibold">{{ topic.slug }}</span>
             </div>
@@ -100,20 +100,20 @@
 
     <!-- Discussions Feed -->
     <div class="mt-4">
-        <h2 class="text-xl sm:text-2xl font-bold tracking-tight text-white mb-6 flex items-center gap-2.5">
+        <h2 class="text-xl sm:text-2xl font-bold tracking-tight text-ink mb-6 flex items-center gap-2.5">
             <i data-lucide="message-square" class="w-6 h-6 text-brand-orange"></i>
             <span data-i18n="topics_all_discussions">Barcha Muhokamalar</span>
         </h2>
 
         <div class="flex flex-col gap-4 sm:gap-5">
             {% if posts.is_empty() %}
-            <div class="p-10 sm:p-14 rounded-3xl glass-card border border-dashed border-white/10 text-center flex flex-col items-center">
-                <div class="w-12 h-12 rounded-2xl bg-zinc-900 border border-white/5 flex items-center justify-center mb-3 text-zinc-500">
+            <div class="p-10 sm:p-14 rounded-3xl glass-card border border-dashed border-ink/10 text-center flex flex-col items-center">
+                <div class="w-12 h-12 rounded-2xl bg-surface border border-ink/5 flex items-center justify-center mb-3 text-faint">
                     <i data-lucide="inbox" class="w-6 h-6"></i>
                 </div>
-                <h3 class="text-lg font-bold text-white mb-1.5">Hozircha muhokamalar yo'q</h3>
-                <p class="text-xs sm:text-sm text-zinc-400 max-w-sm mb-6">Birinchi bo'lib savol bering yoki foydali Rust loyihangizni e'lon qiling!</p>
-                <button onclick="handleNewPostClick()" class="px-5 py-2.5 rounded-2xl bg-brand-orange hover:bg-orange-600 text-xs font-semibold text-white shadow-lg transition-all hover:scale-105 active:scale-95">
+                <h3 class="text-lg font-bold text-ink mb-1.5">Hozircha muhokamalar yo'q</h3>
+                <p class="text-xs sm:text-sm text-muted max-w-sm mb-6">Birinchi bo'lib savol bering yoki foydali Rust loyihangizni e'lon qiling!</p>
+                <button onclick="handleNewPostClick()" class="px-5 py-2.5 rounded-2xl bg-brand-orange hover:bg-orange-600 text-xs font-semibold text-on-accent shadow-lg transition-all hover:scale-105 active:scale-95">
                     + Birinchi Muhokamani Yozish
                 </button>
             </div>
@@ -121,7 +121,7 @@
             {% for item in posts %}
             <article id="post-{{ item.post.id }}" data-post-id="{{ item.post.id }}" class="post-card glass-card p-5 sm:p-7 rounded-3xl transition-all duration-200 flex flex-col gap-4 scroll-mt-24">
                 <div class="flex items-center justify-between flex-wrap gap-2.5">
-                    <div class="flex items-center gap-2 sm:gap-3 text-xs text-zinc-400 font-mono flex-wrap">
+                    <div class="flex items-center gap-2 sm:gap-3 text-xs text-muted font-mono flex-wrap">
                         <span class="text-amber-400 font-semibold bg-amber-400/10 px-2 py-0.5 rounded">
                             {% if let Some(slug) = item.post.topic_slug %}
                                 {{ slug }}
@@ -130,7 +130,7 @@
                             {% endif %}
                         </span>
                         <span class="hidden sm:inline">&bull;</span>
-                        <span class="text-zinc-200 font-sans font-medium">
+                        <span class="text-ink font-sans font-medium">
                             {% if let Some(author) = item.post.author_name %}
                                 @{{ author }}
                             {% else %}
@@ -138,7 +138,7 @@
                             {% endif %}
                         </span>
                         <span>&bull;</span>
-                        <span class="text-zinc-500">{{ item.post.created_at.format("%Y-%m-%d %H:%M") }}</span>
+                        <span class="text-faint">{{ item.post.created_at.format("%Y-%m-%d %H:%M") }}</span>
                         <span>&bull;</span>
                         <span class="text-emerald-400 font-semibold flex items-center gap-1.5">
                             <i data-lucide="eye" class="w-3.5 h-3.5"></i> <span id="views-{{ item.post.id }}">{{ item.post.views_count }}</span>
@@ -149,28 +149,28 @@
                         </span>
                     </div>
                     <div class="post-owner-actions hidden flex items-center gap-2 shrink-0" data-author="{{ item.post.author_name.as_deref().unwrap_or("") }}">
-                        <button onclick="editPostPrompt('{{ item.post.id }}', this)" class="text-xs text-zinc-400 hover:text-brand-orange transition-colors flex items-center gap-1.5 font-mono px-2.5 py-1 rounded-lg bg-zinc-900 border border-white/5">
+                        <button onclick="editPostPrompt('{{ item.post.id }}', this)" class="text-xs text-muted hover:text-brand-orange transition-colors flex items-center gap-1.5 font-mono px-2.5 py-1 rounded-lg bg-surface border border-ink/5">
                             <i data-lucide="pen-line" class="w-3 h-3"></i> Tahrirlash
                         </button>
-                        <button onclick="deletePostPrompt('{{ item.post.id }}')" class="text-xs text-zinc-400 hover:text-rose-400 transition-colors flex items-center gap-1.5 font-mono px-2.5 py-1 rounded-lg bg-zinc-900 border border-white/5">
+                        <button onclick="deletePostPrompt('{{ item.post.id }}')" class="text-xs text-muted hover:text-rose-400 transition-colors flex items-center gap-1.5 font-mono px-2.5 py-1 rounded-lg bg-surface border border-ink/5">
                             <i data-lucide="trash-2" class="w-3 h-3"></i> O'chirish
                         </button>
                     </div>
                 </div>
 
-                <h3 class="post-title text-base sm:text-xl font-bold text-white hover:text-brand-orange transition-colors leading-snug">
+                <h3 class="post-title text-base sm:text-xl font-bold text-ink hover:text-brand-orange transition-colors leading-snug">
                     {{ item.post.title }}
                 </h3>
 
-                <div class="post-content markdown-body text-xs sm:text-sm text-zinc-300 leading-relaxed font-sans" data-raw="{{ item.post.content }}">
+                <div class="post-content markdown-body text-xs sm:text-sm text-ink2 leading-relaxed font-sans" data-raw="{{ item.post.content }}">
                     {{ item.post.content }}
                 </div>
 
                 <!-- Comments / Replies Section -->
-                <div class="mt-4 pt-4 border-t border-white/5 flex flex-col gap-3.5">
-                    <div class="flex items-center justify-between text-xs text-zinc-400 font-mono">
-                        <span class="font-semibold text-zinc-300 flex items-center gap-1.5">
-                            <i data-lucide="message-circle" class="w-3.5 h-3.5 text-zinc-400"></i> Javoblar ({% if item.comments.is_empty() %}0{% else %}{{ item.comments.len() }}{% endif %})
+                <div class="mt-4 pt-4 border-t border-ink/5 flex flex-col gap-3.5">
+                    <div class="flex items-center justify-between text-xs text-muted font-mono">
+                        <span class="font-semibold text-ink2 flex items-center gap-1.5">
+                            <i data-lucide="message-circle" class="w-3.5 h-3.5 text-muted"></i> Javoblar ({% if item.comments.is_empty() %}0{% else %}{{ item.comments.len() }}{% endif %})
                         </span>
                     </div>
 
@@ -178,15 +178,15 @@
                     {% if !item.comments.is_empty() %}
                     <div class="flex flex-col gap-2.5 pl-3 sm:pl-4 border-l-2 border-brand-orange/40">
                         {% for comment in item.comments %}
-                        <div class="p-3 sm:p-3.5 rounded-2xl bg-black/50 border border-white/5 text-xs flex flex-col gap-1.5">
-                            <div class="flex items-center justify-between text-[11px] font-mono text-zinc-400">
+                        <div class="p-3 sm:p-3.5 rounded-2xl bg-paper/50 border border-ink/5 text-xs flex flex-col gap-1.5">
+                            <div class="flex items-center justify-between text-[11px] font-mono text-muted">
                                 <span class="font-semibold text-brand-orange">@{{ comment.author_name }}</span>
                                 <div class="flex items-center gap-2">
-                                    <span class="text-zinc-600">{{ comment.created_at.format("%H:%M") }}</span>
-                                    <button class="comment-owner-action hidden text-zinc-600 hover:text-rose-400 transition-colors cursor-pointer flex items-center" data-author="{{ comment.author_name }}" onclick="deleteCommentPrompt('{{ comment.id }}')" title="Izohni o'chirish"><i data-lucide="trash-2" class="w-3 h-3"></i></button>
+                                    <span class="text-dim">{{ comment.created_at.format("%H:%M") }}</span>
+                                    <button class="comment-owner-action hidden text-dim hover:text-rose-400 transition-colors cursor-pointer flex items-center" data-author="{{ comment.author_name }}" onclick="deleteCommentPrompt('{{ comment.id }}')" title="Izohni o'chirish"><i data-lucide="trash-2" class="w-3 h-3"></i></button>
                                 </div>
                             </div>
-                            <div class="comment-content markdown-body text-zinc-200 font-sans leading-relaxed text-xs sm:text-sm" data-raw="{{ comment.content }}">
+                            <div class="comment-content markdown-body text-ink font-sans leading-relaxed text-xs sm:text-sm" data-raw="{{ comment.content }}">
                                 {{ comment.content }}
                             </div>
                         </div>
@@ -196,8 +196,8 @@
 
                     <!-- Reply Form -->
                     <form onsubmit="replyToPost('{{ item.post.id }}', this); return false;" class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 mt-2">
-                        <input type="text" name="content" required placeholder="Ushbu muhokamaga javob yozing..." class="flex-grow px-4 py-2.5 rounded-xl bg-zinc-950 border border-white/10 text-xs sm:text-sm text-white placeholder-zinc-500 focus:outline-none focus:border-brand-orange font-sans transition-colors"/>
-                        <button type="submit" class="px-5 py-2.5 rounded-xl bg-brand-orange hover:bg-orange-600 text-white font-semibold text-xs transition-all shrink-0 flex items-center justify-center gap-1.5 active:scale-95 shadow-md">
+                        <input type="text" name="content" required placeholder="Ushbu muhokamaga javob yozing..." class="flex-grow px-4 py-2.5 rounded-xl bg-sunk border border-ink/10 text-xs sm:text-sm text-ink placeholder-faint focus:outline-none focus:border-brand-orange font-sans transition-colors"/>
+                        <button type="submit" class="px-5 py-2.5 rounded-xl bg-brand-orange hover:bg-orange-600 text-on-accent font-semibold text-xs transition-all shrink-0 flex items-center justify-center gap-1.5 active:scale-95 shadow-md">
                             <span>Javob berish</span> &rarr;
                         </button>
                     </form>
@@ -211,105 +211,105 @@
 </div>
 
 <!-- Modal: New Post (Rich Markdown Editor & Live Preview) -->
-<div id="postModal" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-3 sm:p-4">
-    <div class="w-full max-w-2xl sm:max-w-3xl bg-zinc-950 border border-white/15 rounded-2xl p-5 sm:p-6 shadow-2xl flex flex-col gap-4">
-        <div class="flex items-center justify-between pb-3 border-b border-white/10">
+<div id="postModal" class="hidden fixed inset-0 z-50 bg-paper/80 backdrop-blur-md flex items-center justify-center p-3 sm:p-4">
+    <div class="w-full max-w-2xl sm:max-w-3xl bg-sunk border border-ink/15 rounded-2xl p-5 sm:p-6 shadow-2xl flex flex-col gap-4">
+        <div class="flex items-center justify-between pb-3 border-b border-ink/10">
             <div class="flex items-center gap-2">
                 <i data-lucide="edit-3" class="w-5 h-5 text-brand-orange"></i>
-                <h3 class="text-base font-bold text-white">Yangi Muhokama Chop Etish</h3>
+                <h3 class="text-base font-bold text-ink">Yangi Muhokama Chop Etish</h3>
             </div>
-            <button onclick="document.getElementById('postModal').classList.add('hidden')" class="text-zinc-500 hover:text-white text-2xl leading-none">&times;</button>
+            <button onclick="document.getElementById('postModal').classList.add('hidden')" class="text-faint hover:text-ink text-2xl leading-none">&times;</button>
         </div>
 
         <div class="flex flex-col gap-3 text-xs">
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                    <label class="block text-zinc-400 font-medium mb-1">Mavzu kanali:</label>
-                    <select id="postTopic" class="w-full px-3 py-2 rounded-xl bg-zinc-900 border border-white/10 text-white focus:outline-none focus:border-brand-orange">
+                    <label class="block text-muted font-medium mb-1">Mavzu kanali:</label>
+                    <select id="postTopic" class="w-full px-3 py-2 rounded-xl bg-surface border border-ink/10 text-ink focus:outline-none focus:border-brand-orange">
                         {% for topic in topics %}
                         <option value="{{ topic.slug }}">{{ topic.slug }} — {{ topic.title }}</option>
                         {% endfor %}
                     </select>
                 </div>
                 <div>
-                    <label class="block text-zinc-400 font-medium mb-1">Sarlavha:</label>
-                    <input type="text" id="postTitle" placeholder="Muhokama sarlavhasi..." class="w-full px-3 py-2 rounded-xl bg-zinc-900 border border-white/10 text-white focus:outline-none focus:border-brand-orange font-sans"/>
+                    <label class="block text-muted font-medium mb-1">Sarlavha:</label>
+                    <input type="text" id="postTitle" placeholder="Muhokama sarlavhasi..." class="w-full px-3 py-2 rounded-xl bg-surface border border-ink/10 text-ink focus:outline-none focus:border-brand-orange font-sans"/>
                 </div>
             </div>
 
             <!-- Editor / Preview Tabs & Markdown Toolbar -->
             <div>
-                <div class="flex items-center justify-between border-b border-white/10 pb-2 mb-2 flex-wrap gap-2">
+                <div class="flex items-center justify-between border-b border-ink/10 pb-2 mb-2 flex-wrap gap-2">
                     <div class="flex items-center gap-1.5">
-                        <button type="button" id="tabBtnWrite" onclick="switchPostTab('write')" class="px-3 py-1 rounded-lg text-xs font-semibold bg-brand-orange text-white flex items-center gap-1.5 transition-colors cursor-pointer">
+                        <button type="button" id="tabBtnWrite" onclick="switchPostTab('write')" class="px-3 py-1 rounded-lg text-xs font-semibold bg-brand-orange text-on-accent flex items-center gap-1.5 transition-colors cursor-pointer">
                             <i data-lucide="edit-3" class="w-3.5 h-3.5"></i> <span>Tahrirlash</span>
                         </button>
-                        <button type="button" id="tabBtnPreview" onclick="switchPostTab('preview')" class="px-3 py-1 rounded-lg text-xs font-semibold text-zinc-400 hover:text-white hover:bg-zinc-900 flex items-center gap-1.5 transition-colors cursor-pointer">
+                        <button type="button" id="tabBtnPreview" onclick="switchPostTab('preview')" class="px-3 py-1 rounded-lg text-xs font-semibold text-muted hover:text-ink hover:bg-surface flex items-center gap-1.5 transition-colors cursor-pointer">
                             <i data-lucide="eye" class="w-3.5 h-3.5"></i> <span>Jonli ko'rish (Preview)</span>
                         </button>
                     </div>
 
                     <!-- Markdown Quick Toolbar -->
-                    <div id="mdToolbar" class="flex items-center gap-1 text-zinc-400 flex-wrap">
-                        <button type="button" onclick="insertMd('**', '**')" class="p-1 px-1.5 hover:text-white hover:bg-zinc-900 border border-transparent hover:border-white/10 rounded font-bold text-xs" title="Qalin (Bold)">B</button>
-                        <button type="button" onclick="insertMd('*', '*')" class="p-1 px-1.5 hover:text-white hover:bg-zinc-900 border border-transparent hover:border-white/10 rounded italic text-xs" title="Kursiv (Italic)">I</button>
-                        <button type="button" onclick="insertMd('`', '`')" class="p-1 px-1.5 hover:text-white hover:bg-zinc-900 border border-transparent hover:border-white/10 rounded font-mono text-xs" title="Inline kod">&lt;/&gt;</button>
-                        <button type="button" onclick="insertMd('```rust\n', '\n```')" class="p-1 px-2 hover:text-white bg-zinc-900/60 hover:bg-zinc-900 border border-white/10 rounded font-mono text-[11px] text-amber-400 font-semibold" title="Rust kod bloki">```rust```</button>
-                        <button type="button" onclick="insertMd('[', '](https://)')" class="p-1 px-1.5 hover:text-white hover:bg-zinc-900 border border-transparent hover:border-white/10 rounded text-xs" title="Havola">[link]</button>
-                        <button type="button" onclick="insertMd('> ', '')" class="p-1 px-1.5 hover:text-white hover:bg-zinc-900 border border-transparent hover:border-white/10 rounded text-xs" title="Iqtibos">&gt;</button>
-                        <button type="button" onclick="insertMd('- ', '')" class="p-1 px-1.5 hover:text-white hover:bg-zinc-900 border border-transparent hover:border-white/10 rounded text-xs" title="Ro'yxat">&bull; List</button>
+                    <div id="mdToolbar" class="flex items-center gap-1 text-muted flex-wrap">
+                        <button type="button" onclick="insertMd('**', '**')" class="p-1 px-1.5 hover:text-ink hover:bg-surface border border-transparent hover:border-ink/10 rounded font-bold text-xs" title="Qalin (Bold)">B</button>
+                        <button type="button" onclick="insertMd('*', '*')" class="p-1 px-1.5 hover:text-ink hover:bg-surface border border-transparent hover:border-ink/10 rounded italic text-xs" title="Kursiv (Italic)">I</button>
+                        <button type="button" onclick="insertMd('`', '`')" class="p-1 px-1.5 hover:text-ink hover:bg-surface border border-transparent hover:border-ink/10 rounded font-mono text-xs" title="Inline kod">&lt;/&gt;</button>
+                        <button type="button" onclick="insertMd('```rust\n', '\n```')" class="p-1 px-2 hover:text-ink bg-surface/60 hover:bg-surface border border-ink/10 rounded font-mono text-[11px] text-amber-400 font-semibold" title="Rust kod bloki">```rust```</button>
+                        <button type="button" onclick="insertMd('[', '](https://)')" class="p-1 px-1.5 hover:text-ink hover:bg-surface border border-transparent hover:border-ink/10 rounded text-xs" title="Havola">[link]</button>
+                        <button type="button" onclick="insertMd('> ', '')" class="p-1 px-1.5 hover:text-ink hover:bg-surface border border-transparent hover:border-ink/10 rounded text-xs" title="Iqtibos">&gt;</button>
+                        <button type="button" onclick="insertMd('- ', '')" class="p-1 px-1.5 hover:text-ink hover:bg-surface border border-transparent hover:border-ink/10 rounded text-xs" title="Ro'yxat">&bull; List</button>
                     </div>
                 </div>
 
                 <!-- Write Area -->
                 <div id="postWriteArea">
-                    <textarea id="postContent" rows="7" placeholder="Kodingiz yoki savolingizni yozing (Markdown to'liq qo'llab-quvvatlanadi)..." class="w-full px-3.5 py-2.5 rounded-xl bg-zinc-900 border border-white/10 text-white placeholder-zinc-500 focus:outline-none focus:border-brand-orange font-mono text-xs leading-relaxed"></textarea>
+                    <textarea id="postContent" rows="7" placeholder="Kodingiz yoki savolingizni yozing (Markdown to'liq qo'llab-quvvatlanadi)..." class="w-full px-3.5 py-2.5 rounded-xl bg-surface border border-ink/10 text-ink placeholder-faint focus:outline-none focus:border-brand-orange font-mono text-xs leading-relaxed"></textarea>
                 </div>
 
                 <!-- Preview Area -->
-                <div id="postPreviewArea" class="hidden min-h-[160px] max-h-[280px] overflow-y-auto p-4 rounded-xl bg-black/60 border border-white/10 markdown-body">
+                <div id="postPreviewArea" class="hidden min-h-[160px] max-h-[280px] overflow-y-auto p-4 rounded-xl bg-paper/60 border border-ink/10 markdown-body">
                     <!-- Live preview renders here -->
                 </div>
             </div>
         </div>
 
-        <div class="flex justify-between items-center pt-2 border-t border-white/10 text-xs text-zinc-500 font-mono">
+        <div class="flex justify-between items-center pt-2 border-t border-ink/10 text-xs text-faint font-mono">
             <span>Markdown & Rust sintaksisi faol</span>
             <div class="flex items-center gap-2">
-                <button onclick="document.getElementById('postModal').classList.add('hidden')" class="px-4 py-2 rounded-xl text-zinc-400 hover:text-white transition-colors">Bekor qilish</button>
-                <button onclick="submitPost()" class="px-5 py-2 rounded-xl bg-brand-orange hover:bg-orange-600 text-white font-semibold shadow-md transition-all active:scale-95">Chop etish</button>
+                <button onclick="document.getElementById('postModal').classList.add('hidden')" class="px-4 py-2 rounded-xl text-muted hover:text-ink transition-colors">Bekor qilish</button>
+                <button onclick="submitPost()" class="px-5 py-2 rounded-xl bg-brand-orange hover:bg-orange-600 text-on-accent font-semibold shadow-md transition-all active:scale-95">Chop etish</button>
             </div>
         </div>
     </div>
 </div>
 
 <!-- Modal: Rustacean Leaderboard (Top Dasturchilar) -->
-<div id="leaderboardModal" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-3 sm:p-4" onclick="if(event.target===this) closeLeaderboardModal()">
-    <div class="w-full max-w-2xl bg-zinc-950 border border-white/15 rounded-2xl p-5 sm:p-6 shadow-2xl flex flex-col gap-4 max-h-[85vh]">
-        <div class="flex items-center justify-between pb-3 border-b border-white/10">
+<div id="leaderboardModal" class="hidden fixed inset-0 z-50 bg-paper/80 backdrop-blur-md flex items-center justify-center p-3 sm:p-4" onclick="if(event.target===this) closeLeaderboardModal()">
+    <div class="w-full max-w-2xl bg-sunk border border-ink/15 rounded-2xl p-5 sm:p-6 shadow-2xl flex flex-col gap-4 max-h-[85vh]">
+        <div class="flex items-center justify-between pb-3 border-b border-ink/10">
             <div class="flex items-center gap-2.5">
                 <span class="p-2 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-400">
                     <i data-lucide="trophy" class="w-5 h-5"></i>
                 </span>
                 <div>
-                    <h3 class="text-base font-bold text-white">Top Rustaceanlar (Leaderboard)</h3>
-                    <p class="text-xs text-zinc-400">O'zbekiston Rust hamjamiyati eng faol dasturchilari va obro' reytingi</p>
+                    <h3 class="text-base font-bold text-ink">Top Rustaceanlar (Leaderboard)</h3>
+                    <p class="text-xs text-muted">O'zbekiston Rust hamjamiyati eng faol dasturchilari va obro' reytingi</p>
                 </div>
             </div>
-            <button onclick="closeLeaderboardModal()" class="text-zinc-500 hover:text-white text-2xl leading-none">&times;</button>
+            <button onclick="closeLeaderboardModal()" class="text-faint hover:text-ink text-2xl leading-none">&times;</button>
         </div>
 
         <!-- Leaderboard List -->
-        <div id="leaderboardList" class="overflow-y-auto space-y-2 pr-1 divide-y divide-white/5">
-            <div class="py-8 text-center text-zinc-500 font-mono text-xs">
+        <div id="leaderboardList" class="overflow-y-auto space-y-2 pr-1 divide-y divide-ink/5">
+            <div class="py-8 text-center text-faint font-mono text-xs">
                 <span class="w-4 h-4 border-2 border-brand-orange border-t-transparent rounded-full animate-spin inline-block mr-2"></span>
                 Reyting yuklanmoqda...
             </div>
         </div>
 
-        <div class="flex items-center justify-between pt-3 border-t border-white/10 text-xs font-mono text-zinc-500">
+        <div class="flex items-center justify-between pt-3 border-t border-ink/10 text-xs font-mono text-faint">
             <span>Formula: Postlar*15 + Sharhlar*5 + Ko'rishlar/10</span>
-            <button onclick="closeLeaderboardModal()" class="px-4 py-1.5 rounded-lg bg-zinc-900 hover:bg-zinc-800 text-zinc-300 hover:text-white border border-white/10 transition-colors">Yopish</button>
+            <button onclick="closeLeaderboardModal()" class="px-4 py-1.5 rounded-lg bg-surface hover:bg-surface2 text-ink2 hover:text-ink border border-ink/10 transition-colors">Yopish</button>
         </div>
     </div>
 </div>
@@ -510,14 +510,14 @@
             writeArea.classList.remove('hidden');
             previewArea.classList.add('hidden');
             toolbar.classList.remove('hidden');
-            tabBtnWrite.className = 'px-3 py-1 rounded-lg text-xs font-semibold bg-brand-orange text-white flex items-center gap-1.5 transition-colors cursor-pointer';
-            tabBtnPreview.className = 'px-3 py-1 rounded-lg text-xs font-semibold text-zinc-400 hover:text-white hover:bg-zinc-900 flex items-center gap-1.5 transition-colors cursor-pointer';
+            tabBtnWrite.className = 'px-3 py-1 rounded-lg text-xs font-semibold bg-brand-orange text-on-accent flex items-center gap-1.5 transition-colors cursor-pointer';
+            tabBtnPreview.className = 'px-3 py-1 rounded-lg text-xs font-semibold text-muted hover:text-ink hover:bg-surface flex items-center gap-1.5 transition-colors cursor-pointer';
         } else {
             writeArea.classList.add('hidden');
             previewArea.classList.remove('hidden');
             toolbar.classList.add('hidden');
-            tabBtnWrite.className = 'px-3 py-1 rounded-lg text-xs font-semibold text-zinc-400 hover:text-white hover:bg-zinc-900 flex items-center gap-1.5 transition-colors cursor-pointer';
-            tabBtnPreview.className = 'px-3 py-1 rounded-lg text-xs font-semibold bg-brand-orange text-white flex items-center gap-1.5 transition-colors cursor-pointer';
+            tabBtnWrite.className = 'px-3 py-1 rounded-lg text-xs font-semibold text-muted hover:text-ink hover:bg-surface flex items-center gap-1.5 transition-colors cursor-pointer';
+            tabBtnPreview.className = 'px-3 py-1 rounded-lg text-xs font-semibold bg-brand-orange text-on-accent flex items-center gap-1.5 transition-colors cursor-pointer';
 
             const content = document.getElementById('postContent').value.trim();
             if (content && window.marked) {
@@ -526,7 +526,7 @@
                     if (window.hljs) hljs.highlightElement(block);
                 });
             } else {
-                previewArea.innerHTML = '<span class="text-zinc-500 italic">Ko\'rish uchun avval matn yozing...</span>';
+                previewArea.innerHTML = '<span class="text-faint italic">Ko\'rish uchun avval matn yozing...</span>';
             }
         }
     }
@@ -559,7 +559,7 @@
         if (!list) return;
 
         list.innerHTML = `
-            <div class="py-8 text-center text-zinc-500 font-mono text-xs">
+            <div class="py-8 text-center text-faint font-mono text-xs">
                 <span class="w-4 h-4 border-2 border-brand-orange border-t-transparent rounded-full animate-spin inline-block mr-2"></span>
                 Reyting yuklanmoqda...
             </div>
@@ -569,7 +569,7 @@
             const res = await fetch('/api/v1/leaderboard');
             const data = await res.json();
             if (!data.users || data.users.length === 0) {
-                list.innerHTML = '<div class="py-8 text-center text-zinc-500 text-xs">Hozircha foydalanuvchilar topilmadi</div>';
+                list.innerHTML = '<div class="py-8 text-center text-faint text-xs">Hozircha foydalanuvchilar topilmadi</div>';
                 return;
             }
 
@@ -579,20 +579,20 @@
                 if (u.rank === 1) medal = '🥇';
                 else if (u.rank === 2) medal = '🥈';
                 else if (u.rank === 3) medal = '🥉';
-                else medal = `<span class="text-zinc-500 font-mono text-xs">#${u.rank}</span>`;
+                else medal = `<span class="text-faint font-mono text-xs">#${u.rank}</span>`;
 
                 let badgesHtml = '';
                 if (u.badges && u.badges.length) {
-                    badgesHtml = u.badges.map(b => `<span class="px-2 py-0.5 rounded-md text-[10px] font-mono bg-zinc-900 border border-white/10 text-zinc-300">${b}</span>`).join(' ');
+                    badgesHtml = u.badges.map(b => `<span class="px-2 py-0.5 rounded-md text-[10px] font-mono bg-surface border border-ink/10 text-ink2">${b}</span>`).join(' ');
                 }
 
                 html += `
-                    <div class="flex items-center justify-between p-3 rounded-2xl hover:bg-zinc-900/60 transition-colors gap-3">
+                    <div class="flex items-center justify-between p-3 rounded-2xl hover:bg-surface/60 transition-colors gap-3">
                         <div class="flex items-center gap-3 min-w-0">
                             <span class="w-6 text-center text-base shrink-0 font-bold">${medal}</span>
-                            <img src="${u.avatar_url || '/logo.png'}" class="w-10 h-10 rounded-xl object-cover border border-white/10 shrink-0"/>
+                            <img src="${u.avatar_url || '/logo.png'}" class="w-10 h-10 rounded-xl object-cover border border-ink/10 shrink-0"/>
                             <div class="min-w-0">
-                                <a href="https://ferris.uz/@${u.username}" class="text-sm font-bold text-white hover:text-brand-orange transition-colors flex items-center gap-1.5 truncate">
+                                <a href="https://ferris.uz/@${u.username}" class="text-sm font-bold text-ink hover:text-brand-orange transition-colors flex items-center gap-1.5 truncate">
                                     <span>${u.display_name}</span>
                                     <span class="text-xs font-mono text-brand-orange font-normal">@${u.username}</span>
                                 </a>
@@ -605,7 +605,7 @@
                             <div class="text-xs font-mono font-bold text-amber-400 flex items-center justify-end gap-1">
                                 <i data-lucide="zap" class="w-3.5 h-3.5 fill-current"></i> ${u.karma} Karma
                             </div>
-                            <div class="text-[11px] font-mono text-zinc-500 mt-0.5">
+                            <div class="text-[11px] font-mono text-faint mt-0.5">
                                 ${u.posts_count} post &bull; ${u.total_views} ko'rish
                             </div>
                         </div>
