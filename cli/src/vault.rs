@@ -1,7 +1,7 @@
 // ==============================================================================
 // FERRIS VAULT — In-Memory Sealed Secrets Vault Engine
 // Encryption: ChaCha20-Poly1305 Authenticated Encryption (AEAD)
-// Key Derivation: BLAKE3 Cryptographic KDF + Machine-Bound Host Seed
+// Key Derivation: Argon2id (parol) / BLAKE3 + Machine-Bound Host Seed (master kalit)
 // Zero-Disk Footprint: Plaintext exists ONLY in RAM, wiped with zeroize
 // ==============================================================================
 
@@ -15,19 +15,34 @@ use chacha20poly1305::{
 };
 use rand::RngExt;
 
-const MAGIC_HEADER: &[u8; 16] = b"FERRIS_VAULT_V1\0";
+// V1: [MAGIC 16b] + [NONCE 12b] + [CIPHERTEXT] — parol BLAKE3 bilan (faqat o'qish uchun qoldirilgan)
+// V2: [MAGIC 16b] + [SALT 16b] + [NONCE 12b] + [CIPHERTEXT] — parol Argon2id bilan
+const MAGIC_HEADER_V1: &[u8; 16] = b"FERRIS_VAULT_V1\0";
+const MAGIC_HEADER: &[u8; 16] = b"FERRIS_VAULT_V2\0";
+const SALT_LEN: usize = 16;
 const NONCE_LEN: usize = 12;
 
-/// Master kalitni olish yoki yaratish
-pub fn get_or_create_master_key(password: Option<&str>) -> Result<[u8; 32], String> {
-    if let Some(pwd) = password {
-        if !pwd.is_empty() {
-            // Foydalanuvchi parolidan BLAKE3 KDF orqali 256-bitli kalit hosil qilish
-            let key = blake3::derive_key("ferris-vault-kdf-v1-context", pwd.as_bytes());
-            return Ok(key);
-        }
+/// Vault kalitini olish: parol berilgan bo'lsa undan, aks holda mashina master kalitidan.
+/// `salt` = None faqat eski V1 fayllarni ochish uchun (BLAKE3, brute-force'ga chidamsiz).
+fn derive_vault_key(password: Option<&str>, salt: Option<&[u8]>) -> Result<[u8; 32], String> {
+    match password.filter(|p| !p.is_empty()) {
+        Some(pwd) => match salt {
+            Some(salt) => {
+                // Argon2id — sekin, xotira talab qiladigan KDF: parolni tanlab topishni qimmatlashtiradi
+                let mut key = [0u8; 32];
+                argon2::Argon2::default()
+                    .hash_password_into(pwd.as_bytes(), salt, &mut key)
+                    .map_err(|e| format!("Paroldan kalit hosil qilib bo'lmadi: {}", e))?;
+                Ok(key)
+            }
+            None => Ok(blake3::derive_key("ferris-vault-kdf-v1-context", pwd.as_bytes())),
+        },
+        None => get_or_create_master_key(),
     }
+}
 
+/// Mashinaga bog'langan master kalitni olish yoki yaratish
+pub fn get_or_create_master_key() -> Result<[u8; 32], String> {
     // 1. Tizim miqyosidagi umumiy kalit (/etc/ferris/vault.key) ni tekshirish
     let shared_system_key = PathBuf::from("/etc/ferris/vault.key");
     if shared_system_key.exists() {
@@ -160,7 +175,9 @@ pub fn seal_vault(
     // Nechta o'zgaruvchi borligini sanash
     let count = parse_env_string(&String::from_utf8_lossy(&plaintext)).len();
 
-    let master_key = get_or_create_master_key(password)?;
+    let mut salt = [0u8; SALT_LEN];
+    rand::rng().fill(&mut salt);
+    let master_key = derive_vault_key(password, Some(&salt))?;
     let cipher = ChaCha20Poly1305::new(&Key::from(master_key));
 
     // 12 baytlik tasodifiy Nonce
@@ -175,12 +192,13 @@ pub fn seal_vault(
     // Xotiradagi ochiq matnni xavfsiz tozalash
     plaintext.fill(0);
 
-    // Natijaviy fayl: [MAGIC_HEADER 16b] + [NONCE 12b] + [CIPHERTEXT + TAG]
+    // Natijaviy fayl: [MAGIC_HEADER 16b] + [SALT 16b] + [NONCE 12b] + [CIPHERTEXT + TAG]
     let mut out_file = File::create(output_path)
         .map_err(|e| format!("Natijaviy faylni yaratib bo'lmadi: {}", e))?;
 
     out_file
         .write_all(MAGIC_HEADER)
+        .and_then(|_| out_file.write_all(&salt))
         .and_then(|_| out_file.write_all(&nonce_bytes))
         .and_then(|_| out_file.write_all(&ciphertext))
         .map_err(|e| format!("Shifrlangan ma'lumotni yozib bo'lmadi: {}", e))?;
@@ -204,20 +222,28 @@ pub fn load_vault_to_env(
     let data = fs::read(vault_path)
         .map_err(|e| format!("Vault faylini o'qib bo'lmadi: {}", e))?;
 
-    if data.len() < (MAGIC_HEADER.len() + NONCE_LEN + 16) {
+    if data.len() < MAGIC_HEADER.len() {
         return Err("Yaroqsiz yoki buzilgan vault fayli (hajmi juda kichik)".to_string());
     }
 
-    if &data[..MAGIC_HEADER.len()] != MAGIC_HEADER {
-        return Err("Fayl formati noto'g'ri (Ferris Vault signaturasi mos kelmadi)".to_string());
+    let is_v2 = match &data[..MAGIC_HEADER.len()] {
+        h if h == MAGIC_HEADER => true,
+        h if h == MAGIC_HEADER_V1 => false,
+        _ => return Err("Fayl formati noto'g'ri (Ferris Vault signaturasi mos kelmadi)".to_string()),
+    };
+    let nonce_start = MAGIC_HEADER.len() + if is_v2 { SALT_LEN } else { 0 };
+
+    if data.len() < (nonce_start + NONCE_LEN + 16) {
+        return Err("Yaroqsiz yoki buzilgan vault fayli (hajmi juda kichik)".to_string());
     }
 
-    let nonce_start = MAGIC_HEADER.len();
+    let salt = is_v2.then(|| &data[MAGIC_HEADER.len()..nonce_start]);
+
     let nonce_end = nonce_start + NONCE_LEN;
     let nonce_bytes = &data[nonce_start..nonce_end];
     let ciphertext = &data[nonce_end..];
 
-    let master_key = get_or_create_master_key(password)?;
+    let master_key = derive_vault_key(password, salt)?;
     let cipher = ChaCha20Poly1305::new(&Key::from(master_key));
     let nonce = Nonce::try_from(nonce_bytes).map_err(|e| e.to_string())?;
 

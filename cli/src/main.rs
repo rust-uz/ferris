@@ -48,7 +48,7 @@ enum Commands {
         vault: String,
 
         /// Vault uchun maxsus parol (agar o'rnatilgan bo'lsa)
-        #[arg(short, long)]
+        #[arg(short, long, env = "FERRIS_VAULT_PASSWORD", hide_env_values = true)]
         password: Option<String>,
 
         /// Yadroviy qamalni (Landlock LSM) yoqish
@@ -298,7 +298,7 @@ enum VaultCommands {
         output: String,
 
         /// Shifrlash uchun maxsus parol (ixtiyoriy, berilmasa mashina kaliti ishlatiladi)
-        #[arg(short, long)]
+        #[arg(short, long, env = "FERRIS_VAULT_PASSWORD", hide_env_values = true)]
         password: Option<String>,
 
         /// Asl ochiq faylni diskda saqlab qolish (Tavsiya etilmaydi!)
@@ -313,7 +313,7 @@ enum VaultCommands {
         vault: String,
 
         /// Parol (agar seal paytida kiritilgan bo'lsa)
-        #[arg(short, long)]
+        #[arg(short, long, env = "FERRIS_VAULT_PASSWORD", hide_env_values = true)]
         password: Option<String>,
 
         /// Maxfiy qiymatlarni ham ekranda ko'rsatish
@@ -332,7 +332,7 @@ enum VaultCommands {
         output: String,
 
         /// Parol (agar seal paytida kiritilgan bo'lsa)
-        #[arg(short, long)]
+        #[arg(short, long, env = "FERRIS_VAULT_PASSWORD", hide_env_values = true)]
         password: Option<String>,
     },
 }
