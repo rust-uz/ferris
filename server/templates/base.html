@@ -39,7 +39,9 @@
     <meta property="og:url" content="{% block og_url %}https://ferris.uz/{% endblock %}">
     <meta property="og:title" content="{% block og_title %}Ferris.uz — O'zbekiston Rust Tizim Dasturlash Ekotizimi{% endblock %}">
     <meta property="og:description" content="{% block og_desc %}O'zbekiston Rustaceanlar rasmiy portali. ferris-cli (v0.3.0), Post-Quantum BLAKE3 kriptografiyasi va o'zbekcha Rust kitobi (doc.ferris.uz).{% endblock %}">
-    <meta property="og:image" content="{% block og_image %}https://ferris.uz/logo.png{% endblock %}">
+    <meta property="og:image" content="{% block og_image %}https://ferris.uz/og-image.png{% endblock %}">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
     <meta property="og:site_name" content="Ferris.uz">
     <meta property="og:locale" content="uz_UZ">
 
@@ -48,7 +50,7 @@
     <meta name="twitter:url" content="{% block twitter_url %}https://ferris.uz/{% endblock %}">
     <meta name="twitter:title" content="{% block twitter_title %}Ferris.uz — O'zbekiston Rust Ekotizimi{% endblock %}">
     <meta name="twitter:description" content="{% block twitter_desc %}O'zbekiston suveren Rust dasturchilari forumi, ferris-cli va doc.ferris.uz rasmiy kitobi.{% endblock %}">
-    <meta name="twitter:image" content="{% block twitter_image %}https://ferris.uz/logo.png{% endblock %}">
+    <meta name="twitter:image" content="{% block twitter_image %}https://ferris.uz/og-image.png{% endblock %}">
 
     <!-- Structured Data (JSON-LD) for Search AI & Google Rich Snippets -->
     <script type="application/ld+json">
@@ -297,6 +299,11 @@
                 nav_dm_title: "Shaxsiy Xabarlar (DM)",
                 nav_profile: "Mening Profilim",
                 nav_logout: "Chiqish",
+                e404_title: "Bu sahifa topilmadi",
+                e404_text: "Manzil noto'g'ri yozilgan yoki sahifa ko'chirilgan bo'lishi mumkin. Quyidagi joylardan birini sinab ko'ring.",
+                e404_home: "Bosh sahifa",
+                e404_topics: "Mavzular va forum",
+                e404_groups: "Jamiyatlar",
                 drawer_search: "Tezkor Qidiruv",
                 drawer_lang_label: "Til / Language",
                 drawer_topics: "topics.ferris.uz (Mavzular)",
@@ -409,6 +416,11 @@
                 nav_dm_title: "Direct Messages (DM)",
                 nav_profile: "My Profile",
                 nav_logout: "Sign Out",
+                e404_title: "This page was not found",
+                e404_text: "The address may be mistyped or the page may have moved. Try one of the places below.",
+                e404_home: "Home",
+                e404_topics: "Topics & forum",
+                e404_groups: "Communities",
                 drawer_search: "Quick Search",
                 drawer_lang_label: "Language / Til",
                 drawer_topics: "topics.ferris.uz (Topics)",
@@ -1647,7 +1659,7 @@
                 const proto = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
                 const token = window.getAuthToken ? window.getAuthToken() : null;
                 const tokenParam = token ? `?token=${encodeURIComponent(token)}` : '';
-                const wsUrl = `${proto}//ferris.uz/ws/community${tokenParam}`;
+                const wsUrl = `${proto}//${window.location.host}/ws/community${tokenParam}`;
                 dmWs = new WebSocket(wsUrl);
 
                 dmWs.onopen = function() {

@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+
+{% block title %}404 — Sahifa topilmadi | Ferris.uz{% endblock %}
+{% block description %}Siz izlagan sahifa topilmadi. Bosh sahifaga, forumga yoki jamiyatlarga qayting.{% endblock %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto px-4 sm:px-6 py-14 sm:py-24 flex flex-col items-center text-center gap-6">
+    <img src="/mascot/ferris_404.png" alt="Ferris hayron: sahifa topilmadi" width="400" height="267" class="w-64 sm:w-96 h-auto drop-shadow-[0_12px_24px_rgba(247,76,0,0.25)]">
+    <p class="font-mono text-sm text-brand-orange tracking-wide">404 · NOT FOUND</p>
+    <h1 class="text-3xl sm:text-5xl font-bold tracking-tight text-ink" data-i18n="e404_title">Bu sahifa topilmadi</h1>
+    <p class="max-w-xl text-muted text-base sm:text-lg leading-relaxed" data-i18n="e404_text">Manzil noto'g'ri yozilgan yoki sahifa ko'chirilgan bo'lishi mumkin. Quyidagi joylardan birini sinab ko'ring.</p>
+    <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full sm:w-auto mt-2">
+        <a href="https://ferris.uz" class="inline-flex items-center justify-center gap-2 px-6 py-3 min-h-[44px] rounded-2xl bg-brand-orange text-on-accent font-semibold text-sm hover:opacity-90 transition-opacity" data-i18n="e404_home">Bosh sahifa</a>
+        <a href="https://topics.ferris.uz" class="inline-flex items-center justify-center gap-2 px-6 py-3 min-h-[44px] rounded-2xl bg-surface border border-ink/15 text-ink font-semibold text-sm hover:border-brand-orange/40 transition-colors" data-i18n="e404_topics">Mavzular va forum</a>
+        <a href="https://groups.ferris.uz" class="inline-flex items-center justify-center gap-2 px-6 py-3 min-h-[44px] rounded-2xl bg-surface border border-ink/15 text-ink font-semibold text-sm hover:border-brand-orange/40 transition-colors" data-i18n="e404_groups">Jamiyatlar</a>
+    </div>
+</div>
+{% endblock %}

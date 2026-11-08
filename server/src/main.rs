@@ -69,6 +69,10 @@ pub struct GroupDetailTemplate {
 pub struct LoginTemplate {}
 
 #[derive(Template)]
+#[template(path = "404.html")]
+pub struct NotFoundTemplate {}
+
+#[derive(Template)]
 #[template(path = "device.html")]
 pub struct DeviceTemplate {
     pub current_user: Option<UserProfile>,
@@ -907,8 +911,9 @@ async fn main() {
         .route("/api/v1/blocked-users", get(blocked_users_list_handler))
         // Real-time WebSocket
         .route("/ws/community", get(ws_community_handler))
-        .fallback_service(ServeDir::new("public"))
+        .fallback_service(ServeDir::new("public").not_found_service(axum::routing::get(not_found_handler)))
         .layer(cors)
+        .layer(axum::middleware::from_fn(security_headers))
         .layer(axum::middleware::from_fn(sanitize_proxy_headers))
         .with_state(state);
 
@@ -1233,6 +1238,39 @@ async fn group_detail_page_handler(
         Ok(html) => axum::response::Html(html).into_response(),
         Err(e) => (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()).into_response(),
     }
+}
+
+async fn not_found_handler() -> impl IntoResponse {
+    match (NotFoundTemplate {}).render() {
+        Ok(html) => (StatusCode::NOT_FOUND, axum::response::Html(html)).into_response(),
+        Err(_) => (StatusCode::NOT_FOUND, "404 — Sahifa topilmadi").into_response(),
+    }
+}
+
+/// Barcha javoblarga xavfsizlik sarlavhalari qo'shiladi (mavjud sarlavhalar o'zgartirilmaydi).
+/// CSP: sahifalarda inline skriptlar va Tailwind CDN ishlatiladi, shuning uchun script-src 'unsafe-inline'
+/// va Tailwind CDN uchun 'unsafe-eval' kerak (CDN o'rniga build qilingan CSS ga o'tilgach olib tashlanadi); qolgan yo'nalishlar (object, base, frame-ancestors, form-action) qat'iy cheklangan.
+async fn security_headers(
+    req: axum::extract::Request,
+    next: axum::middleware::Next,
+) -> axum::response::Response {
+    let mut res = next.run(req).await;
+    let h = res.headers_mut();
+    let csp = "default-src 'self'; \
+        script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.tailwindcss.com https://telegram.org; \
+        style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; \
+        font-src 'self' https://fonts.gstatic.com data:; \
+        img-src 'self' data: blob: https:; \
+        connect-src 'self' https://*.ferris.uz wss://*.ferris.uz https://cdn.tailwindcss.com; \
+        frame-src https://oauth.telegram.org https://telegram.org https://t.me; \
+        object-src 'none'; base-uri 'self'; form-action 'self' https://*.ferris.uz; frame-ancestors 'self'";
+    if !h.contains_key("content-security-policy") {
+        if let Ok(v) = axum::http::HeaderValue::from_str(csp) {
+            h.insert("content-security-policy", v);
+        }
+    }
+    h.entry("permissions-policy").or_insert(axum::http::HeaderValue::from_static("camera=(), microphone=(), geolocation=(), payment=()"));
+    res
 }
 
 async fn login_page_handler() -> impl IntoResponse {
@@ -2410,10 +2448,7 @@ async fn stats_handler(State(state): State<AppState>) -> Json<serde_json::Value>
         "topics_count": topics_count,
         "groups_count": groups_count,
         "posts_count": posts_count,
-        "cpu_usage": 1.2,
-        "ram_mb": 14.8,
-        "engine": "Axum 0.7 + Tokio (100% Rust)",
-        "ssl": "Cloudflare Ready"
+        "engine": "Axum 0.7 + Tokio (100% Rust)"
     }))
 }
 
