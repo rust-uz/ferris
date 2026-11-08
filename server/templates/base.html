@@ -1037,7 +1037,7 @@
             const token = window.getAuthToken();
             if (token) {
                 try {
-                    await fetch(`/api/auth/logout?token=${encodeURIComponent(token)}`, { method: 'POST' });
+                    await fetch('/api/auth/logout', { method: 'POST', headers: { 'Authorization': `Bearer ${token}` } });
                 } catch(e) {}
             }
             clearFerrisCookie();
@@ -1070,7 +1070,7 @@
 
             try {
                 // Use same-origin relative endpoint for fastest response without CORS overhead
-                const res = await fetch(`/api/auth/me?token=${encodeURIComponent(token)}`);
+                const res = await fetch('/api/auth/me', { headers: { 'Authorization': `Bearer ${token}` } });
                 if (res.ok) {
                     const user = await res.json();
                     window.currentUser = user;

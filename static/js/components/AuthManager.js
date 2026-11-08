@@ -39,7 +39,7 @@ export class AuthManager {
 
     async fetchMe() {
         try {
-            const res = await fetch(`/api/auth/me?token=${this.token}`);
+            const res = await fetch('/api/auth/me', { headers: { 'Authorization': `Bearer ${this.token}` } });
             if (res.ok) {
                 this.user = await res.json();
                 this.notify();
@@ -82,7 +82,7 @@ export class AuthManager {
     async logout() {
         if (this.token) {
             try {
-                await fetch(`/api/auth/logout?token=${this.token}`, { method: 'POST' });
+                await fetch('/api/auth/logout', { method: 'POST', headers: { 'Authorization': `Bearer ${this.token}` } });
             } catch (e) {}
         }
         localStorage.removeItem('ferris_session');

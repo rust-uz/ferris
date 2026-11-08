@@ -689,24 +689,27 @@ async fn main() {
     ];
 
     // PostgreSQL 16 ulanish
-    let database_url = std::env::var("DATABASE_URL")
-        .unwrap_or_else(|_| "postgresql://ferris_user:ferris_secure_2026_pw@127.0.0.1:5432/ferris_db".to_string());
-
-    let db_pool = match sqlx::postgres::PgPoolOptions::new()
-        .max_connections(50)
-        .acquire_timeout(Duration::from_secs(5))
-        .idle_timeout(Duration::from_secs(300))
-        .connect(&database_url)
-        .await
-    {
-        Ok(pool) => {
-            info!("🐘 [PostgreSQL 16] Bazasiga muvaffaqiyatli ulandi: {}", database_url);
-            Some(pool)
-        }
-        Err(e) => {
-            warn!("⚠️ [PostgreSQL 16] Ulanib bo'lmadi ({}), JSON fayl rejimi qo'llaniladi", e);
+    let db_pool = match std::env::var("DATABASE_URL") {
+        Err(_) => {
+            warn!("⚠️ [PostgreSQL 16] DATABASE_URL o'rnatilmagan, JSON fayl rejimi qo'llaniladi");
             None
         }
+        Ok(database_url) => match sqlx::postgres::PgPoolOptions::new()
+            .max_connections(50)
+            .acquire_timeout(Duration::from_secs(5))
+            .idle_timeout(Duration::from_secs(300))
+            .connect(&database_url)
+            .await
+        {
+            Ok(pool) => {
+                info!("🐘 [PostgreSQL 16] Bazasiga muvaffaqiyatli ulandi");
+                Some(pool)
+            }
+            Err(e) => {
+                warn!("⚠️ [PostgreSQL 16] Ulanib bo'lmadi ({}), JSON fayl rejimi qo'llaniladi", e);
+                None
+            }
+        },
     };
 
     let pg_data = if let Some(ref pool) = db_pool {
@@ -805,15 +808,20 @@ async fn main() {
         }
     });
 
+    let allow_localhost_origins = std::env::var("FERRIS_DEV").is_ok();
     let cors = CorsLayer::new()
-        .allow_origin(tower_http::cors::AllowOrigin::predicate(|origin, _| {
+        .allow_origin(tower_http::cors::AllowOrigin::predicate(move |origin, _| {
             if let Ok(origin_str) = origin.to_str() {
                 if origin_str == "https://ferris.uz"
                     || origin_str.ends_with(".ferris.uz")
                     || origin_str == "https://hikaku.uz"
                     || origin_str.ends_with(".hikaku.uz")
-                    || origin_str.starts_with("http://localhost:")
-                    || origin_str.starts_with("http://127.0.0.1:")
+                {
+                    return true;
+                }
+                if allow_localhost_origins
+                    && (origin_str.starts_with("http://localhost:")
+                        || origin_str.starts_with("http://127.0.0.1:"))
                 {
                     return true;
                 }
@@ -901,13 +909,16 @@ async fn main() {
         .route("/ws/community", get(ws_community_handler))
         .fallback_service(ServeDir::new("public"))
         .layer(cors)
+        .layer(axum::middleware::from_fn(sanitize_proxy_headers))
         .with_state(state);
 
     let addr = SocketAddr::from(([0, 0, 0, 0], 5000));
     info!("🦀 [FERRIS.UZ] Engine 2.0 with Full Subdomain API online on http://{}", addr);
 
     let listener = tokio::net::TcpListener::bind(addr).await.unwrap();
-    axum::serve(listener, app).await.unwrap();
+    axum::serve(listener, app.into_make_service_with_connect_info::<SocketAddr>())
+        .await
+        .unwrap();
 }
 
 // ==============================================================================
@@ -1010,6 +1021,29 @@ pub fn check_rate_limit(
     }
 }
 
+/// Proxy sarlavhalariga (CF-Connecting-IP, X-Real-IP, X-Forwarded-For) faqat lokal/xususiy tarmoqdagi
+/// proxy (Nginx, cloudflared) dan kelgan ulanishlarda ishoniladi. To'g'ridan-to'g'ri ulanishlarda ular
+/// o'chiriladi va haqiqiy peer IP X-Real-IP sifatida qo'yiladi — rate limiter'ni aldab bo'lmasligi uchun.
+async fn sanitize_proxy_headers(
+    axum::extract::ConnectInfo(peer): axum::extract::ConnectInfo<SocketAddr>,
+    mut req: axum::extract::Request,
+    next: axum::middleware::Next,
+) -> axum::response::Response {
+    let trusted = match peer.ip() {
+        std::net::IpAddr::V4(ip) => ip.is_loopback() || ip.is_private(),
+        std::net::IpAddr::V6(ip) => ip.is_loopback() || ip.to_ipv4_mapped().map_or(false, |v4| v4.is_loopback() || v4.is_private()),
+    };
+    if !trusted {
+        let headers = req.headers_mut();
+        headers.remove("cf-connecting-ip");
+        headers.remove("x-forwarded-for");
+        if let Ok(v) = axum::http::HeaderValue::from_str(&peer.ip().to_string()) {
+            headers.insert("x-real-ip", v);
+        }
+    }
+    next.run(req).await
+}
+
 pub fn get_client_ip(headers: &HeaderMap) -> String {
     // 1. CF-Connecting-IP (from Cloudflare)
     if let Some(cf_ip) = headers.get("cf-connecting-ip").and_then(|v| v.to_str().ok()) {
@@ -1035,6 +1069,23 @@ pub fn get_client_ip(headers: &HeaderMap) -> String {
         }
     }
     "127.0.0.1".to_string()
+}
+
+/// Sessiya tokenini faqat sarlavhalardan olish (URL query'da token qabul qilinmaydi — loglarga tushmasligi uchun)
+pub fn extract_session_token(headers: &HeaderMap) -> Option<String> {
+    headers
+        .get(axum::http::header::AUTHORIZATION)
+        .and_then(|h| h.to_str().ok())
+        .and_then(|v| v.strip_prefix("Bearer ").map(|s| s.trim().to_string()))
+        .or_else(|| {
+            headers
+                .get(axum::http::header::COOKIE)
+                .and_then(|h| h.to_str().ok())
+                .and_then(|cv| {
+                    cv.split(';')
+                        .find_map(|c| c.trim().strip_prefix("ferris_session=").map(|t| t.trim().to_string()))
+                })
+        })
 }
 
 pub fn get_authenticated_user(headers: &HeaderMap, state: &AppState) -> Option<UserProfile> {
@@ -1077,10 +1128,9 @@ pub fn get_authenticated_user(headers: &HeaderMap, state: &AppState) -> Option<U
 }
 
 pub fn is_system_admin(user: &UserProfile) -> bool {
-    user.id == "tg:5415350162"
-        || user.username.eq_ignore_ascii_case("founder")
-        || user.username.eq_ignore_ascii_case("iskurama")
-        || user.id.contains("ibrohimkoha")
+    // Faqat o'zgarmas ID bo'yicha tekshiriladi — username'ni foydalanuvchi o'zi o'zgartira oladi
+    let admin_ids = std::env::var("FERRIS_ADMIN_IDS").unwrap_or_else(|_| "tg:5415350162".to_string());
+    admin_ids.split(',').any(|id| id.trim() == user.id)
 }
 
 pub fn get_viewer_key(headers: &HeaderMap, state: &AppState) -> String {
@@ -2110,8 +2160,18 @@ pub struct PlaygroundExecuteResponse {
 
 async fn playground_execute_handler(
     State(state): State<AppState>,
+    headers: HeaderMap,
     Json(payload): Json<PlaygroundExecuteRequest>,
 ) -> impl IntoResponse {
+    let rate_key = format!("playground:{}", get_client_ip(&headers));
+    if !check_rate_limit(&state.rate_limiter, &rate_key, 10, 60) {
+        return (
+            StatusCode::TOO_MANY_REQUESTS,
+            Json(serde_json::json!({ "error": "Juda ko'p so'rov. Bir daqiqadan so'ng qayta urinib ko'ring" })),
+        )
+            .into_response();
+    }
+
     if payload.code.trim().is_empty() {
         return (
             StatusCode::BAD_REQUEST,
@@ -3792,38 +3852,11 @@ async fn telegram_auth_handler(
     ))
 }
 
-#[derive(Deserialize)]
-struct AuthQuery {
-    token: Option<String>,
-}
-
 async fn auth_me_handler(
     State(state): State<AppState>,
-    Query(query): Query<AuthQuery>,
     headers: HeaderMap,
 ) -> axum::response::Response {
-    let token = match query
-        .token
-        .or_else(|| {
-            headers
-                .get(axum::http::header::AUTHORIZATION)
-                .and_then(|h| h.to_str().ok())
-                .and_then(|v| v.strip_prefix("Bearer ").map(|s| s.trim().to_string()))
-        })
-        .or_else(|| {
-            headers
-                .get(axum::http::header::COOKIE)
-                .and_then(|h| h.to_str().ok())
-                .and_then(|cv| {
-                    for cookie in cv.split(';') {
-                        let cookie = cookie.trim();
-                        if let Some(tok) = cookie.strip_prefix("ferris_session=") {
-                            return Some(tok.trim().to_string());
-                        }
-                    }
-                    None
-                })
-        }) {
+    let token = match extract_session_token(&headers) {
         Some(t) => t,
         None => {
             return (
@@ -3912,31 +3945,9 @@ async fn auth_me_handler(
 
 async fn auth_logout_handler(
     State(state): State<AppState>,
-    Query(query): Query<AuthQuery>,
     headers: HeaderMap,
 ) -> impl IntoResponse {
-    let token = query
-        .token
-        .or_else(|| {
-            headers
-                .get(axum::http::header::AUTHORIZATION)
-                .and_then(|h| h.to_str().ok())
-                .and_then(|v| v.strip_prefix("Bearer ").map(|s| s.trim().to_string()))
-        })
-        .or_else(|| {
-            headers
-                .get(axum::http::header::COOKIE)
-                .and_then(|h| h.to_str().ok())
-                .and_then(|cv| {
-                    for cookie in cv.split(';') {
-                        let cookie = cookie.trim();
-                        if let Some(tok) = cookie.strip_prefix("ferris_session=") {
-                            return Some(tok.trim().to_string());
-                        }
-                    }
-                    None
-                })
-        });
+    let token = extract_session_token(&headers);
 
     if let Some(token) = token {
         let mut sessions = state.sessions.write().unwrap();
